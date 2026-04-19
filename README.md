@@ -35,36 +35,43 @@ reliability, authentication, network addressing, or fixture personality modeling
 - **Reserved fields and bits**: Senders MUST set them to zero; receivers MUST ignore their
   contents.
 
-- **Versioning**: [Semantic versioning](https://semver.org/) is used. Major version updates
-  indicate breaking changes; minor version updates add features without breaking existing clients.
+- **Versioning**: [Semantic versioning](https://semver.org/) is used (major version updates
+  indicate breaking changes; minor version updates add features without breaking existing clients).
 
 
 ## General Message Format
 
 All OPAL messages, whether sent by a host (request) or by a device (response), share the following 
-structure:
+general structure (payload length and payload are omitted for certain identifiers):
 
-| START MARKER    | COMMAND                  | PAYLOAD LENGTH | PAYLOAD                     | CHECKSUM |
-|-----------------|--------------------------|----------------|-----------------------------|----------|
-| 1 byte (`0x00`) | 1 byte (`0x01` – `0xFF`) | 2 bytes        | variable (certain commands) | 2 bytes  |
+| START MARKER    | IDENTIFIER               | PAYLOAD LENGTH | PAYLOAD  | CHECKSUM |
+|-----------------|--------------------------|----------------|----------|----------|
+| 1 byte (`0x00`) | 1 byte (`0x01` – `0xFF`) | 2 bytes        | variable | 2 bytes  |
 
-**Start marker**: Every OPAL message begins with `0x00`. The start marker provides frame alignment
-confirmation on a reliable byte stream. It is not a rigorous resynchronization mechanism.
+**General notes**: 
 
-**Command**: A single byte identifying the operation. The high bit distinguishes request commands
-(host→device, `0x01`–`0x7F`) from response commands (device→host, `0x80`–`0xFF`). Command values
-are further organized into ranges by purpose (see [Command Ranges](#command-ranges)).
+ - **Start marker**: Every OPAL message begins with `0x00`. The start marker provides frame
+   alignment confirmation on a reliable byte stream. It is not a rigorous resynchronization
+   mechanism.
 
-**Payload length**: A 16-bit unsigned integer, little-endian, specifying the length of the payload
-in bytes. Omitted for commands that carry no payload (see each command's definition).
+ - **Identifier**: A single byte identifying the message. The high bit distinguishes request 
+   messages (host→device, `0x01`–`0x7F`) from response messages (device→host, `0x80`–`0xFF`).
 
-**Payload**: Command-specific data. Omitted for commands that carry no payload.
+ - **Payload length**: A 16-bit unsigned integer, little-endian, specifying the length of the
+   payload in bytes. Omitted for messages that carry no payload (see each message's definition).
 
-**Checksum**: Two bytes, little-endian, containing a CRC-16/CCITT-FALSE over `command` +
-`payload length` + `payload`. The start marker is not included in the CRC calculation.
+ - **Payload**: Message-specific data. Omitted for messages that carry no payload.
 
-­­**CRC-16/CCITT-FALSE parameters**: Polynomial: `0x1021`, initial value: `0xFFFF`, No input 
-reflection, no output reflection, No final XOR.
+ - **Checksum**: Two bytes, little-endian, containing a CRC-16/CCITT-FALSE over `identifier` +
+   `payload length` + `payload`. The start marker is not included in the CRC calculation.
+
+**Regarding CRC**:
+
+The format used is **CRC-16/CCITT-FALSE** with the following parameters:
+
+ - Polynomial: `0x1021`
+ - Initial value: `0xFFFF`
+ - No input reflection, no output reflection, no final XOR.
 
 > [!NOTE]
 > Implementations can verify their CRC by computing it over the ASCII string `"123456789"`, which 
@@ -73,12 +80,12 @@ reflection, no output reflection, No final XOR.
 Receivers MUST validate the CRC on every incoming message and MUST reject messages with invalid
 CRCs by emitting an `ERROR` response with code `ERR_CRC_MISMATCH`. 
 
-## Command Ranges
+## Message Ranges
 
-Commands are grouped by purpose. The high bit of the command byte distinguishes request
-(host→device) from response/notification (device→host).
+Messages are grouped by purpose. The high bit of the identifier byte distinguishes requests 
+(host→device) from responses (device→host).
 
-### Request commands (`0x01`–`0x7F`)
+### Requests (`0x01`–`0x7F`)
 
 | Range           | Purpose                                                    |
 |-----------------|------------------------------------------------------------|
@@ -91,7 +98,7 @@ Commands are grouped by purpose. The high bit of the command byte distinguishes 
 | `0x60` – `0x6F` | Control operations (update, reset, etc.)                   |
 | `0x70` – `0x7F` | Vendor-specific extensions                                 |
 
-### Response commands (`0x80`–`0xFF`)
+### Responses (`0x80`–`0xFF`)
 
 | Range           | Purpose                                                    |
 |-----------------|------------------------------------------------------------|
@@ -104,24 +111,24 @@ Commands are grouped by purpose. The high bit of the command byte distinguishes 
 | `0xE0` – `0xEF` | Errors                                                     |
 | `0xF0` – `0xFF` | Vendor-specific responses                                  |
 
-**Response pairing convention.** The response command for a given request is the request command
-with the high bit set: a request with command `0x01` is paired with a response with command
-`0x81`.
+**Response pairing convention.** The response identifier for a given request is the request 
+identifier with the high bit set: a request with identifier `0x01` is paired with a response with
+identifier `0x81`.
 
 
 ## Channel Addressing Convention
 
-Commands that operate on a single LED channel use a one-byte channel identifier with the following
+Messages that operate on a single LED channel use a one-byte channel identifier with the following
 convention:
 
 - `0` through `N-1`: addresses the specified channel, where `N` is the number of channels
   reported by the device in its INFO response.
-- `255`: broadcast sentinel. The command applies to all channels simultaneously.
+- `255`: broadcast sentinel. The message applies to all channels simultaneously.
 - `N` through `254`: invalid. Implementations MUST reject messages specifying these values by
   emitting an `ERROR` response with code `ERR_INVALID_PARAMETER`.
 
 
-## Request Commands
+## Request Messages
 
 ### Request Device Information (`0x01`)
 
@@ -129,9 +136,9 @@ Queries the device for its identity and protocol compatibility. Typically sent d
 establishment. Devices MUST emit an unsolicited INFO response (`0x81`) when a connection is
 established.
 
-| START MARKER | COMMAND | CHECKSUM |
-|--------------|---------|----------|
-| `0x00`       | `0x01`  | 2 bytes  |
+| START MARKER | IDENTIFIER | CHECKSUM |
+|--------------|------------|----------|
+| `0x00`       | `0x01`     | 2 bytes  |
 
 **Response**: [`INFO`](#info-0x81).
 
@@ -139,9 +146,9 @@ established.
 
 Queries the device for its current configuration.
 
-| START MARKER | COMMAND | CHECKSUM |
-|--------------|---------|----------|
-| `0x00`       | `0x02`  | 2 bytes  |
+| START MARKER | IDENTIFIER | CHECKSUM |
+|--------------|------------|----------|
+| `0x00`       | `0x02`     | 2 bytes  |
 
 **Response**: [`CONFIG`](#config-0x82).
 
@@ -151,9 +158,9 @@ Sets the LED color order, protocol speed, and LED count for one channel, or for 
 simultaneously (broadcast). Typically sent during initialization, before any pixel data is
 streamed.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | CHANNEL | COLOR ORDER | SPEED  | LEDS ON CHANNEL | CHECKSUM |
-|--------------|---------|----------------|---------|-------------|--------|-----------------|----------|
-| `0x00`       | `0x20`  | `0x00` `0x05`  | 1 byte  | 1 byte      | 1 byte | 2 bytes         | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | CHANNEL | COLOR ORDER | SPEED  | LEDS ON CHANNEL | CHECKSUM |
+|--------------|------------|----------------|---------|-------------|--------|-----------------|----------|
+| `0x00`       | `0x20`     | `0x00` `0x05`  | 1 byte  | 1 byte      | 1 byte | 2 bytes         | 2 bytes  |
 
 **Channel number**:
 - `0` through `N-1`: configures the specified channel. Only supported by devices that advertise
@@ -194,8 +201,8 @@ Values `0x00` through `0x05` are 3-component (RGB) orderings; values `0x06` thro
 **LEDs on channel**: A 16-bit unsigned integer, little-endian. Maximum practical values depend on
 the controller's memory and capabilities.
 
-If the `Configure` command is not sent, implementations SHOULD default to GRB color order,
-800 kHz speed, and a device-specific default LED count.
+If `Configure Device` is not sent, implementations SHOULD default to GRB color order, 800 kHz
+speed, and a device-specific default LED count.
 
 **Response**: [`CONFIG`](#config-0x82) (confirming the applied configuration) or
 [`ERROR`](#error-0xe0) if the requested configuration is not supported.
@@ -203,12 +210,12 @@ If the `Configure` command is not sent, implementations SHOULD default to GRB co
 ### Set Pixels (`0x40`)
 
 Sets the color data for all LEDs on one channel, or on all channels simultaneously (broadcast).
-Data is buffered on the device; a [`Show`](#show-0x60) command is required to commit buffered
-data to the LEDs.
+Data is buffered on the device; a [`Show`](#show-0x60) message is required to commit buffered data
+to the LEDs.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | PAYLOAD                                         | CHECKSUM |
-|--------------|---------|----------------|-------------------------------------------------|----------|
-| `0x00`       | `0x40`  | 2 bytes        | Channel number + 3 (or 4) bytes per LED's color | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD                                         | CHECKSUM |
+|--------------|------------|----------------|-------------------------------------------------|----------|
+| `0x00`       | `0x40`     | 2 bytes        | Channel number + 3 (or 4) bytes per LED's color | 2 bytes  |
 
 **Channel number**:
 - `0` through `N-1`: assigns color data to the specified channel.
@@ -225,29 +232,28 @@ color order exactly; clients do not need to pre-swizzle.
 ### Fill Channel (`0x41`)
 
 Sets all LEDs on one channel, or all channels (broadcast), to a single uniform color. Data is
-buffered; a [`Show`](#show-0x60) command is required to commit.
+buffered; a [`Show`](#show-0x60) message is required to commit.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | PAYLOAD                                  | CHECKSUM |
-|--------------|---------|----------------|------------------------------------------|----------|
-| `0x00`       | `0x41`  | 2 bytes        | Channel number + R + G + B (+ W if RGBW) | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD                                  | CHECKSUM |
+|--------------|------------|----------------|------------------------------------------|----------|
+| `0x00`       | `0x41`     | 2 bytes        | Channel number + R + G + B (+ W if RGBW) | 2 bytes  |
 
 **Channel number**:
 - `0` through `N-1`: fills the specified channel.
 - `255`: broadcast. Fills all channels.
 
-The `Fill Color` command is typically used to turn channels off (`R=0, G=0, B=0`) or to apply test
-colors.
+`Fill Channel` is typically used to turn channels off (`R=0, G=0, B=0`) or to apply test colors.
 
 **Response**: None on success. Emits [`ERROR`](#error-0xe0) on failure.
 
 ### Show (`0x60`)
 
-Commits buffered channel data (from `Assign Colors` and `Fill Color`) to the physical LEDs. Can
+Commits buffered channel data (from `Set Pixels` and `Fill Channel`) to the physical LEDs. Can
 target a single channel or commit all channels atomically.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | CHANNEL | CHECKSUM |
-|--------------|---------|----------------|---------|----------|
-| `0x00`       | `0x60`  | `0x00` `0x01`  | 1 byte  | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | CHANNEL | CHECKSUM |
+|--------------|------------|----------------|---------|----------|
+| `0x00`       | `0x60`     | `0x00` `0x01`  | 1 byte  | 2 bytes  |
 
 **Channel number**:
 - `0` through `N-1`: commits only the specified channel. Only supported by devices that advertise
@@ -257,54 +263,41 @@ target a single channel or commit all channels atomically.
 
 Devices that do not advertise `CAP_PER_CHANNEL_SHOW` MUST respond with `ERR_UNSUPPORTED` when the
 channel value is anything other than `255`. Clients SHOULD check the capability flag before
-sending per-channel `Show` commands.
+sending per-channel `Show` messages.
 
-**Buffer persistence**: Each channel's buffer persists across `Show` commands and is overwritten
-only by subsequent `Assign Colors` or `Fill Color` commands targeting that channel. This allows
+**Buffer persistence**: Each channel's buffer persists across `Show` messages and is overwritten
+only by subsequent `Set Pixels` or `Fill Channel` messages targeting that channel. This allows
 clients to refresh channels at independent frame rates: a channel whose buffer is not rewritten
-between `Show` commands continues to display the last committed data.
+between `Show` messages continues to display the last committed data.
 
 **Response**: None on success. Emits [`ERROR`](#error-0xe0) on failure.
 
 
-## Response Commands
+## Response Messages
 
 ### INFO (`0x81`)
 
 Sent in response to [`Request Device Information`](#request-device-information-0x01) or as an
 unsolicited notification when a connection is established.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
-|--------------|---------|----------------|-----------|----------|
-| `0x00`       | `0x81`  | 2 bytes        | see below | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
+|--------------|------------|----------------|-----------|----------|
+| `0x00`       | `0x81`     | 2 bytes        | see below | 2 bytes  |
 
 **Payload structure**:
 
 | Field                   | Size     | Description                                          |
 |-------------------------|----------|------------------------------------------------------|
-| Protocol version major  | 1 byte   | Major version of the OPAL protocol (e.g., `0x01`)    |
-| Protocol version minor  | 1 byte   | Minor version of the OPAL protocol (e.g., `0x00`)    |
-| Firmware version major  | 1 byte   | Device firmware major version                        |
-| Firmware version minor  | 1 byte   | Device firmware minor version                        |
-| Firmware version patch  | 1 byte   | Device firmware patch version                        |
+| Protocol version major  | 1 byte   | Major version of the OPAL protocol                   |
+| Protocol version minor  | 1 byte   | Minor version of the OPAL protocol                   |
+| Protocol version patch  | 1 byte   | Patch version of the OPAL protocol                   |
 | Channel count           | 1 byte   | Number of LED channels (`N`) supported by the device |
-| Transport type          | 1 byte   | See transport values below                           |
-| Reserved                | 1 byte   | MUST be `0x00`                                       |
 | Capability flags        | 4 bytes  | Bitfield, little-endian; see capability bits below   |
 | Device name length      | 1 byte   | Length in bytes of the following UTF-8 string        |
 | Device name             | variable | UTF-8 encoded, not null-terminated                   |
-
-**Transport type values**:
-
-| Value  | Transport          |
-|--------|--------------------|
-| `0x00` | USB serial         |
-| `0x01` | TCP (reserved)     |
-| `0x02` | UDP (reserved)     |
-| `0x03` | SPI (reserved)     |
-| `0x04` | UART (reserved)    |
-
-Other values are reserved for future transport bindings.
+| Firmware version major  | 1 byte   | Device firmware major version                        |
+| Firmware version minor  | 1 byte   | Device firmware minor version                        |
+| Firmware version patch  | 1 byte   | Device firmware patch version                        |
 
 **Capability flags** (bit positions within the 32-bit little-endian field):
 
@@ -313,7 +306,7 @@ Other values are reserved for future transport bindings.
 | 0    | `CAP_RGBW`               | Device supports 4-component (RGBW) color orders                      |
 | 1    | `CAP_BROADCAST`          | Device supports channel `255` broadcast addressing                   |
 | 2    | `CAP_PER_CHANNEL_CONFIG` | Device supports configuring channels individually via [`Configure Device`](#configure-device-0x20) |
-| 3    | `CAP_PARTIAL_UPDATE`     | Reserved for future `Assign Range` command                           |
+| 3    | `CAP_PARTIAL_UPDATE`     | Reserved for future `Assign Range` message                           |
 | 4    | `CAP_PER_CHANNEL_SHOW`   | Device supports committing channels individually via [`Show`](#show-0x60) |
 | 5–31 | Reserved                 | MUST be `0` in senders; MUST be ignored by receivers                 |
 
@@ -322,11 +315,11 @@ Clients MUST ignore unknown capability bits to remain forward-compatible.
 ### CONFIG (`0x82`)
 
 Sent in response to [`Request Device Configuration`](#request-device-configuration-0x02) or after
-a successful [`Configure Device`](#configure-device-0x20) command.
+a successful [`Configure Device`](#configure-device-0x20) message.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
-|--------------|---------|----------------|-----------|----------|
-| `0x00`       | `0x82`  | 2 bytes        | see below | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
+|--------------|------------|----------------|-----------|----------|
+| `0x00`       | `0x82`     | 2 bytes        | see below | 2 bytes  |
 
 **Payload structure**:
 
@@ -337,64 +330,61 @@ consistency.
 
 Each channel configuration entry has the following structure:
 
-| Field            | Size    | Description                                        |
-|------------------|---------|----------------------------------------------------|
-| Color order      | 1 byte  | Encoding matches the `Configure` command           |
-| Speed            | 1 byte  | Encoding matches the `Configure` command           |
-| LED count        | 2 bytes | 16-bit unsigned integer, little-endian             |
+| Field            | Size    | Description                                           |
+|------------------|---------|-------------------------------------------------------|
+| Color order      | 1 byte  | Encoding matches the `Configure Device` message       |
+| Speed            | 1 byte  | Encoding matches the `Configure Device` message       |
+| LED count        | 2 bytes | 16-bit unsigned integer, little-endian                |
 
 ### ERROR (`0xE0`)
 
-Sent by the device to report a protocol or operational error. Errors are never silent — every
+Sent by the device to report a protocol or operational error. Errors are never silent. Every
 rejected message triggers an `ERROR` response.
 
-| START MARKER | COMMAND | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
-|--------------|---------|----------------|-----------|----------|
-| `0x00`       | `0xE0`  | 2 bytes        | see below | 2 bytes  |
+| START MARKER | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
+|--------------|------------|----------------|-----------|----------|
+| `0x00`       | `0xE0`     | 2 bytes        | see below | 2 bytes  |
 
 **Payload structure**:
 
-| Field              | Size     | Description                                                           |
-|--------------------|----------|-----------------------------------------------------------------------|
-| Error code         | 1 byte   | See error codes below                                                 |
-| Offending command  | 1 byte   | Command byte of the message that caused the error; `0x00` if unknown  |
-| Reserved           | 2 bytes  | MUST be `0x0000`                                                      |
-| Message length     | 1 byte   | Length in bytes of the following UTF-8 string; `0x00` if no message   |
-| Message            | variable | Optional UTF-8 string with implementation-specific detail             |
+| Field                | Size     | Description                                                              |
+|----------------------|----------|--------------------------------------------------------------------------|
+| Error code           | 1 byte   | See error codes below                                                    |
+| Offending identifier | 1 byte   | Identifier byte of the message that caused the error; `0x00` if unknown  |
+| Reserved             | 2 bytes  | MUST be `0x0000`                                                         |
+| Message length       | 1 byte   | Length in bytes of the following UTF-8 string; `0x00` if no message      |
+| Message              | variable | Optional UTF-8 string with implementation-specific detail                |
 
 **Error codes**:
 
 | Value           | Name                         | Meaning                                                   |
 |-----------------|------------------------------|-----------------------------------------------------------|
 | `0x00`          | `ERR_UNSPECIFIED`            | Generic error; details may be in the message field        |
-| `0x01`          | `ERR_UNKNOWN_COMMAND`        | Command byte not recognized                               |
-| `0x02`          | `ERR_INVALID_PAYLOAD_LENGTH` | Payload length does not match the command's expected size |
+| `0x01`          | `ERR_UNKNOWN_IDENTIFIER`     | Identifier byte not recognized                            |
+| `0x02`          | `ERR_INVALID_PAYLOAD_LENGTH` | Payload length does not match the message's expected size |
 | `0x03`          | `ERR_CRC_MISMATCH`           | CRC-16 validation failed                                  |
 | `0x04`          | `ERR_INVALID_PARAMETER`      | A parameter value is out of range                         |
-| `0x05`          | `ERR_BUSY`                   | Device cannot accept the command at this time             |
-| `0x06`          | `ERR_UNSUPPORTED`            | Command valid but unsupported by this device              |
+| `0x05`          | `ERR_BUSY`                   | Device cannot accept the message at this time             |
+| `0x06`          | `ERR_UNSUPPORTED`            | Message valid but unsupported by this device              |
 | `0x07`–`0x7F`   | Reserved                     | Reserved for future specification versions                |
 | `0x80`–`0xFF`   | Vendor-specific              | Available for vendor-specific error codes                 |
-
-Clients MUST handle unknown error codes gracefully (e.g., by logging the numeric code and the
-optional message).
 
 
 ## Example Session
 
 A typical client session driving 300 RGB LEDs per channel on an 8-channel device:
 
-1. Client opens serial connection; device emits an unsolicited `INFO` response (`0x81`).
+1. Client opens serial connection; device emits an unsolicited `INFO` message (`0x81`).
 2. Client sends `Configure Device` (`0x20`) with channel `255`, GRB color order, 800 kHz speed,
    and 300 LEDs per channel; device responds with `CONFIG` (`0x82`).
-3. Client sends `Assign Colors` (`0x40`) for channel 0 with 900 bytes (300 × 3) of pixel data.
-4. Client sends `Assign Colors` for channels 1 through 7 in the same manner.
+3. Client sends `Set Pixels` (`0x40`) for channel 0 with 900 bytes (300 × 3) of pixel data.
+4. Client sends `Set Pixels` for channels 1 through 7 in the same manner.
 5. Client sends `Show` (`0x60`) with channel `255` to commit all eight channels simultaneously to
    the LEDs.
 6. Client repeats steps 3–5 for each new frame.
 
 For installations where all channels display the same content (mirror mode), steps 3–4 collapse
-into a single `Assign Colors` with channel `255`.
+into a single `Set Pixels` with channel `255`.
 
 
 ## Transport Bindings
@@ -409,16 +399,14 @@ Future versions may define transport bindings for:
   without the start marker, with reliability considerations documented separately.
 - **SPI and other reliable local buses**: OPAL framing applies directly.
 
-When a device advertises a transport via the `Transport type` field in its INFO response, that
-value identifies the transport binding the device implements.
-
 
 ## Conformance
 
 An implementation is considered OPAL 1.0 conformant if it:
 
-- Accepts all request commands defined in this specification with the framing described.
-- Validates the start marker, command range, payload length, and CRC-16 on every received message.
+- Accepts all request messages defined in this specification with the framing described.
+- Validates the start marker, identifier range, payload length, and CRC-16 on every received
+  message.
 - Rejects malformed messages by emitting an appropriate `ERROR` response without affecting the
   state of prior valid messages.
 - Responds to `Request Device Information` with a properly formatted `INFO` response containing
@@ -426,11 +414,11 @@ An implementation is considered OPAL 1.0 conformant if it:
 - Emits an unsolicited `INFO` response on connection establishment.
 - Ignores unknown capability flags and reserved fields per the [Conventions](#conventions)
   section.
-- Honors the `0x70`–`0x7F` and `0xF0`–`0xFF` vendor-specific command ranges by either implementing
-  them or rejecting them cleanly with `ERR_UNKNOWN_COMMAND`.
+- Honors the `0x70`–`0x7F` and `0xF0`–`0xFF` vendor-specific identifier ranges by either
+  implementing them or rejecting them cleanly with `ERR_UNKNOWN_IDENTIFIER`.
 
-Implementations MAY add vendor-specific commands in the `0x70`–`0x7F` range and vendor-specific
-responses in the `0xF0`–`0xFF` range. Clients encountering such commands from a device they do not
+Implementations MAY add vendor-specific requests in the `0x70`–`0x7F` range and vendor-specific
+responses in the `0xF0`–`0xFF` range. Clients encountering such messages from a device they do not
 recognize SHOULD ignore them.
 
 
@@ -439,17 +427,6 @@ recognize SHOULD ignore them.
 OPAL 1.0 provides no authentication, authorization, or encryption. It assumes the underlying
 transport is trusted. This is a reasonable assumption for USB serial connections, where physical
 access to the host implies the ability to control any connected device.
-
-When OPAL is used over network transports (TCP, UDP) in future versions, applications SHOULD
-consider:
-
-- Restricting device access to trusted network segments.
-- Using transport-layer security (TLS for TCP) if commands traverse untrusted networks.
-- Validating device identity through out-of-band mechanisms before sending configuration commands.
-
-The `ERROR` mechanism can leak information about device state and capabilities (e.g.,
-`ERR_UNSUPPORTED` reveals which features a device lacks). For installations where this is a
-concern, a future protocol revision may define an authenticated mode; OPAL 1.0 does not.
 
 
 ## License
@@ -467,10 +444,10 @@ You are free to:
 
 Under the following conditions:
 
-- **Attribution** — You must give appropriate credit to the original author, provide a link to
+- **Attribution**: You must give appropriate credit to the original author, provide a link to
   the license, and indicate if changes were made.
 
-- **No derivatives** — You may not distribute modified versions of this specification text.
+- **No derivatives**: You may not distribute modified versions of this specification text.
 
 Translations of the specification into other languages are permitted. Please contact the author
 to coordinate and maintain accuracy.
