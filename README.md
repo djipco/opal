@@ -530,10 +530,8 @@ See [`LICENSE`](LICENSE) for the full legal text.
 
 ## Specification Governance
 
-**OPAL** is a centrally governed protocol.
-
-The author and maintainer of this repository is the sole authority for publishing official versions
-of the **OPAL** specification.
+**OPAL** is a centrally governed protocol. The author and maintainer of this repository is the sole 
+authority for publishing official versions of the **OPAL** specification.
 
 Proposed changes, clarifications, and extensions may be submitted for discussion, but only versions
 published by the official **OPAL** repository are considered authoritative.
