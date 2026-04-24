@@ -85,7 +85,7 @@ bytes of input plus the `0x04` delimiter. Receivers SHOULD size their read buffe
 worst-case encoded length of the largest payload they intend to receive:
 
 ```
-txn_id(2) + identifier(1) + payload_len(2) + payload + crc(2) + cobs_overhead + delimiter(1)
+Transaction ID + Identifier + Payload Length + Payload + CRC + COBS Overhead + Delimiter
 ```
 
 **CRC**:
