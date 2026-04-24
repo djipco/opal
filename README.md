@@ -291,7 +291,7 @@ buffered; a [`Show`](#show-0x60) message is required to commit.
 - `0` through `N-1`: fills the specified channel.
 - `255`: broadcast. Fills all channels.
 
-`Fill Channel` is typically used to turn channels off (`R=0, G=0, B=0`) or to apply test colors.
+`Fill Channel` can be used to turn channels off (`R=0, G=0, B=0`) or to apply test colors.
 
 **Response**: None on success. Emits [`ERROR`](#error-0xe0) on failure.
 
