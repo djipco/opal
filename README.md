@@ -288,8 +288,8 @@ buffered; a [`Show`](#show-0x60) message is required to commit.
 
 **Channel number**:
 
-- `0` through `N-1`: fills the specified channel.
-- `255`: broadcast. Fills all channels.
+- `0` through `N-1`: Fills the specified channel.
+- `255` (broadcast): Fills all channels.
 
 `Fill Channel` can be used to turn channels off (`R=0, G=0, B=0`) or to apply test colors.
 
@@ -306,8 +306,7 @@ target a single channel or commit all channels atomically.
 
 **Channel number**:
 
-- `0` through `N-1`: reserved for future per-channel show; devices MUST reject these with
-  `ERR_UNSUPPORTED`.
+- `0` through `N-1`: targeted channel number
 - `255`: broadcast. Commits all channels simultaneously, guaranteeing synchronized multi-channel
   updates without inter-channel tearing.
 
