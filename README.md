@@ -2,16 +2,16 @@
 ### Version: 1.0.0-alpha.1
 
 > [!WARNING]
-> OPAL is currently being stabilized but is still in alpha phase. Changes may occur before the
+> **OPAL** is currently being stabilized but is still in alpha phase. Changes may occur before the
 > specification is officially declared stable.
 
-OPAL is a lightweight binary protocol that allows interfacing with compatible LED controllers over
+**OPAL** is a lightweight binary protocol that allows interfacing with compatible LED controllers over
 a reliable byte stream (typically, serial over USB).
 
 
 ## Scope
 
-OPAL targets one-wire, addressable-LED chips in the **WS281x** family, including **WS2811**,
+**OPAL** targets one-wire, addressable-LED chips in the **WS281x** family, including **WS2811**,
 **WS2812**, **WS2812B**, **WS2813**, and their variants (e.g., **WS2814**, **WS2815**, **SK6812**). 
 Both 3-component (RGB) and 4-component (RGBW) chips are supported.
 
@@ -19,7 +19,7 @@ Both 3-component (RGB) and 4-component (RGBW) chips are supported.
 > Two-wire protocols such as **APA102** (DotStar) and **WS2801** are not currently in scope for
 > this specification.
 
-OPAL assumes the transport is trusted and delivers bytes in order without loss. It does not define
+**OPAL** assumes the transport is trusted and delivers bytes in order without loss. It does not define
 reliability, authentication, network addressing, or fixture personality modeling.
 
 
@@ -41,7 +41,7 @@ reliability, authentication, network addressing, or fixture personality modeling
 
 ## General Message Format
 
-All OPAL messages, whether sent by a host (request) or by a device (response), share the following
+All **OPAL** messages, whether sent by a host (request) or by a device (response), share the following
 unencoded structure:
 
 | TRANSACTION ID | IDENTIFIER               | PAYLOAD LENGTH | PAYLOAD  | CHECKSUM |
@@ -49,7 +49,7 @@ unencoded structure:
 | 2 bytes        | 1 byte (`0x01` – `0xFF`) | 2 bytes        | variable | 2 bytes  |
 
 Every message is encoded using [Consistent Overhead Byte Stuffing](https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing) (COBS) and terminated with a
-single `0x04` byte (`EOT`). OPAL uses a variant of COBS in which `0x04` is the stuffed byte
+single `0x04` byte (`EOT`). **OPAL** uses a variant of COBS in which `0x04` is the stuffed byte
 (rather than the conventional `0x00`); therefore the encoded frame is guaranteed not to contain
 `0x04`. Encoders and decoders MUST operate on this variant.
 
@@ -76,7 +76,7 @@ the CRC.
    `identifier` + `payload length` + `payload`.
 
 **Frame size**: The protocol supports a maximum payload length of 65535 bytes (16-bit unsigned
-integer). OPAL implementations MUST support at least 4096 bytes (4 KB) of payload, accommodating
+integer). **OPAL** implementations MUST support at least 4096 bytes (4 KB) of payload, accommodating
 at least 1365 RGB or 1024 RGBW LEDs. Each device advertises its actual buffer capacity in the
 `max_payload_length` field of the `INFO` response; clients MUST NOT send a payload exceeding the
 advertised value. Devices MUST reject frames exceeding their capacity with
@@ -139,7 +139,7 @@ Messages are grouped by purpose. The high bit of the identifier byte distinguish
 identifier with the high bit set: a request with identifier `0x01` is paired with a response with
 identifier `0x81`.
 
-OPAL 1.0 assumes a reliable, ordered, single-client transport. Hosts correlate responses to
+**OPAL** 1.0 assumes a reliable, ordered, single-client transport. Hosts correlate responses to
 requests using the transaction ID echoed by the device.
 
 
@@ -331,9 +331,9 @@ Sent in response to [`Request Device Information`](#request-device-information-0
 
 | Field                   | Size     | Description                                                 |
 |-------------------------|----------|-------------------------------------------------------------|
-| Protocol version major  | 1 byte   | Major version of the OPAL protocol                          |
-| Protocol version minor  | 1 byte   | Minor version of the OPAL protocol                          |
-| Protocol version patch  | 1 byte   | Patch version of the OPAL protocol                          |
+| Protocol version major  | 1 byte   | Major version of the **OPAL** protocol                          |
+| Protocol version minor  | 1 byte   | Minor version of the **OPAL** protocol                          |
+| Protocol version patch  | 1 byte   | Patch version of the **OPAL** protocol                          |
 | Channel count           | 1 byte   | Number of LED channels (`N`) supported by the device        |
 | Capability flags        | 4 bytes  | Bitfield, little-endian; see capability bits below          |
 | Firmware version major  | 1 byte   | Device firmware major version                               |
@@ -409,7 +409,7 @@ an `ERROR` response.
 Devices SHOULD emit the most specific applicable error code. `ERR_UNSPECIFIED` is reserved for
 conditions not covered by any other code and SHOULD NOT be used when a more specific code applies.
 
-OPAL 1.0 uses the transaction ID echoed in every response — including `ERROR` responses — to
+**OPAL** 1.0 uses the transaction ID echoed in every response — including `ERROR` responses — to
 correlate device replies with host requests.
 
 
@@ -434,7 +434,7 @@ into a single `Set Pixels` with channel `255`.
 
 ## Transport Bindings
 
-OPAL 1.0 is defined for reliable, ordered byte streams. The core OPAL frame format is
+**OPAL** 1.0 is defined for reliable, ordered byte streams. The core **OPAL** frame format is
 transport-agnostic, but it assumes the underlying transport delivers bytes in order and without
 loss.
 
@@ -443,17 +443,17 @@ UART, TCP, and Bluetooth RFCOMM/SPP.
 
 Common transport bindings:
 
-- **USB serial / UART**: OPAL frames are sent as a raw byte stream. COBS encoding plus `0x04`
+- **USB serial / UART**: **OPAL** frames are sent as a raw byte stream. COBS encoding plus `0x04`
   delimiter applies directly.
-- **TCP / Ethernet over TCP**: OPAL frames may be transported unchanged over the TCP stream.
+- **TCP / Ethernet over TCP**: **OPAL** frames may be transported unchanged over the TCP stream.
   TCP already provides reliability and ordering.
-- **Bluetooth RFCOMM / SPP**: These transports also present a stream abstraction, so OPAL framing
+- **Bluetooth RFCOMM / SPP**: These transports also present a stream abstraction, so **OPAL** framing
   applies directly.
 - **Bluetooth LE (GATT)**: This is not a true byte stream; implementations MUST reassemble
-  characteristic writes and notifications into a reliable ordered stream before decoding OPAL
+  characteristic writes and notifications into a reliable ordered stream before decoding **OPAL**
   frames.
-- **UDP**: OPAL does not assume an unordered, lossy packet transport. If UDP is used, each
-  datagram MUST carry a complete OPAL frame and the binding MUST document loss, retransmission,
+- **UDP**: **OPAL** does not assume an unordered, lossy packet transport. If UDP is used, each
+  datagram MUST carry a complete **OPAL** frame and the binding MUST document loss, retransmission,
   and ordering behavior separately.
 
 Implementations targeting non-stream transports MUST provide a transport binding that preserves
@@ -476,7 +476,7 @@ transports.
 
 ## Conformance
 
-An implementation is considered OPAL 1.0 conformant if it:
+An implementation is considered **OPAL** 1.0 conformant if it:
 
 - Accepts all request messages defined in this specification with the framing described.
 - Validates the COBS frame, `0x04` delimiter, identifier range, payload length, and CRC-16 on
@@ -497,7 +497,7 @@ recognize SHOULD ignore them.
 
 ## Security Considerations
 
-OPAL 1.0 provides no authentication, authorization, or encryption. It assumes the underlying
+**OPAL** 1.0 provides no authentication, authorization, or encryption. It assumes the underlying
 transport is trusted. This is a reasonable assumption for USB serial connections, where physical
 access to the host implies the ability to control any connected device.
 
@@ -507,7 +507,7 @@ access to the host implies the ability to control any connected device.
 This specification is licensed under the **Creative Commons Attribution 4.0 International License**
 ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).
 
-The canonical and authoritative definition of the OPAL protocol is the version published at
+The canonical and authoritative definition of the **OPAL** protocol is the version published at
 https://github.com/djipco/opal. Other copies or adaptations are non-normative.
 
 You are free to:
@@ -519,7 +519,7 @@ You are free to:
   commercial use.
 
 - **Implement**: create devices, software, tools, tutorials, and other works that implement or
-  describe the OPAL protocol. Implementation is not a derivative work of this specification.
+  describe the **OPAL** protocol. Implementation is not a derivative work of this specification.
 
 Under the following conditions:
 
@@ -531,27 +531,27 @@ See [`LICENSE`](LICENSE) for the full legal text.
 
 ## Specification Governance
 
-OPAL is a centrally governed protocol.
+**OPAL** is a centrally governed protocol.
 
 The author and maintainer of this repository is the sole authority for publishing official versions
-of the OPAL specification.
+of the **OPAL** specification.
 
 Proposed changes, clarifications, and extensions may be submitted for discussion, but only versions
-published by the official OPAL repository are considered authoritative.
+published by the official **OPAL** repository are considered authoritative.
 
 Documents derived from this specification are non-normative and must not be represented as official
-OPAL specifications.
+**OPAL** specifications.
 
 
 ## Name Usage
 
-The name "OPAL" refers exclusively to the protocol defined by the canonical specification published 
+The name "**OPAL**" refers exclusively to the protocol defined by the canonical specification published 
 by the author.
 
-Modified, extended, or incompatible protocols must not be described as OPAL or OPAL-compatible.
+Modified, extended, or incompatible protocols must not be described as **OPAL** or **OPAL**-compatible.
 
-The name "OPAL" may only be used to refer to implementations or documents that conform to the 
-official OPAL specification published by the author. 
+The name "**OPAL**" may only be used to refer to implementations or documents that conform to the 
+official **OPAL** specification published by the author. 
 
 
 ## Contributing
