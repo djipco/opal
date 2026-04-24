@@ -542,8 +542,7 @@ Documents derived from this specification are non-normative and must not be repr
 
 ## Name Usage
 
-The name "**OPAL**" refers exclusively to the protocol defined by the canonical specification published 
-by the author.
+The name "**OPAL**" refers exclusively to the protocol defined by the canonical specification.
 
 Modified, extended, or incompatible protocols must not be described as **OPAL** or **OPAL**-compatible.
 
