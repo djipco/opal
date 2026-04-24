@@ -48,7 +48,7 @@ unencoded structure:
 |----------------|--------------------------|----------------|----------|----------|
 | 2 bytes        | 1 byte (`0x01` – `0xFF`) | 2 bytes        | variable | 2 bytes  |
 
-Every message is encoded using Consistent Overhead Byte Stuffing (COBS) and terminated with a
+Every message is encoded using [Consistent Overhead Byte Stuffing](https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing) (COBS) and terminated with a
 single `0x04` byte (`EOT`). OPAL uses a variant of COBS in which `0x04` is the stuffed byte
 (rather than the conventional `0x00`); therefore the encoded frame is guaranteed not to contain
 `0x04`. Encoders and decoders MUST operate on this variant.
