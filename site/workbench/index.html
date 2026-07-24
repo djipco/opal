@@ -6,6 +6,14 @@
   <title>Opalinx Workbench</title>
   <link rel="icon" href="data:," />
 
+  <!-- ES modules and Web Serial cannot run from a file:// origin. Redirect before the browser
+       reaches the import map, which would otherwise produce opaque-origin CORS errors. -->
+  <script>
+    if (location.protocol === 'file:') {
+      location.replace('https://djipco.github.io/opalinx-spec/workbench/?source=local-file');
+    }
+  </script>
+
   <!-- Set the theme before first paint to avoid a flash. -->
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('opalinx-theme') || 'dark');
@@ -500,6 +508,10 @@
       <strong>This Workbench cannot connect to devices in this browser.</strong>
       <span>It requires the Web Serial API, which Firefox and Safari have not implemented. Use Chrome or Edge, or <a href="https://github.com/djipco/opalinx-workbench/releases/latest">download the desktop Workbench</a>.</span>
     </p>
+    <p id="fileLaunchNotice" class="warning" role="status" hidden>
+      <strong>The Workbench cannot run directly from a local file.</strong>
+      <span>Chrome blocks JavaScript modules and Web Serial on <code>file://</code> pages, so you were redirected to the hosted Workbench. To run this source locally, serve it from <code>http://localhost</code>.</span>
+    </p>
     <p id="contextWarning" class="warning" role="alert" hidden>
       Web Serial requires a secure context. Serve this page over <code>http://localhost</code> or HTTPS.
     </p>
@@ -508,6 +520,7 @@
       document.getElementById('browserWarning').hidden = supportsWebSerial;
       document.getElementById('connectToggle').disabled = !supportsWebSerial;
       if (!supportsWebSerial) document.getElementById('connectToggle').title = 'Web Serial is not supported by this browser';
+      document.getElementById('fileLaunchNotice').hidden = new URLSearchParams(location.search).get('source') !== 'local-file';
       document.getElementById('contextWarning').hidden = window.isSecureContext;
     </script>
 
