@@ -398,13 +398,6 @@
       dl.specs > div { padding-right: 0; border-right: 0; }
     }
     .subsection-title { margin: 0.25rem 0 -0.25rem; color: var(--muted); font-size: 0.75rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.08em; }
-    .badges { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .badges span {
-      padding: 0.18rem 0.6rem; border-radius: 999px; font-size: 0.78rem; font-weight: 550;
-      border: 1px solid var(--border); background: var(--surface-2); color: var(--muted);
-    }
-    .badges span.cap-on { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--accent); }
-
     /* ── Channel configuration summary ──────────────────────────────────────── */
     .channel-config-grid {
       display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -546,8 +539,6 @@
         </header>
         <div class="body">
           <dl class="specs" id="infoList"></dl>
-          <h3 class="subsection-title">Capabilities</h3>
-          <div class="badges" id="capBadges"></div>
         </div>
       </section>
 
@@ -870,7 +861,7 @@
     </dialog>
 
     <footer>
-      <span id="workbenchVersion" data-version="0.1.36">Opalinx Workbench v0.1.36</span>
+      <span id="workbenchVersion" data-version="0.1.37">Opalinx Workbench v0.1.37</span>
       <span>&copy; 2026 Jean-Philippe Cô</span>
     </footer>
   </div>
@@ -878,7 +869,7 @@
   <script src="./desktop-window-state.js"></script>
   <script type="module">
     import {
-      OpalinxClient, reorderToWire, hasCapability, Capability, ErrorCode, COLOR_ORDERS, PROTOCOLS, BROADCAST_CHANNEL,
+      OpalinxClient, reorderToWire, ErrorCode, COLOR_ORDERS, PROTOCOLS, BROADCAST_CHANNEL,
       bytesPerLed, isRgbw,
     } from 'opalinx';
     import { WebSerialTransport } from 'opalinx/webserial';
@@ -1334,18 +1325,14 @@
         await delay(200);
         setStatus('Handshaking…');
         showConnectionAttempt('Identifying the controller…', { busy: true });
-        // Use the library's full handshake (retries:0 — Workbench's retryInitialTimeout drives the
-        // retries and UI). handshake() performs ALL compatibility checks the library requires — not
-        // just the protocol major, but also max_in_flight_frames === 2 and max_payload_length >= 4101
-        // — so Workbench never connects to a device it would later drive unsafely at pipeline depth 2.
-        // A compatibility failure throws a non-timeout error that retryInitialTimeout surfaces to the
-        // shared catch below without retrying.
+        // Use the library's full handshake. Workbench owns the surrounding retries and status UI;
+        // protocol compatibility failures surface immediately as non-timeout errors.
         info = await retryInitialTimeout(
           () => client.handshake({ retries: 0, timeout: 1000 }),
           { attempts: 5, interval: 250, stage: 'Initial handshake' },
         );
         renderInfo(info);
-        buildChannelSelect(info.channelCount, info.capabilities);
+        buildChannelSelect();
         setStatus('Reading configuration…');
         showConnectionAttempt('Reading the controller configuration…', { busy: true });
         const config = await retryInitialTimeout(
@@ -1412,36 +1399,19 @@
         Transport: i.transport,
         Channels: i.channelCount,
         'Max payload': `${i.maxPayloadLength} bytes`,
-        'Frames in flight': i.maxInFlightFrames,
-        'Max LEDs (RGB/RGBW)': `${i.maxLedsRgb} / ${i.maxLedsRgbw}`,
+        'Capability flags': `0x${i.capabilities.toString(16).padStart(2, '0')} (reserved)`,
         'USB ID': `${hexId(serialEnvironment?.usb?.usbVendorId)}:${hexId(serialEnvironment?.usb?.usbProductId)}`,
       };
       byId('infoList').innerHTML = Object.entries(rows)
         .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
-
-      const caps = [
-        ['RGBW', Capability.RGBW],
-        ['PER_CHANNEL_CONFIG', Capability.PER_CHANNEL_CONFIG],
-        ['PER_CHANNEL_SHOW', Capability.PER_CHANNEL_SHOW],
-      ];
-      byId('capBadges').innerHTML = caps.map(([name, flag]) => {
-        const on = hasCapability(i.capabilities, flag);
-        return `<span class="${on ? 'cap-on' : ''}">${on ? '✓' : '✗'} ${name}</span>`;
-      }).join('');
     }
 
-    function buildChannelSelect(count, capabilities) {
+    function buildChannelSelect() {
       const sel = byId('cfgChannel');
       sel.innerHTML = '';
       sel.add(new Option('All (broadcast)', String(BROADCAST_CHANNEL)));
-      const perChannel = hasCapability(capabilities, Capability.PER_CHANNEL_CONFIG);
-      for (let c = 0; c < count; c++) {
-        const opt = new Option(`Channel ${c}`, String(c));
-        opt.disabled = !perChannel;
-        sel.add(opt);
-      }
       sel.value = String(BROADCAST_CHANNEL);
-      sel.title = perChannel ? '' : 'Device advertises broadcast-only configuration';
+      sel.title = 'Opalinx 1.0 configuration applies to all channels';
     }
 
     function populateLedChannelSelect(id, config, allLabel) {
@@ -1551,9 +1521,8 @@
       return color;
     }
 
-    async function commitTest(channel, ack = true) {
-      const canShowChannel = hasCapability(info.capabilities, Capability.PER_CHANNEL_SHOW);
-      await client.show(channel !== BROADCAST_CHANNEL && canShowChannel ? channel : BROADCAST_CHANNEL, { waitForDisplay: ack });
+    async function commitTest(_channel, ack = true) {
+      await client.show(BROADCAST_CHANNEL, { waitForDisplay: ack });
     }
 
     let liveTestTimer = null;
@@ -2219,36 +2188,28 @@
       let currentCandidate = null;
       const latencies = [];
       const originalConfig = (client?.config ?? []).map((entry) => ({ ...entry }));
-      const canConfigureChannel = hasCapability(info.capabilities, Capability.PER_CHANNEL_CONFIG);
-      const selectedChannels = new Set(channelScope.channels);
-      const stressConfigEntries = originalConfig.filter((entry) => selectedChannels.has(entry.channel));
+      const stressConfigEntry = originalConfig[0];
       let stressConfigurationChanged = false;
 
       const configureStressCount = async (ledCount) => {
-        const targets = canConfigureChannel ? stressConfigEntries : stressConfigEntries.slice(0, 1);
         // Mark this before sending: the device may apply CONFIGURE even if its response is lost.
         stressConfigurationChanged = true;
-        for (const entry of targets) {
-          await retryWhileBusy(() => client.configure({
-              channel: canConfigureChannel ? entry.channel : BROADCAST_CHANNEL,
-              colorOrder: entry.colorOrder,
-              protocol: entry.protocolValue,
-              ledCount,
-            }));
-        }
+        await retryWhileBusy(() => client.configure({
+          channel: BROADCAST_CHANNEL,
+          colorOrder: stressConfigEntry.colorOrder,
+          protocol: stressConfigEntry.protocolValue,
+          ledCount,
+        }));
       };
 
       const restoreStressConfiguration = async () => {
         if (!stressConfigurationChanged || !client) return;
-        const targets = canConfigureChannel ? stressConfigEntries : stressConfigEntries.slice(0, 1);
-        for (const entry of targets) {
-          await retryWhileBusy(() => client.configure({
-              channel: canConfigureChannel ? entry.channel : BROADCAST_CHANNEL,
-              colorOrder: entry.colorOrder,
-              protocol: entry.protocolValue,
-              ledCount: entry.ledCount,
-            }));
-        }
+        await retryWhileBusy(() => client.configure({
+          channel: BROADCAST_CHANNEL,
+          colorOrder: stressConfigEntry.colorOrder,
+          protocol: stressConfigEntry.protocolValue,
+          ledCount: stressConfigEntry.ledCount,
+        }));
         stressConfigurationChanged = false;
         renderConfigTable(client.config);
         buildTestChannelSelect(client.config);
@@ -2838,15 +2799,9 @@
           `Transport: ${info.transport}`,
           `Channels: ${info.channelCount}`,
           `Maximum payload: ${info.maxPayloadLength} bytes`,
-          `Frames in flight: ${info.maxInFlightFrames}`,
-          `Maximum LEDs (RGB/RGBW): ${info.maxLedsRgb} / ${info.maxLedsRgbw}`,
+          `Capability flags: 0x${info.capabilities.toString(16).padStart(2, '0')} (reserved)`,
           `USB VID: ${hexId(serialEnvironment?.usb?.usbVendorId)}`,
           `USB PID: ${hexId(serialEnvironment?.usb?.usbProductId)}`,
-          '',
-          'CAPABILITIES',
-          `RGBW: ${hasCapability(info.capabilities, Capability.RGBW) ? 'Yes' : 'No'}`,
-          `Per-channel configuration: ${hasCapability(info.capabilities, Capability.PER_CHANNEL_CONFIG) ? 'Yes' : 'No'}`,
-          `Per-channel Show: ${hasCapability(info.capabilities, Capability.PER_CHANNEL_SHOW) ? 'Yes' : 'No'}`,
         );
       }
 
