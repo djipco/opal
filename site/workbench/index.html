@@ -365,12 +365,14 @@
     .test-guidance { color: var(--muted); }
 
     .warning {
-      padding: 0.55rem 0.9rem;
+      padding: 0.75rem 0.9rem;
       border-radius: var(--radius);
       border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--border));
       background: color-mix(in srgb, var(--warn) 10%, var(--surface));
       color: var(--warn);
     }
+    .warning strong { display: block; margin-bottom: 0.15rem; }
+    .warning span { color: var(--fg); }
 
     /* ── Device info ────────────────────────────────────────────────────────── */
     dl.specs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 0; }
@@ -495,13 +497,17 @@
 
   <div class="wrap">
     <p id="browserWarning" class="warning" role="alert" hidden>
-      This browser does not support Web Serial. Use a Chromium-based browser such as Chrome or Edge.
+      <strong>This Workbench cannot connect to devices in this browser.</strong>
+      <span>It requires the Web Serial API, which Firefox and Safari have not implemented. Use Chrome, Edge, or the desktop Workbench.</span>
     </p>
     <p id="contextWarning" class="warning" role="alert" hidden>
       Web Serial requires a secure context. Serve this page over <code>http://localhost</code> or HTTPS.
     </p>
     <script>
-      document.getElementById('browserWarning').hidden = 'serial' in navigator;
+      const supportsWebSerial = 'serial' in navigator;
+      document.getElementById('browserWarning').hidden = supportsWebSerial;
+      document.getElementById('connectToggle').disabled = !supportsWebSerial;
+      if (!supportsWebSerial) document.getElementById('connectToggle').title = 'Web Serial is not supported by this browser';
       document.getElementById('contextWarning').hidden = window.isSecureContext;
     </script>
 
