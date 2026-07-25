@@ -876,7 +876,7 @@
     </dialog>
 
     <footer>
-      <span id="workbenchVersion" data-version="0.1.69">Opalinx Workbench v0.1.69</span>
+      <span id="workbenchVersion" data-version="0.1.70">Opalinx Workbench v0.1.70</span>
       <span>&copy; 2026 Jean-Philippe Cô</span>
     </footer>
   </div>
@@ -3156,8 +3156,8 @@
           `Name: ${info.deviceName || '(unnamed)'}`,
           `Protocol: v${info.protocol.major}.${info.protocol.minor}.${info.protocol.patch}`,
           `Firmware: v${info.firmware.major}.${info.firmware.minor}.${info.firmware.patch}`,
-          `Hardware revision: ${formatRevision(info.hardwareRevision)}`,
-          `Hardware platform: ${info.hardwarePlatform}`,
+          `Hardware: ${formatRevision(info.hardwareRevision)}`,
+          `Platform: ${info.hardwarePlatform}`,
           `Transport: ${info.transport}`,
           `Channels: ${info.channelCount}`,
           `Maximum payload: ${info.maxPayloadLength} bytes`,
