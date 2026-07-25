@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Open the Opalinx Workbench in a browser or download a desktop build." />
+  <title>Get Workbench — Opalinx</title>
+  <link rel="icon" href="../assets/opalinx-mark.svg" />
+  <script>try{const t=localStorage.getItem('opalinx-theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.dataset.theme='dark'}catch{}</script>
+  <link rel="stylesheet" href="../assets/site.css" />
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../" aria-label="Opalinx home"><img src="../assets/opalinx-mark.svg" alt="" /><span>Opalinx</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
+    <nav class="site-nav" aria-label="Primary navigation"><a href="../spec/">Specification</a><a href="../conformance/">Conformance</a><a href="../libraries/">Libraries</a><a aria-current="page" href="./">Workbench</a><a href="https://github.com/djipco/opalinx-spec">GitHub</a><button class="theme-toggle" type="button">Theme</button></nav>
+  </header>
+
+  <main class="section workbench-access">
+    <p class="eyebrow">Reference tool</p>
+    <div class="section-heading">
+      <h2>Choose how to run the Workbench.</h2>
+      <p class="section-lede">Use the live interface immediately or download a portable desktop build. Device connections require either Web Serial in the browser or a desktop build.</p>
+    </div>
+
+    <div class="workbench-choice-grid">
+      <article class="card workbench-choice">
+        <span class="card-number">WEB</span>
+        <h3>Live Workbench</h3>
+        <p>Chrome, Edge, Firefox, and Opera can connect to Opalinx controllers through Web Serial. Safari can open and explore the interface, but cannot connect to a serial device.</p>
+        <a class="button primary" href="../workbench/">Open live Workbench</a>
+      </article>
+      <article class="card workbench-choice">
+        <span class="card-number">APP</span>
+        <h3>Desktop Workbench</h3>
+        <p>Portable builds include their own browser runtime and support direct controller connections without relying on the browser's Web Serial implementation.</p>
+        <a class="button secondary" href="https://github.com/djipco/opalinx-workbench/releases/latest">View latest release</a>
+      </article>
+    </div>
+
+    <section class="platform-support" aria-labelledby="platform-support-title">
+      <h2 id="platform-support-title">Platform support</h2>
+      <div class="support-table" role="table" aria-label="Workbench platform support">
+        <div class="support-row support-heading" role="row"><span role="columnheader">Environment</span><span role="columnheader">Interface</span><span role="columnheader">Device connection</span></div>
+        <div class="support-row" role="row"><strong role="cell">Chrome / Edge / Firefox / Opera</strong><span role="cell">Supported</span><span role="cell" class="support-yes">Supported through Web Serial</span></div>
+        <div class="support-row" role="row"><strong role="cell">Safari desktop</strong><span role="cell">Supported</span><span role="cell" class="support-limited">Unavailable — no Web Serial</span></div>
+        <div class="support-row" role="row"><strong role="cell">Mobile browsers</strong><span role="cell">Supported</span><span role="cell" class="support-limited">Available when the browser exposes Web Serial</span></div>
+        <div class="support-row" role="row"><strong role="cell">Desktop applications</strong><span role="cell">Supported</span><span role="cell" class="support-yes">Supported</span></div>
+      </div>
+    </section>
+
+    <section class="desktop-downloads" aria-labelledby="desktop-downloads-title">
+      <h2 id="desktop-downloads-title">Desktop downloads</h2>
+      <div class="download-grid">
+        <a class="download-card" href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-windows-x64.zip"><strong>Windows</strong><span>x64 · ZIP</span></a>
+        <a class="download-card" href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-macos-arm64.zip"><strong>macOS</strong><span>Apple silicon · ZIP</span></a>
+        <a class="download-card" href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-macos-x64.zip"><strong>macOS</strong><span>Intel · ZIP</span></a>
+        <a class="download-card" href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-linux-x64.tar.gz"><strong>Linux</strong><span>x64 · TAR.GZ</span></a>
+        <a class="download-card" href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-linux-arm64.tar.gz"><strong>Linux</strong><span>ARM64 · TAR.GZ</span></a>
+      </div>
+      <p class="download-note">The macOS builds are currently unsigned and not notarized.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p>Opalinx · Designed by Jean-Philippe Cô</p><p><a href="mailto:jp@djip.co">Commercial licensing</a></p></footer>
+</body>
+</html>

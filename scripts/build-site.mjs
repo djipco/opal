@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
@@ -31,7 +31,7 @@ function navigation(prefix, active) {
     ['spec', 'Specification', `${prefix}spec/`],
     ['conformance', 'Conformance', `${prefix}conformance/`],
     ['libraries', 'Libraries', `${prefix}libraries/`],
-    ['workbench', 'Workbench', `${prefix}workbench/`],
+    ['workbench', 'Workbench', `${prefix}get-workbench/`],
   ];
   return items.map(([key, label, href]) => `<a${key === active ? ' aria-current="page"' : ''} href="${href}">${label}</a>`).join('');
 }
@@ -45,6 +45,7 @@ function layout({ title, description, body, prefix = '../', active, toc = '' }) 
   <meta name="description" content="${description}" />
   <title>${title} — Opalinx</title>
   <link rel="icon" href="${prefix}assets/opalinx-mark.svg" />
+  <script>try{const t=localStorage.getItem('opalinx-theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.dataset.theme='dark'}catch{}</script>
   <link rel="stylesheet" href="${prefix}assets/site.css" />
   <script src="${prefix}assets/site.js" defer></script>
 </head>
@@ -52,7 +53,7 @@ function layout({ title, description, body, prefix = '../', active, toc = '' }) 
   <header class="site-header">
     <a class="brand" href="${prefix}" aria-label="Opalinx home"><img src="${prefix}assets/opalinx-mark.svg" alt="" /><span>Opalinx</span></a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
-    <nav class="site-nav" aria-label="Primary navigation">${navigation(prefix, active)}<a href="https://github.com/djipco/opalinx-spec">GitHub</a></nav>
+    <nav class="site-nav" aria-label="Primary navigation">${navigation(prefix, active)}<a href="https://github.com/djipco/opalinx-spec">GitHub</a><button class="theme-toggle" type="button">Theme</button></nav>
   </header>
   <main class="page-shell">
     <aside class="page-aside"><strong>On this page</strong>${toc}</aside>
@@ -85,8 +86,10 @@ async function renderPage(source, destination, options) {
 
 async function build() {
   if (output === root || !output.startsWith(`${root}${path.sep}`)) throw new Error('Refusing unsafe output path');
-  await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
+  for (const entry of await readdir(output)) {
+    await rm(path.join(output, entry), { recursive: true, force: true });
+  }
   await cp(path.join(root, 'site'), output, { recursive: true });
 
   await renderPage('README.md', 'spec', {

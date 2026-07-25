@@ -6,6 +6,7 @@
   <meta name="description" content="Opalinx is a lightweight binary protocol for addressable LED controllers." />
   <title>Opalinx — Protocol specification</title>
   <link rel="icon" href="./assets/opalinx-mark.svg" />
+  <script>try{const t=localStorage.getItem('opalinx-theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.dataset.theme='dark'}catch{}</script>
   <link rel="stylesheet" href="./assets/site.css" />
   <script src="./assets/site.js" defer></script>
 </head>
@@ -20,8 +21,9 @@
       <a href="./spec/">Specification</a>
       <a href="./conformance/">Conformance</a>
       <a href="./libraries/">Libraries</a>
-      <a href="./workbench/">Workbench</a>
+      <a href="./get-workbench/">Workbench</a>
       <a href="https://github.com/djipco/opalinx-spec">GitHub</a>
+      <button class="theme-toggle" type="button">Theme</button>
     </nav>
   </header>
 
@@ -32,7 +34,7 @@
       <p class="hero-copy">Opalinx defines implementation-independent messages for communication between host software and addressable LED controllers over reliable byte streams.</p>
       <div class="actions">
         <a class="button primary" href="./spec/">Read the specification</a>
-        <a class="button secondary" href="./workbench/">Open Workbench</a>
+        <a class="button secondary" href="./get-workbench/">Get Workbench</a>
       </div>
     </section>
 
@@ -53,17 +55,9 @@
         <div>
           <p class="eyebrow">Reference tool</p>
           <h2>Opalinx Workbench</h2>
-          <p>The Workbench connects to compatible USB controllers through Web Serial for device inspection, configuration, and protocol testing. It requires a browser with Web Serial support.</p>
+          <p>The Workbench provides device inspection, configuration, and protocol testing in a browser or portable desktop application.</p>
           <div class="actions">
-            <a class="button primary" href="./workbench/">Open in browser</a>
-            <a class="button secondary on-dark" href="https://github.com/djipco/opalinx-workbench/releases/latest">Desktop downloads</a>
-          </div>
-          <div class="download-links" aria-label="Workbench desktop downloads">
-            <a href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-windows-x64.zip">Windows x64</a>
-            <a href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-macos-arm64.zip">macOS Apple silicon</a>
-            <a href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-macos-x64.zip">macOS Intel</a>
-            <a href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-linux-x64.tar.gz">Linux x64</a>
-            <a href="https://github.com/djipco/opalinx-workbench/releases/latest/download/Opalinx-Workbench-linux-arm64.tar.gz">Linux ARM64</a>
+            <a class="button primary" href="./get-workbench/">Browser and desktop options</a>
           </div>
         </div>
         <div class="terminal" aria-label="Example Opalinx session">
