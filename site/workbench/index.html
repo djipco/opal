@@ -54,6 +54,8 @@
       --radius: 10px;
       --radius-lg: 14px;
       --shadow: 0 1px 2px #0006, 0 4px 16px #0003;
+      --control-label-size: 0.78rem;
+      --control-label-weight: 550;
     }
     :root[data-theme="light"] {
       color-scheme: light;
@@ -79,6 +81,8 @@
     body {
       margin: 0;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       font: 14px/1.55 -apple-system, "Segoe UI", system-ui, sans-serif;
       background:
         radial-gradient(circle at 50% -10rem, var(--accent-soft), transparent 34rem),
@@ -105,11 +109,10 @@
     }
     .brand { display: flex; align-items: center; gap: 0.55rem; }
     .brand-mark {
-      width: 2rem; height: 1.35rem; display: block; background: var(--fg);
-      -webkit-mask: url("opalinx-mark.svg") center / contain no-repeat;
-      mask: url("opalinx-mark.svg") center / contain no-repeat;
+      width: 2rem; height: 1.35rem; display: block; fill: #ffffff;
     }
-    .brand h1 { white-space: nowrap; }
+    :root[data-theme="light"] .brand-mark { fill: var(--fg); }
+    .brand h1 { white-space: nowrap; transform: translateY(-1.5px); }
     .conn {
       display: inline-flex; align-items: center; gap: 0.45rem;
       padding: 0.25rem 0.7rem; border-radius: 999px;
@@ -122,7 +125,10 @@
     .topbar-inner .spacer { flex: 1; }
 
     /* ── Layout ─────────────────────────────────────────────────────────────── */
-    .wrap { max-width: 70rem; margin: 0 auto; padding: 1.5rem 1rem; display: grid; gap: 1.25rem; }
+    .wrap {
+      width: 100%; max-width: 70rem; margin: 0 auto; padding: 1.5rem 1rem;
+      display: flex; flex: 1; flex-direction: column; gap: 1.5rem;
+    }
     .row { display: grid; gap: 1rem; }
     .row.cols-2 { grid-template-columns: minmax(0, 1fr); }
     @media (max-width: 560px) {
@@ -136,15 +142,22 @@
 
     /* ── Connection overview ───────────────────────────────────────────────── */
     .connection-overview {
-      padding: 0.25rem 0;
+      width: min(100%, 42rem); margin-inline: auto; padding: 1.25rem 1.35rem;
+      border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border)); text-align: center;
+      border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+      box-shadow: var(--shadow);
     }
     .connection-overview h2 {
       margin: 0; color: var(--fg); font-size: 1.15rem; font-weight: 650;
       text-transform: none; letter-spacing: 0;
     }
     .connection-overview .help { margin: 0.35rem 0 0; width: 100%; color: var(--muted); }
+    .connection-overview .connection-warning {
+      margin: 0.45rem 0 0; color: var(--warn); font-size: 0.88rem; font-weight: 600;
+    }
+    .connection-warning-icon { margin-right: 0.28rem; }
     .connection-attempt-status {
-      width: fit-content; max-width: 100%; margin: 0.65rem 0 0; padding: 0.5rem 0.65rem;
+      width: fit-content; max-width: 100%; margin: 0.65rem auto 0; padding: 0.5rem 0.65rem;
       display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border);
       border-radius: 7px; background: var(--surface-2); color: var(--muted); font-size: 0.84rem;
     }
@@ -181,6 +194,7 @@
       box-shadow: inset 3px 0 var(--card-accent);
     }
     .card > header {
+      position: relative;
       display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content;
       grid-template-areas: "title message actions"; align-items: center; gap: 0.75rem;
       min-height: 2.75rem; padding: 0.4rem 0.4rem 0.4rem 1rem;
@@ -201,12 +215,10 @@
       background: linear-gradient(90deg, transparent, var(--border) 8%, var(--border) 92%, transparent);
     }
     #toolsSection > .separator-control { order: 0; }
-    #toolsSection > .workflow-live { order: 1; }
     #toolsSection > .workflow-identify { order: 2; }
     #toolsSection > .workflow-color-order { order: 3; }
     #toolsSection > .separator-visual { order: 4; }
-    #toolsSection > .workflow-patterns { order: 5; }
-    #toolsSection > #signal-integrity-test { order: 6; }
+    #toolsSection > .workflow-patterns { order: 6; }
     #toolsSection > .separator-performance { order: 7; }
     #toolsSection > #led-data-path-stress-test { order: 8; }
     #toolsSection > #serial-throughput-test { order: 9; }
@@ -237,6 +249,19 @@
       grid-area: message; justify-self: center; min-width: 0; max-width: 100%;
       margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .card > header > .card-header-message {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      max-width: calc(100% - 20rem);
+    }
+    #led-data-path-stress-test > header > .card-header-message,
+    #serial-throughput-test > header > .card-header-message {
+      position: static;
+      left: auto;
+      width: 100%;
+      max-width: none;
+      transform: none;
+      text-align: center;
+    }
     .card-header-message:empty { display: none; }
     .card-header-message.is-busy {
       display: inline-flex; align-items: center; gap: 0.45rem;
@@ -264,6 +289,9 @@
       .card-header-message {
         justify-self: stretch; max-width: none; padding: 0.1rem 0.6rem 0.2rem 0;
         text-align: center; white-space: normal;
+      }
+      .card > header > .card-header-message {
+        position: static; transform: none; max-width: none;
       }
     }
 
@@ -325,22 +353,44 @@
     textarea { width: 100%; resize: vertical; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.78rem; line-height: 1.45; }
 
     .field { display: grid; gap: 0.25rem; }
-    .field > span { font-size: 0.78rem; font-weight: 550; color: var(--muted); }
+    .field > span:not(.range-with-value) {
+      font-size: var(--control-label-size);
+      font-weight: var(--control-label-weight);
+      color: var(--muted);
+    }
     .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.75rem; }
     .test-console-grid { display: grid; gap: 1rem; align-items: start; }
     @media (min-width: 760px) {
-      .test-console-grid { grid-template-columns: 8rem max-content minmax(15rem, 1fr); }
+      .test-console-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     .control-section {
-      min-width: 0;
+      min-width: 0; display: grid; grid-template-rows: 1rem 2.35rem; gap: 0.25rem;
     }
     .control-section-title {
-      display: block; margin-bottom: 0.65rem; color: var(--muted); font-size: 0.72rem;
-      font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+      display: block; margin: 0; color: var(--muted);
+      font-size: var(--control-label-size);
+      font-weight: var(--control-label-weight);
     }
-    .control-section > select { width: 100%; }
-    .color-controls { display: grid; grid-template-columns: minmax(5rem, 6rem) minmax(0, 1fr); gap: 0.75rem; align-items: end; }
-    .color-controls #testWhiteField { grid-column: 1 / -1; }
+    .control-section > select { width: 100%; height: 2.35rem; }
+    .pattern-settings-grid {
+      display: grid; grid-template-columns: minmax(0, 1fr);
+      gap: 1rem; align-items: start;
+    }
+    @media (min-width: 760px) {
+      .pattern-settings-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .pattern-settings-grid > .field { grid-template-rows: 1rem 2.35rem; gap: 0.25rem; }
+    .pattern-color-brightness-controls {
+      display: grid; grid-template-columns: 6rem minmax(0, 1fr);
+      gap: 0.75rem; align-items: center; min-height: 2.35rem;
+    }
+    .field.is-disabled { opacity: 0.45; }
+    .test-color-field.is-disabled { opacity: 0.45; }
+    .field > .compact-control-title {
+      color: var(--muted);
+      font-size: var(--control-label-size);
+      font-weight: var(--control-label-weight);
+    }
     .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .actions .spacer { flex: 1; }
     .value { color: var(--fg); font-variant-numeric: tabular-nums; }
@@ -354,17 +404,29 @@
 
     .choices { display: flex; gap: 1rem; align-items: center; }
     .choices label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
-    .scope-controls { flex-wrap: nowrap; gap: 0.4rem; }
+    .scope-controls { flex-wrap: nowrap; gap: 0.4rem; min-height: 2.35rem; }
     .test-range-field { display: inline-flex; align-items: center; gap: 0.4rem; }
     .test-range-field.is-disabled { opacity: 0.45; }
     .range-bound { display: inline-flex; align-items: center; gap: 0.2rem; color: var(--muted); font-size: 0.75rem; }
     .range-bound input { width: 3rem; padding-inline: 0.3rem; }
-    .test-color-field input { width: 6rem; }
+    .test-color-field input { width: 100%; }
     .range-with-value { display: flex; align-items: center; gap: 0.55rem; min-height: 2.35rem; }
-    .range-with-value input { min-width: 0; }
+    .range-with-value input { flex: 1 1 auto; min-width: 0; }
+    .range-with-value output {
+      flex: 0 0 2.5rem;
+      text-align: right;
+      font-size: 0.875rem;
+      font-weight: 400;
+    }
+    #testWhiteField .range-with-value output { flex-basis: auto; min-width: 1ch; text-align: left; }
     .tool-control-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
       gap: 0.75rem; align-items: end;
+    }
+    .refresh-control-grid { grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 760px) {
+      .refresh-control-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+      .refresh-control-grid > .field { grid-column: span 4; }
     }
     .metric-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
@@ -373,7 +435,39 @@
     .metric-grid > div { padding-left: 0.65rem; border-left: 2px solid var(--border); }
     .metric-grid dt { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .metric-grid dd { margin: 0.1rem 0 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .performance-results-panel {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: grid;
+      gap: 0.75rem;
+    }
+    .performance-results-panel[hidden] { display: none; }
+    .stress-result-summary { margin: 0; color: var(--muted); }
+    .stress-result-details { margin: 0; color: var(--muted); }
+    .performance-results {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .metric-grid.performance-results > div {
+      padding-left: 0;
+      padding-right: 0.75rem;
+      border-left: 0;
+      border-right: 1px solid var(--border);
+    }
+    .metric-grid.performance-results > div:nth-child(2n) { border-right: 0; }
+    .metric-grid.performance-results dd { font-weight: 550; }
+    @media (min-width: 620px) {
+      .performance-results { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .metric-grid.performance-results > div:nth-child(2n) { border-right: 1px solid var(--border); }
+      .metric-grid.performance-results > div:nth-child(3n) { border-right: 0; }
+    }
+    @media (min-width: 900px) {
+      .performance-results { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .metric-grid.performance-results > div:nth-child(3n) { border-right: 1px solid var(--border); }
+      .metric-grid.performance-results > div:nth-child(5n) { border-right: 0; }
+    }
     .test-guidance { color: var(--muted); }
+    .test-caution { color: var(--warn); }
 
     .warning {
       padding: 0.75rem 0.9rem;
@@ -389,7 +483,12 @@
     dl.specs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 0; }
     dl.specs > div { min-width: 0; padding-right: 0.75rem; border-right: 1px solid var(--border); }
     dl.specs > div:nth-child(4n) { border-right: 0; }
-    dl.specs dt { color: var(--muted); font-size: 0.85rem; }
+    dl.specs dt {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
     dl.specs dd { margin: 0; font-weight: 550; font-variant-numeric: tabular-nums; }
     @media (max-width: 700px) {
       dl.specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -400,34 +499,6 @@
       dl.specs { grid-template-columns: minmax(0, 1fr); }
       dl.specs > div { padding-right: 0; border-right: 0; }
     }
-    .subsection-title { margin: 0.25rem 0 -0.25rem; color: var(--muted); font-size: 0.75rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.08em; }
-    /* ── Channel configuration summary ──────────────────────────────────────── */
-    .channel-config-grid {
-      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-      column-gap: 1.5rem; margin: 0; padding: 0; list-style: none;
-    }
-    .channel-config-grid li {
-      display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
-      align-items: center; column-gap: 0.65rem; padding: 0.45rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.8rem; font-variant-numeric: tabular-nums;
-    }
-    .channel-config-grid strong { color: var(--fg); }
-    .channel-config-grid span { min-width: 0; color: var(--muted); white-space: nowrap; }
-    .channel-config-grid span:nth-child(3) {
-      grid-column: 1 / -1; grid-row: 2; overflow: hidden; text-overflow: ellipsis;
-      font-size: 0.75rem;
-    }
-    .channel-config-grid span:nth-child(4) { grid-column: 3; grid-row: 1; }
-    .channel-config-grid .channel-order { color: var(--accent); font-weight: 650; }
-    .channel-config-title { margin-top: 0.25rem; }
-    @media (max-width: 880px) {
-      .channel-config-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 520px) {
-      .channel-config-grid { grid-template-columns: minmax(0, 1fr); }
-    }
-
     /* ── Identify legend ────────────────────────────────────────────────────── */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: 0.45rem; }
     .grid > div { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
@@ -440,18 +511,17 @@
     .health-result { min-height: 2.5rem; margin: 0; color: var(--muted); }
     .card > header .health-result { min-height: 0; }
     .health-result strong { color: var(--fg); }
-    .log-toolbar { display: flex; align-items: center; gap: 0.75rem; }
-    .log-toolbar .muted { flex: 1; }
+    .health-result.is-confirmed { color: var(--ok); }
     .activity-log {
       max-height: 18rem; overflow: auto; margin: 0; padding: 0; list-style: none;
       border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
     }
     .activity-log li {
-      display: grid; grid-template-columns: 4.5rem 4.25rem minmax(0, 1fr); gap: 0.65rem;
+      display: grid; grid-template-columns: 6.75rem 4.25rem minmax(0, 1fr); gap: 0.65rem;
       padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.82rem;
     }
     .activity-log li:last-child { border-bottom: 0; }
-    .activity-log time { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .activity-log time { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .log-level { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
     .log-info .log-level { color: var(--accent); }
     .log-ok .log-level { color: var(--ok); }
@@ -469,7 +539,7 @@
     dialog .dialog-body { padding: 1rem 1.15rem; }
     dialog .actions { padding: 0 1.15rem 1.15rem; justify-content: flex-end; }
     @media (max-width: 560px) {
-      .activity-log li { grid-template-columns: 4.25rem minmax(0, 1fr); }
+      .activity-log li { grid-template-columns: 6.75rem minmax(0, 1fr); }
       .activity-log .log-level { grid-column: 1; }
       .activity-log .log-message { grid-column: 2; grid-row: 1 / span 2; }
     }
@@ -477,20 +547,21 @@
     [hidden] { display: none !important; }
     .stack { display: grid; gap: 1rem; }
     footer {
-      margin-top: 0.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+      margin-top: auto; padding-top: 1.25rem; border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem 0.75rem;
       color: var(--muted); font-size: 0.82rem;
     }
-    @media (max-width: 560px) {
-      footer { align-items: flex-start; flex-direction: column; }
-    }
+    footer span { white-space: nowrap; }
   </style>
 </head>
 <body>
   <div class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
+        <svg class="brand-mark" viewBox="50 40 450 300" aria-hidden="true" focusable="false">
+          <path d="M319 90 A150 150 0 1 0 319 290 L285 260 A105 105 0 1 1 285 120 Z" />
+          <path d="M339 110 L379 154 L430 100 H490 L410 190 L490 280 H430 L379 226 L339 270 L305 240 L349 190 L305 140 Z" />
+        </svg>
         <h1>Opalinx <span class="brand-detail">Workbench</span></h1>
       </div>
       <div class="spacer"></div>
@@ -501,8 +572,8 @@
 
   <div class="wrap">
     <p id="browserWarning" class="warning" role="alert" hidden>
-      <strong>This Workbench cannot connect to devices in this browser.</strong>
-      <span>It requires the Web Serial API, which Firefox and Safari have not implemented. Use Chrome or Edge, or <a href="https://github.com/djipco/opalinx-workbench/releases/latest">download the desktop Workbench</a>.</span>
+      <strong>You can use the Workbench in this browser, but it cannot connect to a device.</strong>
+      <span>Web Serial is unavailable here. Use a supported desktop browser—Chrome, Edge, Firefox, or Opera—or <a href="https://github.com/djipco/opalinx-workbench/releases/latest">download the desktop Workbench</a>.</span>
     </p>
     <p id="fileLaunchNotice" class="warning" role="status" hidden>
       <strong>The Workbench cannot run directly from a local file.</strong>
@@ -520,22 +591,24 @@
       document.getElementById('contextWarning').hidden = window.isSecureContext;
     </script>
 
-    <section class="connection-overview" aria-labelledby="connectionHeading">
+    <section id="connectionOverview" class="connection-overview" aria-labelledby="connectionHeading">
       <div>
-        <h2 id="connectionHeading">Connect and troubleshoot your LEDs</h2>
-        <p class="help">Connect your controller to inspect its configuration, verify channel wiring,
-          and identify color order. Close other apps using the serial port first.</p>
+        <h2 id="connectionHeading">Connect to your LED controller</h2>
+        <p class="help">Plug in your controller and press <strong>Connect</strong> to inspect its configuration,
+          verify channel wiring, identify color order, and so much more.</p>
+        <p class="connection-warning"><span class="connection-warning-icon" aria-hidden="true">⚠</span>Close other apps using the serial port first.</p>
         <p id="connectionAttemptStatus" class="connection-attempt-status" role="status" aria-live="polite" hidden></p>
       </div>
       <p id="status" class="sr-only" role="status" aria-live="polite">Not connected.</p>
     </section>
 
-    <div class="row cols-2">
+    <div id="setupRow" class="row cols-2" hidden>
       <!-- ── Device info ──────────────────────────────────────────────────── -->
       <section id="infoSection" class="card category-setup" hidden>
         <header class="device-header">
-          <h2>Device Information</h2>
+          <h2>Device</h2>
           <span id="connPill" class="conn is-on card-header-message" hidden><span class="dot"></span><span id="connLabel"></span></span>
+          <p id="deviceFeedback" class="inline-feedback card-header-message" role="status" aria-live="polite" hidden></p>
           <div class="card-header-actions">
             <button id="openReset" class="danger" type="button">Reset Device…</button>
           </div>
@@ -548,30 +621,30 @@
       <!-- ── Configuration ────────────────────────────────────────────────── -->
       <section id="configSection" class="card category-setup" hidden>
         <header>
-          <h2>LED Configuration</h2>
+          <h2>Configuration</h2>
           <p id="configFeedback" class="inline-feedback card-header-message" role="status" aria-live="polite" hidden></p>
         </header>
         <div class="body">
           <div class="fields">
-            <label class="field"><span>Channel</span><select id="cfgChannel"></select></label>
             <label class="field"><span>Color order</span><select id="cfgOrder"></select></label>
             <label class="field"><span>Protocol</span><select id="cfgSpeed"></select></label>
             <label class="field"><span>LEDs per channel</span><input id="cfgLeds" type="number" min="1" value="60" /></label>
           </div>
-          <h3 class="subsection-title channel-config-title">Channel configuration</h3>
-          <div id="configTable"></div>
         </div>
       </section>
     </div>
 
     <!-- ── Tools ──────────────────────────────────────────────────────────── -->
     <section id="toolsSection" class="stack" hidden>
-      <div class="row cols-2 workflow-live">
-        <div class="card category-control">
+      <div class="card category-visual workflow-patterns">
           <header>
-            <h2>Live LED Control</h2>
-            <button id="showLiveTest" class="ghost">Show</button>
-            <button id="testBlackout" class="danger">Blackout</button>
+            <h2>Test Patterns</h2>
+            <p id="patternStatus" class="health-result card-header-message" role="status" aria-live="polite"></p>
+            <div class="card-header-actions">
+              <button id="showPattern" class="ghost">Show</button>
+              <button id="stopSignalTest" class="danger" hidden>Stop</button>
+              <button id="patternBlackout" class="danger">Blackout</button>
+            </div>
           </header>
           <div class="body">
             <div class="test-console-grid">
@@ -590,84 +663,53 @@
                   </span>
                 </div>
               </div>
-              <div class="control-section">
-                <span class="control-section-title">Color &amp; Brightness</span>
-                <div class="color-controls">
-                  <label class="field test-color-field"><span class="sr-only">Color</span>
+              <label class="control-section"><span class="control-section-title">Pattern</span><select id="patternType">
+              <optgroup label="Static">
+                <option value="solid">Solid color</option>
+                <option value="alternating">Alternating red and blue</option>
+                <option value="checker">Black and white checker</option>
+                <option value="counting">10-pixel color blocks</option>
+                <option value="gradient">RGB gradient</option>
+              </optgroup>
+              <optgroup label="Animations">
+                <option value="walk">Walking pixel</option>
+                <option value="animated-alternating">Alternating red and cyan</option>
+                <option value="primaries">RGB primary cycle</option>
+              </optgroup>
+              </select></label>
+            </div>
+            <div class="pattern-settings-grid">
+              <div class="field"><span class="compact-control-title">Color + Brightness</span>
+                <div class="pattern-color-brightness-controls">
+                  <label id="testColorField" class="test-color-field"><span class="sr-only">Color</span>
                     <input id="testColor" type="color" value="#37b6c4" aria-label="Color" /></label>
-                  <label class="field"><span class="sr-only">Brightness</span>
-                    <span class="range-with-value">
-                      <input id="testBrightness" type="range" min="1" max="100" value="25" aria-label="Brightness" />
-                      <output id="testBrightnessValue" class="value">25%</output>
-                    </span>
-                  </label>
-                  <label id="testWhiteField" class="field" hidden><span>White <output id="testWhiteValue" class="value">0</output></span>
-                    <input id="testWhite" type="range" min="0" max="255" value="0" /></label>
+                  <span class="range-with-value">
+                  <input id="testBrightness" type="range" min="1" max="100" value="25" aria-label="Brightness" />
+                  <output id="testBrightnessValue" class="value">25%</output>
+                  </span>
                 </div>
               </div>
+              <label id="testWhiteField" class="field is-disabled"><span class="compact-control-title">White</span>
+                <span class="range-with-value">
+                  <input id="testWhite" type="range" min="0" max="255" value="0" />
+                  <output id="testWhiteValue" class="value">0</output>
+                </span>
+              </label>
+              <label id="patternIntervalField" class="field is-disabled"><span class="compact-control-title">Step interval</span><select id="patternInterval" disabled>
+                <option value="100">Fast · 100 ms</option>
+                <option value="250" selected>Normal · 250 ms</option>
+                <option value="500">Slow · 500 ms</option>
+              </select></label>
             </div>
             <p id="testHint" class="muted"></p>
           </div>
-        </div>
-
-      </div>
-
-      <div id="signal-integrity-test" class="card category-visual">
-        <header class="signal-header">
-          <h2>LED Diagnostics</h2>
-          <p id="signalStatus" class="signal-header-status card-header-message" role="status" aria-live="polite"></p>
-          <div class="card-header-actions">
-            <button id="startSignalTest" class="ghost">Start Diagnostics</button>
-            <button id="stopSignalTest" class="danger" hidden>Stop</button>
-          </div>
-        </header>
-        <div class="body">
-          <div class="tool-control-grid">
-            <label class="field"><span>Channel</span><select id="signalChannel"></select></label>
-            <label class="field"><span>Test</span><select id="signalPattern">
-              <option value="walk">Walking pixel</option>
-              <option value="alternating">Alternating red and cyan</option>
-              <option value="primaries">RGB primary cycle</option>
-            </select></label>
-            <label class="field"><span>Step interval</span><select id="signalInterval">
-              <option value="100">Fast · 100 ms</option>
-              <option value="250" selected>Normal · 250 ms</option>
-              <option value="500">Slow · 500 ms</option>
-            </select></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="card category-visual workflow-patterns">
-        <header>
-          <h2>Test Patterns</h2>
-          <p id="patternStatus" class="health-result card-header-message" role="status" aria-live="polite"></p>
-          <button id="showPattern" class="ghost">Show Pattern</button>
-          <button id="patternBlackout" class="danger">Blackout</button>
-        </header>
-        <div class="body">
-          <div class="tool-control-grid">
-            <label class="field"><span>Channel</span><select id="patternChannel"></select></label>
-            <label class="field"><span>Pattern</span><select id="patternType">
-              <option value="red">Solid red</option>
-              <option value="green">Solid green</option>
-              <option value="blue">Solid blue</option>
-              <option value="white">Solid white</option>
-              <option value="alternating">Alternating red and blue</option>
-              <option value="checker">Black and white checker</option>
-              <option value="gradient">RGB gradient</option>
-            </select></label>
-            <label class="field"><span>Brightness <output id="patternBrightnessValue" class="value">25%</output></span>
-              <input id="patternBrightness" type="range" min="1" max="50" value="25" /></label>
-          </div>
-        </div>
       </div>
 
       <div id="serial-throughput-test" class="card category-performance">
         <header>
-          <h2>Serial Throughput Test</h2>
+          <h2>Transport Test</h2>
           <p id="throughputStatus" class="health-result card-header-message" role="status" aria-live="polite"></p>
-          <button id="startThroughputTest" class="ghost">Start Throughput Test</button>
+          <button id="startThroughputTest" class="ghost">Start</button>
           <button id="stopThroughputTest" class="danger" hidden>Stop</button>
         </header>
         <div class="body">
@@ -684,11 +726,12 @@
               <option value="independent" selected>Independent channel data</option>
             </select></label>
           </div>
-          <dl id="throughputMetrics" class="metric-grid" hidden>
+          <div id="throughputResults" class="performance-results-panel" hidden>
+          <dl id="throughputMetrics" class="metric-grid performance-results">
             <div><dt>Payload</dt><dd id="throughputPayload">—</dd></div>
             <div><dt>Messages</dt><dd id="throughputMessages">0</dd></div>
             <div><dt>Errors</dt><dd id="throughputErrors">0</dd></div>
-            <div><dt>Data rate</dt><dd id="throughputRate">0 B/s</dd></div>
+            <div><dt>Payload rate</dt><dd id="throughputRate">0 B/s</dd></div>
             <div><dt>Transferred</dt><dd id="throughputBytes">0 B</dd></div>
             <div><dt>Elapsed</dt><dd id="throughputElapsed">0.0 s</dd></div>
             <div><dt>COBS decode</dt><dd id="throughputCobs">—</dd></div>
@@ -700,21 +743,23 @@
             <div><dt>RX queue peak</dt><dd id="throughputRxPeak">—</dd></div>
             <div><dt>Parser overflows</dt><dd id="throughputOverflows">—</dd></div>
             <div><dt>Bottleneck</dt><dd id="throughputBottleneck">—</dd></div>
-            <div><dt>Test context</dt><dd id="throughputContext">—</dd></div>
           </dl>
+          <p id="throughputContext" class="stress-result-details"></p>
+          </div>
         </div>
       </div>
 
       <div id="led-data-path-stress-test" class="card category-performance">
         <header>
-          <h2>LED Refresh Test</h2>
+          <h2>Performance Test</h2>
           <p id="stressStatus" class="health-result card-header-message" role="status" aria-live="polite"></p>
-          <button id="startStressTest" class="ghost">Start Refresh Test</button>
+          <button id="startStressTest" class="ghost">Start</button>
           <button id="stopStressTest" class="danger" hidden>Stop</button>
         </header>
         <div class="body">
-          <p class="test-guidance">Automatically find the highest sustainable LED count, then animate the result for 10 seconds; or verify the configured count continuously.</p>
-          <div class="tool-control-grid">
+          <p class="test-guidance">Find the highest LED count that sustains the target refresh rate, or continuously test the count currently configured on the controller.</p>
+          <p id="stressSearchCaution" class="test-guidance test-caution"><span aria-hidden="true">⚠</span> During automatic search, the LEDs may briefly glitch when the test exceeds a sustainable rate. Judge the visual output during the final 10-second confirmation.</p>
+          <div class="tool-control-grid refresh-control-grid">
             <label class="field"><span>Channels</span><select id="stressChannelScope">
               <option value="all" selected>All channels</option>
               <option value="range">Range</option>
@@ -722,16 +767,17 @@
             <label class="field"><span>First channel</span><input id="stressChannelFirst" type="number" min="0" value="0" disabled /></label>
             <label class="field"><span>Last channel</span><input id="stressChannelLast" type="number" min="0" value="0" disabled /></label>
             <label class="field"><span>Target refresh rate</span><select id="stressTargetFps">
+              <option value="5">5 fps</option>
+              <option value="10">10 fps</option>
+              <option value="15">15 fps</option>
               <option value="20">20 fps</option>
               <option value="24">24 fps</option>
               <option value="25">25 fps</option>
               <option value="30" selected>30 fps</option>
               <option value="40">40 fps</option>
+              <option value="50">50 fps</option>
               <option value="60">60 fps</option>
-            </select></label>
-            <label class="field"><span>Channel data</span><select id="stressDataMode">
-              <option value="independent" selected>Independent per channel</option>
-              <option value="identical">Identical on every channel</option>
+              <option value="120">120 fps</option>
             </select></label>
             <label class="field"><span>Show pacing</span><select id="stressPacingMode">
               <option value="pipelined" selected>One-deep pipeline</option>
@@ -739,13 +785,15 @@
             </select></label>
             <label class="field"><span>LED count</span><select id="stressCountMode">
               <option value="search" selected>Find maximum automatically</option>
-              <option value="configured">Use configured count only</option>
+              <option id="stressConfiguredCountOption" value="configured">Use configured count</option>
             </select></label>
           </div>
-          <dl id="stressMetrics" class="metric-grid" hidden>
+          <div id="stressResults" class="performance-results-panel" hidden>
+          <p id="stressResultSummary" class="stress-result-summary" hidden></p>
+          <dl id="stressMetrics" class="metric-grid performance-results">
             <div><dt>Tested LEDs</dt><dd id="stressLeds">—</dd></div>
             <div><dt>Reliable limit</dt><dd id="stressLimit">—</dd></div>
-            <div><dt>Frames</dt><dd id="stressFrames">0</dd></div>
+            <div><dt>Total frames</dt><dd id="stressFrames">0</dd></div>
             <div><dt>Errors</dt><dd id="stressErrors">0</dd></div>
             <div><dt>Frame rate</dt><dd id="stressFps">0 fps</dd></div>
             <div><dt>Average</dt><dd id="stressAverage">—</dd></div>
@@ -757,8 +805,10 @@
             <div><dt>DMA / wire</dt><dd id="stressOutputDrain">—</dd></div>
             <div><dt>Output total</dt><dd id="stressShow">—</dd></div>
             <div><dt>Bottleneck</dt><dd id="stressBottleneck">—</dd></div>
-            <div><dt>Verification</dt><dd id="stressVerification">—</dd></div>
+            <div><dt>Confirmation frames</dt><dd id="stressVerification">—</dd></div>
           </dl>
+          <p id="stressVerificationDetails" class="stress-result-details" hidden></p>
+          </div>
         </div>
       </div>
 
@@ -793,14 +843,18 @@
       </div>
 
       <div id="color-order-auto-detect" class="card category-control workflow-color-order">
-        <header><h2>Color Order Setup</h2></header>
+        <header>
+          <h2>Color Order Setup</h2>
+          <div class="card-header-actions">
+            <button id="detectStart" class="ghost">Setup</button>
+          </div>
+        </header>
         <div class="body">
-          <p class="muted">Sends one primary at a time and asks what you see, then computes the
-            strip's real color order.</p>
+          <p class="muted">Displays one primary color at a time and asks what you see to compute the
+            LED's real color order. Choose the type of LED:</p>
           <div class="choices">
             <label><input type="radio" name="components" value="3" checked /> RGB</label>
             <label><input type="radio" name="components" value="4" /> RGBW</label>
-            <button id="detectStart" class="primary">Start Setup</button>
           </div>
           <p id="detectPrompt" class="muted"></p>
           <div id="detectButtons" class="actions" hidden>
@@ -817,15 +871,14 @@
       <div id="channel-identify" class="card category-control workflow-identify">
         <header>
           <h2>Channel Identification</h2>
-          <button id="blackout" class="danger">Blackout</button>
+          <div class="card-header-actions">
+            <button id="identifyAll" class="ghost">Identify</button>
+            <button id="blackout" class="danger">Blackout</button>
+          </div>
         </header>
         <div class="body">
-          <p class="muted">Lights every channel a distinct identity — a solid color, or (once the
-            palette is exhausted) two colors alternating per pixel — so you can label which
-            physical strip is which.</p>
-          <div class="actions">
-            <button id="identifyAll" class="primary">Identify all channels</button>
-          </div>
+          <p class="muted">Lights each channel with a distinct colour or pattern so you can identify
+            the connected strips.</p>
           <div class="grid" id="identifyLegend"></div>
         </div>
       </div>
@@ -848,7 +901,7 @@
       <div class="tool-group-separator separator-control" aria-hidden="true"></div>
     </section>
 
-    <section class="card category-support">
+    <section id="activitySection" class="card category-support" hidden>
       <header>
         <h2>Activity Log</h2>
         <div class="card-header-actions">
@@ -856,7 +909,6 @@
         </div>
       </header>
       <div class="body">
-        <div class="log-toolbar"><span class="muted">Protocol events and actionable error explanations.</span></div>
         <ol id="activityLog" class="activity-log" aria-live="polite">
           <li class="empty">No activity yet.</li>
         </ol>
@@ -876,7 +928,7 @@
     </dialog>
 
     <footer>
-      <span id="workbenchVersion" data-version="0.1.71">Opalinx Workbench v0.1.71</span>
+      <span id="workbenchVersion" data-version="0.1.153">Opalinx Workbench v0.1.153</span>
       <span>&copy; 2026 Jean-Philippe Cô</span>
     </footer>
   </div>
@@ -1032,6 +1084,8 @@
       byId('status').dataset.kind = kind;
     };
     const setConnected = (on, label) => {
+      byId('connectionOverview').hidden = on;
+      byId('setupRow').hidden = !on;
       byId('connPill').hidden = !on;
       byId('connPill').classList.toggle('is-on', on);
       byId('connLabel').textContent = label ?? (on ? 'Connected' : 'Disconnected');
@@ -1062,7 +1116,15 @@
       return err?.message || String(err);
     }
 
+    function formatLogTime(date) {
+      const time = [date.getHours(), date.getMinutes(), date.getSeconds()]
+        .map((part) => String(part).padStart(2, '0'))
+        .join(':');
+      return `${time}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+    }
+
     function addLog(level, message) {
+      byId('activitySection').hidden = false;
       const log = byId('activityLog');
       log.querySelector('.empty')?.remove();
       const newest = log.firstElementChild;
@@ -1073,14 +1135,14 @@
         newestMessage.textContent = `${message} ×${count}`;
         const time = newest.querySelector('time');
         time.dateTime = new Date().toISOString();
-        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        time.textContent = formatLogTime(new Date());
         return;
       }
       const item = document.createElement('li');
       item.className = `log-${level}`;
       const time = document.createElement('time');
       time.dateTime = new Date().toISOString();
-      time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      time.textContent = formatLogTime(new Date());
       const badge = document.createElement('span');
       badge.className = 'log-level';
       badge.textContent = level === 'error' ? 'Error' : level;
@@ -1102,6 +1164,7 @@
 
     byId('clearLog').addEventListener('click', () => {
       byId('activityLog').innerHTML = '<li class="empty">No activity yet.</li>';
+      byId('activitySection').hidden = true;
     });
 
     // Theme toggle (persisted; initial value set by the inline <head> script).
@@ -1226,6 +1289,13 @@
       return `<div><span class="swatch" style="background:${bg}"></span> Ch ${channel}: ${identity.label}</div>`;
     }
 
+    function renderIdentifyLegend(config) {
+      const identities = buildIdentities(config.length);
+      byId('identifyLegend').innerHTML = config
+        .map((entry, index) => legendItem(entry.channel, identities[index]))
+        .join('');
+    }
+
     // ---- Populate static selects ----
     for (const order of COLOR_ORDERS) {
       byId('cfgOrder').add(new Option(order, order));
@@ -1317,7 +1387,6 @@
       connectionRetryStages.clear();
       try {
         setStatus('Requesting port…');
-        showConnectionAttempt('Choose a serial port to connect.', { busy: true });
         // Matches the firmware's HOST_SERIAL_BAUD (used on the CH343/UART path; ignored on USB-CDC).
         const transport = await WebSerialTransport.request(
           { filters: OPALINX_SERIAL_FILTERS },
@@ -1385,7 +1454,6 @@
           { attempts: 5, interval: 250, stage: 'Initial handshake' },
         );
         renderInfo(info);
-        buildChannelSelect();
         setStatus('Reading configuration…');
         showConnectionAttempt('Reading the controller configuration…', { busy: true });
         const config = await retryInitialTimeout(
@@ -1449,21 +1517,13 @@
         Firmware: `v${i.firmware.major}.${i.firmware.minor}.${i.firmware.patch}`,
         Hardware: formatRevision(i.hardwareRevision),
         Platform: i.hardwarePlatform,
-        Transport: i.transport,
         Channels: i.channelCount,
+        Transport: i.transport,
         'Max Payload': `${i.maxPayloadLength} bytes`,
         'USB ID': `${hexId(serialEnvironment?.usb?.usbVendorId)}:${hexId(serialEnvironment?.usb?.usbProductId)}`,
       };
       byId('infoList').innerHTML = Object.entries(rows)
         .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
-    }
-
-    function buildChannelSelect() {
-      const sel = byId('cfgChannel');
-      sel.innerHTML = '';
-      sel.add(new Option('All (broadcast)', String(BROADCAST_CHANNEL)));
-      sel.value = String(BROADCAST_CHANNEL);
-      sel.title = 'Opalinx 1.0 configuration applies to all channels';
     }
 
     function populateLedChannelSelect(id, config, allLabel) {
@@ -1511,21 +1571,17 @@
 
     function buildTestChannelSelect(config) {
       populateLedChannelSelect('testChannel', config, 'All channels');
-      populateLedChannelSelect('signalChannel', config, 'All channels');
-      populateLedChannelSelect('patternChannel', config, 'All channels');
       populateLedChannelSelect('powerChannel', config, 'All channels');
+      const configuredCounts = [...new Set(config.map((entry) => entry.ledCount))];
+      byId('stressConfiguredCountOption').textContent = configuredCounts.length === 1
+        ? `Use configured count (${configuredCounts[0].toLocaleString()})`
+        : 'Use configured count (varies by channel)';
       configureChannelRange('throughput', config);
       configureChannelRange('stress', config);
-      if (!byId('signalChannel').dataset.initialized && config.length) {
-        byId('signalChannel').value = String(config[0].channel);
-        byId('patternChannel').value = String(config[0].channel);
-        for (const id of ['signalChannel', 'patternChannel']) {
-          byId(id).dataset.initialized = 'true';
-        }
-      }
       updateTestControls(true);
       updatePowerEstimate();
       updateThroughputModeAvailability();
+      renderIdentifyLegend(config);
     }
 
     function selectedTestConfigs() {
@@ -1537,18 +1593,22 @@
     function updateTestControls(resetRange = false) {
       const entries = selectedTestConfigs();
       const allRgbw = entries.length > 0 && entries.every((entry) => isRgbw(entry.colorOrder));
+      const usesSelectedColor = ['solid', 'walk'].includes(byId('patternType').value);
+      const animated = selectedPatternIsAnimated();
       const maxLed = entries.length ? Math.min(...entries.map((entry) => entry.ledCount)) : 1;
-      byId('testWhiteField').hidden = !allRgbw;
+      byId('testColorField').classList.toggle('is-disabled', !usesSelectedColor);
+      byId('testColor').disabled = !usesSelectedColor;
+      byId('testWhiteField').classList.toggle('is-disabled', !usesSelectedColor || !allRgbw);
+      byId('testWhite').disabled = !usesSelectedColor || !allRgbw;
+      byId('patternIntervalField').classList.toggle('is-disabled', !animated);
+      byId('patternInterval').disabled = !animated;
       for (const id of ['testRangeMin', 'testRangeMax']) byId(id).max = String(maxLed);
       if (resetRange) {
         byId('testRangeMin').value = '1';
         byId('testRangeMax').value = String(maxLed);
       }
 
-      const sameComponents = entries.every((entry) => isRgbw(entry.colorOrder) === allRgbw);
-      const sameOrder = entries.every((entry) => entry.colorOrder === entries[0]?.colorOrder);
-      const broadcast = Number(byId('testChannel').value) === BROADCAST_CHANNEL;
-      byId('testScopeRange').disabled = !entries.length || (broadcast && !sameOrder);
+      byId('testScopeRange').disabled = !entries.length;
       if (byId('testScopeRange').disabled && byId('testScopeRange').checked) {
         document.querySelector('input[name="testScope"][value="all"]').checked = true;
       }
@@ -1556,11 +1616,7 @@
       const rangeField = document.querySelector('.test-range-field');
       rangeField.classList.toggle('is-disabled', !rangeEnabled);
       for (const id of ['testRangeMin', 'testRangeMax']) byId(id).disabled = !rangeEnabled;
-      byId('testHint').textContent = broadcast && !sameComponents
-        ? 'Live color is unavailable because broadcast tests require matching RGB/RGBW component counts.'
-        : broadcast && !sameOrder
-          ? 'Color changes are live for all LEDs. Range mode requires matching color orders on every channel.'
-          : '';
+      byId('testHint').textContent = '';
     }
 
     function selectedTestColor() {
@@ -1568,7 +1624,7 @@
       const brightness = Number(byId('testBrightness').value) / 100;
       const component = (offset) => Math.round(parseInt(hex.slice(offset, offset + 2), 16) * brightness);
       const color = { r: component(1), g: component(3), b: component(5) };
-      if (!isRgbw(selectedTestConfigs()[0]?.colorOrder)) return color;
+      if (!selectedTestConfigs().every((entry) => isRgbw(entry.colorOrder))) return color;
       color.w = Math.round(Number(byId('testWhite').value) * brightness);
       return color;
     }
@@ -1577,149 +1633,17 @@
       await client.show(BROADCAST_CHANNEL, { waitForDisplay: ack });
     }
 
-    let liveTestTimer = null;
-    let liveTestRunning = false;
-    let liveTestQueued = false;
-    let liveTestVersion = 0;
     let ledOutputMode = 'none';
+    let patternControlsDirty = false;
 
     function setLedOutputMode(mode) {
       ledOutputMode = mode;
-      byId('showLiveTest').disabled = mode === 'live';
-      byId('showPattern').disabled = mode === 'pattern';
+      byId('showPattern').disabled = mode === 'pattern' && !patternControlsDirty;
     }
-
-    function scheduleLiveTest(delay = 75) {
-      liveTestVersion++;
-      clearTimeout(liveTestTimer);
-      liveTestTimer = setTimeout(applyLiveTestColor, delay);
-    }
-
-    async function applyLiveTestColor() {
-      if (!client || byId('toolsSection').hidden) return;
-      await stopActiveLedTask({ blackoutAfter: false });
-      if (liveTestRunning) { liveTestQueued = true; return; }
-      const version = liveTestVersion;
-      const channel = Number(byId('testChannel').value);
-      const entries = selectedTestConfigs();
-      const sameComponents = entries.length && entries.every(
-        (entry) => isRgbw(entry.colorOrder) === isRgbw(entries[0].colorOrder),
-      );
-      if (!sameComponents) return;
-
-      liveTestRunning = true;
-      try {
-        const scope = document.querySelector('input[name="testScope"]:checked').value;
-        const color = selectedTestColor();
-        if (scope === 'all') {
-          const uniformOrder = entries.every((entry) => entry.colorOrder === entries[0].colorOrder);
-          if (channel === BROADCAST_CHANNEL && !uniformOrder) {
-            // Mixed color orders: a single broadcast Fill Channel would send identical bytes to
-            // channels that interpret them differently (and the client rejects it). Fill each channel
-            // in its own configured order, then commit once with a broadcast Show below — the same
-            // pattern the blackout path uses.
-            for (const entry of entries) {
-              await client.fillChannel(entry.channel, color, { ack: true });
-            }
-          } else {
-            await client.fillChannel(channel, color, { ack: true });
-          }
-        } else {
-          const first = Number(byId('testRangeMin').value);
-          const last = Number(byId('testRangeMax').value);
-          const maxLed = Math.min(...entries.map((entry) => entry.ledCount));
-          requireCondition(
-            Number.isInteger(first) && Number.isInteger(last) && first >= 1 && last >= first && last <= maxLed,
-            `Choose a valid inclusive range from 1 to ${maxLed}.`,
-          );
-
-          const rgbw = isRgbw(entries[0].colorOrder);
-          const components = rgbw ? 4 : 3;
-          const values = [color.r, color.g, color.b, ...(rgbw ? [color.w] : [])];
-          const offValues = new Array(components).fill(0);
-          const maxChunk = maxPixelsPerRequest(components);
-          const writeSolidRange = async (offset, total, componentsToWrite) => {
-            let remaining = total;
-            while (remaining > 0) {
-              const count = Math.min(remaining, maxChunk);
-              const logical = new Uint8Array(count * components);
-              for (let led = 0; led < count; led++) logical.set(componentsToWrite, led * components);
-              const wire = reorderToWire(logical, entries[0].colorOrder);
-              await client.setPixels(channel, count, wire, { offset, ack: true });
-              offset += count;
-              remaining -= count;
-            }
-          };
-
-          // Write the complete strip through Set Pixels. This explicitly rewrites LED 1 as black
-          // whenever it falls before the selected range and avoids mixing two firmware code paths.
-          await writeSolidRange(0, first - 1, offValues);
-          await writeSolidRange(first - 1, last - first + 1, values);
-          await writeSolidRange(last, maxLed - last, offValues);
-        }
-        // A newer edit arrived while this frame was being buffered. Do not show the stale
-        // frame; queue a fresh pass so the LEDs transition directly to the latest range.
-        if (version !== liveTestVersion) {
-          liveTestQueued = true;
-          return;
-        }
-        await commitTest(channel);
-        setLedOutputMode('live');
-        setStatus('Live LED color updated.', 'ok');
-      } catch (err) {
-        byId('showLiveTest').disabled = ledOutputMode === 'live';
-        reportError('Live LED control failed', err);
-      } finally {
-        liveTestRunning = false;
-        if (liveTestQueued) {
-          liveTestQueued = false;
-          scheduleLiveTest();
-        }
-      }
-    }
-
-    byId('testChannel').addEventListener('change', () => {
-      updateTestControls(true);
-      scheduleLiveTest();
-    });
-    for (const scope of document.querySelectorAll('input[name="testScope"]')) {
-      scope.addEventListener('change', () => {
-        updateTestControls();
-        scheduleLiveTest();
-      });
-    }
-    byId('testColor').addEventListener('input', () => scheduleLiveTest());
-    byId('testBrightness').addEventListener('input', () => {
-      byId('testBrightnessValue').value = `${byId('testBrightness').value}%`;
-      scheduleLiveTest();
-    });
-    byId('testWhite').addEventListener('input', () => {
-      byId('testWhiteValue').value = byId('testWhite').value;
-      scheduleLiveTest();
-    });
-    for (const id of ['testRangeMin', 'testRangeMax']) {
-      byId(id).addEventListener('input', () => scheduleLiveTest(250));
-      byId(id).addEventListener('change', () => scheduleLiveTest(0));
-    }
-
-    byId('showLiveTest').addEventListener('click', () => {
-      byId('showLiveTest').disabled = true;
-      scheduleLiveTest(0);
-    });
-
-    byId('testBlackout').addEventListener('click', async () => {
-      try {
-        await stopActiveLedTask();
-        byId('showLiveTest').disabled = false;
-        setStatus('All channels blacked out.', 'ok');
-        addLog('ok', 'Blacked out all channels.');
-      } catch (err) { reportError('Blackout failed', err); }
-    });
 
     // ---- Configuration ----
     async function refreshConfig(options = {}) {
       const config = await client.getConfig(options);
-      renderConfigTable(config);
       if (config[0]) {
         byId('cfgOrder').value = config[0].colorOrder;
         byId('cfgLeds').value = config[0].ledCount;
@@ -1730,25 +1654,11 @@
       return config;
     }
 
-    function renderConfigTable(config) {
-      const speedLabel = (value) => {
-        const name = Object.keys(PROTOCOLS).find((key) => PROTOCOLS[key] === value);
-        return name ? name.replace('_', ' ').replace('KHZ', ' kHz') : `0x${value.toString(16).padStart(2, '0')}`;
-      };
-      byId('configTable').innerHTML = `<ul class="channel-config-grid">${config.map((entry) => `
-        <li>
-          <strong>Ch ${entry.channel}</strong>
-          <span class="channel-order">${entry.colorOrder}</span>
-          <span>${speedLabel(entry.protocolValue)}</span>
-          <span>${entry.ledCount} LEDs</span>
-        </li>`).join('')}</ul>`;
-    }
-
     let configFeedbackTimer = null;
     const showConfigFeedback = (message, kind) => {
       const feedback = byId('configFeedback');
       clearTimeout(configFeedbackTimer);
-      feedback.className = `inline-feedback ${kind}`;
+      feedback.className = `inline-feedback card-header-message ${kind}`;
       feedback.textContent = message;
       feedback.hidden = false;
       configFeedbackTimer = setTimeout(() => {
@@ -1765,26 +1675,23 @@
       clearTimeout(configApplyTimer);
       if (!client || !byId('cfgLeds').checkValidity()) return;
 
-      const controls = ['cfgChannel', 'cfgOrder', 'cfgSpeed', 'cfgLeds'].map(byId);
+      const controls = ['cfgOrder', 'cfgSpeed', 'cfgLeds'].map(byId);
       const requestedLedCount = Number(byId('cfgLeds').value);
       controls.forEach((control) => { control.disabled = true; });
       showConfigFeedback('Updating device…', '');
       try {
-        const channel = Number(byId('cfgChannel').value);
         const config = await client.configure({
-          channel,
+          channel: BROADCAST_CHANNEL,
           colorOrder: byId('cfgOrder').value,
           protocol: byId('cfgSpeed').value,
           ledCount: requestedLedCount,
         });
         const applied = config.every((entry) => entry.ledCount === requestedLedCount);
         if (!applied) throw new Error('The device response did not contain the requested LED count.');
-        renderConfigTable(config);
         buildTestChannelSelect(config);
         setStatus('Configuration updated.', 'ok');
         addLog('ok', 'Device configuration updated; affected LED buffers were cleared.');
-        const target = channel === BROADCAST_CHANNEL ? `${config.length} channels` : `channel ${channel}`;
-        showConfigFeedback(`Updated ${target}.`, 'is-ok');
+        showConfigFeedback(`Updated all ${config.length} channels.`, 'is-ok');
       } catch (err) {
         let actualLedCount = null;
         try {
@@ -1804,7 +1711,7 @@
       }
     };
 
-    for (const id of ['cfgChannel', 'cfgOrder', 'cfgSpeed']) {
+    for (const id of ['cfgOrder', 'cfgSpeed']) {
       byId(id).addEventListener('change', applyConfiguration);
     }
     byId('cfgLeds').addEventListener('input', () => {
@@ -1812,6 +1719,10 @@
       configApplyTimer = setTimeout(applyConfiguration, 450);
     });
     byId('cfgLeds').addEventListener('change', applyConfiguration);
+
+    byId('stressCountMode').addEventListener('change', () => {
+      byId('stressSearchCaution').hidden = byId('stressCountMode').value !== 'search';
+    });
 
     // ---- Guided LED diagnostics, refresh test, and reusable patterns ----
     let activeLedTask = null;
@@ -1885,6 +1796,12 @@
       if (type === 'alternating') return (index + phase) % 2
         ? [0, level, level, 0] : [level, 0, 0, 0];
       if (type === 'checker') return (index + phase) % 2 ? [level, level, level, 0] : off;
+      if (type === 'counting') {
+        const block = Math.floor(index / 10) % 3;
+        if (block === 0) return [level, 0, 0, 0];
+        if (block === 1) return [0, level, 0, 0];
+        return [0, 0, level, 0];
+      }
       if (type === 'gradient') {
         const position = count <= 1 ? 0 : index / (count - 1);
         const segment = Math.min(2, Math.floor(position * 3));
@@ -1947,13 +1864,8 @@
       return animatedStressColor(index, count, entry.channel, frame, fadeFrame);
     }
 
-    function identicalStressColor(index, count, _entry, frame, fadeFrame = frame) {
-      return animatedStressColor(index, count, 0, frame, fadeFrame);
-    }
-
-    function buildStressWire(entry, ledCount, frame, fadeFrame, identical) {
-      const channel = identical ? 0 : entry.channel;
-      const channelPhase = channel & 0x0f;
+    function buildStressWire(entry, ledCount, frame, fadeFrame) {
+      const channelPhase = entry.channel & 0x0f;
       const fadeStep = fadeFrame % 120;
       const triangle = fadeStep <= 60 ? fadeStep : 120 - fadeStep;
       const background = 3 + Math.round(triangle * 0.45);
@@ -2060,10 +1972,100 @@
       return transferred + 1;
     }
 
+    async function prepareSelectedPatternFrame(channel, generator) {
+      const ranged = document.querySelector('input[name="testScope"]:checked').value === 'range';
+      if (!ranged) return prepareGeneratedFrame(channel, generator);
+
+      const entries = channel === BROADCAST_CHANNEL
+        ? [...(client?.config ?? [])]
+        : (client?.config ?? []).filter((entry) => entry.channel === channel);
+      if (!entries.length) throw new Error('No configured channel is available for this pattern.');
+
+      const first = Number(byId('testRangeMin').value) - 1;
+      const last = Number(byId('testRangeMax').value);
+      const maxLed = Math.min(...entries.map((entry) => entry.ledCount));
+      requireCondition(
+        Number.isInteger(first) && Number.isInteger(last) && first >= 0 && last > first && last <= maxLed,
+        `Choose a valid inclusive range from 1 to ${maxLed}.`,
+      );
+
+      let transferred = 0;
+      for (const entry of entries) {
+        const rgbw = isRgbw(entry.colorOrder);
+        await client.fillChannel(
+          entry.channel,
+          rgbw ? { r: 0, g: 0, b: 0, w: 0 } : { r: 0, g: 0, b: 0 },
+          { ack: true },
+        );
+
+        const count = last - first;
+        const components = bytesPerLed(entry.colorOrder);
+        const logical = new Uint8Array(count * components);
+        for (let led = 0; led < count; led++) {
+          const color = generator(first + led, entry.ledCount, entry);
+          const base = led * components;
+          for (let component = 0; component < components; component++) logical[base + component] = color[component];
+        }
+        const wire = reorderToWire(logical, entry.colorOrder);
+        const maxChunk = maxPixelsPerRequest(components);
+        for (let sent = 0; sent < count; sent += maxChunk) {
+          const chunkCount = Math.min(maxChunk, count - sent);
+          const start = sent * components;
+          const pixels = wire.slice(start, start + chunkCount * components);
+          await client.setPixels(entry.channel, chunkCount, pixels, { offset: first + sent, ack: true });
+          transferred += 5 + pixels.length;
+        }
+      }
+      return transferred;
+    }
+
+    async function writeSelectedPatternFrame(channel, generator) {
+      const transferred = await prepareSelectedPatternFrame(channel, generator);
+      await commitGeneratedFrame(channel);
+      return transferred + 1;
+    }
+
+    const ANIMATED_PATTERNS = new Set(['walk', 'animated-alternating', 'primaries']);
+
+    function selectedPatternIsAnimated() {
+      return ANIMATED_PATTERNS.has(byId('patternType').value);
+    }
+
+    function selectedPatternGenerator(type, phase = 0) {
+      const ranged = document.querySelector('input[name="testScope"]:checked').value === 'range';
+      const first = Number(byId('testRangeMin').value) - 1;
+      const last = Number(byId('testRangeMax').value);
+      const brightness = Number(byId('testBrightness').value) / 100;
+      const solid = selectedTestColor();
+      const level = Math.round(255 * brightness);
+      return (index, count) => {
+        if (ranged && (index < first || index >= last)) return [0, 0, 0, 0];
+        if (type === 'solid') return [solid.r, solid.g, solid.b, solid.w ?? 0];
+        if (type === 'walk') return index === phase % count
+          ? [solid.r, solid.g, solid.b, solid.w ?? 0]
+          : [0, 0, 0, 0];
+        if (type === 'animated-alternating') return patternColor('alternating', index, count, brightness, phase);
+        if (type === 'primaries') {
+          const primary = phase % 3;
+          return primary === 0 ? [level, 0, 0, 0] : primary === 1 ? [0, level, 0, 0] : [0, 0, level, 0];
+        }
+        if (type === 'alternating') return index % 2 ? [0, 0, level, 0] : [level, 0, 0, 0];
+        return patternColor(type, index, count, brightness);
+      };
+    }
+
+    function renderPatternControls() {
+      const animated = selectedPatternIsAnimated();
+      const signalRunning = activeLedTask?.type === 'signal';
+      updateTestControls();
+      byId('showPattern').hidden = signalRunning;
+      byId('showPattern').disabled = !animated && ledOutputMode === 'pattern' && !patternControlsDirty;
+      byId('stopSignalTest').hidden = !signalRunning;
+    }
+
     function resetTaskButtons(type) {
       if (type === 'signal') {
-        byId('startSignalTest').hidden = false;
-        byId('stopSignalTest').hidden = true;
+        renderPatternControls();
       } else if (type === 'stress') {
         byId('startStressTest').hidden = false;
         byId('stopStressTest').hidden = true;
@@ -2089,22 +2091,17 @@
       try {
         setLedOutputMode('none');
         while (!task.cancelled && client) {
-          const channel = Number(byId('signalChannel').value);
-          const type = byId('signalPattern').value;
-          const interval = Number(byId('signalInterval').value);
+          const channel = Number(byId('testChannel').value);
+          const type = byId('patternType').value;
+          const interval = Number(byId('patternInterval').value);
           if (previousChannel !== null && (channel !== previousChannel || type !== previousType)) {
             await blackout();
             step = 0;
             if (task.cancelled || !client) break;
           }
-          await writeGeneratedFrame(channel, (index, count) => {
-            if (type === 'walk') return index === step % count ? [64, 64, 64, 0] : [0, 0, 0, 0];
-            if (type === 'alternating') return patternColor('alternating', index, count, 0.25, step);
-            const primary = step % 3;
-            return primary === 0 ? [64, 0, 0, 0] : primary === 1 ? [0, 64, 0, 0] : [0, 0, 64, 0];
-          });
+          await writeSelectedPatternFrame(channel, selectedPatternGenerator(type, step));
           step++;
-          byId('signalStatus').textContent = type === 'walk'
+          byId('patternStatus').textContent = type === 'walk'
             ? `Step ${step} · One moving pixel`
             : `Step ${step}: watch for flicker, incorrect colors, or pixels outside the pattern.`;
           previousChannel = channel;
@@ -2112,31 +2109,50 @@
           await delay(interval);
         }
       } catch (err) {
-        byId('signalStatus').textContent = `LED diagnostics stopped: ${friendlyError(err)}`;
-        reportError('LED diagnostics failed', err);
+        byId('patternStatus').textContent = `Animation stopped: ${friendlyError(err)}`;
+        reportError('LED animation failed', err);
       } finally {
         if (activeLedTask === task) activeLedTask = null;
         resetTaskButtons('signal');
         if (client) {
-          try { await blackout(); } catch (err) { reportError('LED diagnostics blackout failed', err); }
+          try { await blackout(); } catch (err) { reportError('LED animation blackout failed', err); }
         }
       }
     }
 
-    byId('startSignalTest').addEventListener('click', async () => {
+    async function startPatternAnimation() {
       await stopActiveLedTask({ blackoutAfter: false });
-      byId('startSignalTest').hidden = true;
-      byId('stopSignalTest').hidden = false;
-      byId('signalStatus').textContent = 'Starting LED diagnostics…';
+      byId('patternStatus').textContent = `Starting ${byId('patternType').selectedOptions[0].text.toLowerCase()}…`;
       const task = { type: 'signal', cancelled: false, promise: null };
       activeLedTask = task;
+      renderPatternControls();
       task.promise = runSignalTest(task);
-    });
+    }
     byId('stopSignalTest').addEventListener('click', () => stopActiveLedTask());
-    for (const id of ['signalChannel', 'signalPattern', 'signalInterval']) {
-      byId(id).addEventListener('change', () => {
-        if (activeLedTask?.type === 'signal') byId('signalStatus').textContent = 'Updating LED diagnostics…';
-      });
+    byId('patternInterval').addEventListener('change', () => {
+      if (activeLedTask?.type === 'signal') byId('patternStatus').textContent = 'Updating animation…';
+    });
+    byId('testChannel').addEventListener('change', () => {
+      updateTestControls(true);
+      if (activeLedTask?.type === 'signal') {
+        byId('patternStatus').textContent = 'Updating animation…';
+      } else {
+        schedulePatternUpdate();
+      }
+    });
+    renderPatternControls();
+
+    function clearThroughputResults() {
+      const values = {
+        throughputPayload: '—', throughputMessages: '0', throughputErrors: '0',
+        throughputRate: '0 B/s', throughputBytes: '0 B', throughputElapsed: '0.0 s',
+        throughputCobs: '—', throughputCrc: '—', throughputPixelCopy: '—',
+        throughputFirmware: '—', throughputProcessing: '—', throughputUartBytes: '—',
+        throughputRxPeak: '—', throughputOverflows: '—', throughputBottleneck: '—',
+      };
+      for (const [id, value] of Object.entries(values)) byId(id).textContent = value;
+      byId('throughputContext').textContent = '';
+      byId('throughputResults').hidden = true;
     }
 
     async function runThroughputTest(task) {
@@ -2188,7 +2204,7 @@
               ? `channel ${channelScope.first}`
               : `channels ${channelScope.first}–${channelScope.last} (${workloads.length} independent)`;
         const context = `${info?.transport || 'unknown transport'} · ${workloadLabel}`;
-        byId('throughputMetrics').hidden = false;
+        byId('throughputResults').hidden = false;
         byId('throughputPayload').textContent = `${formatBytes(payloadBytesPerCycle)} · ${ledsPerCycle.toLocaleString()} LEDs/cycle`;
         byId('throughputContext').textContent = context;
         byId('throughputStatus').textContent = 'Calibrating acknowledgement interval…';
@@ -2212,30 +2228,43 @@
           };
         };
 
-        let best = { interval: 8, rate: 0 };
+        let best = null;
         for (const interval of [8, 16, 32, 64, 128, 256, 512]) {
           if (task.cancelled || !client) break;
-          const errorsBefore = task.deviceErrors;
-          const calibrationStarted = performance.now();
-          try {
-            const sent = await sendCycleBatch(interval);
-            const elapsed = Math.max(1, performance.now() - calibrationStarted);
-            const rate = sent.bytes / elapsed * 1000;
-            if (task.deviceErrors === errorsBefore && rate > best.rate) best = { interval, rate };
-            if (task.deviceErrors > errorsBefore) break;
-          } catch (err) {
-            if (isBusyError(err) || err?.name === 'OpalinxTimeoutError') break;
-            propagateUnexpectedError(err);
+          const sampleRates = [];
+          let intervalFailed = false;
+          for (let sample = 0; sample < 2; sample++) {
+            const errorsBefore = task.deviceErrors;
+            const calibrationStarted = performance.now();
+            try {
+              const sent = await sendCycleBatch(interval);
+              const elapsed = Math.max(1, performance.now() - calibrationStarted);
+              if (task.deviceErrors !== errorsBefore) {
+                intervalFailed = true;
+                break;
+              }
+              sampleRates.push(sent.bytes / elapsed * 1000);
+            } catch (err) {
+              if (isBusyError(err) || err?.name === 'OpalinxTimeoutError') {
+                intervalFailed = true;
+                break;
+              }
+              propagateUnexpectedError(err);
+            }
           }
+          if (intervalFailed || sampleRates.length !== 2) break;
+          const conservativeRate = Math.min(...sampleRates);
+          if (!best || conservativeRate > best.rate) best = { interval, rate: conservativeRate };
         }
+        requireCondition(best, 'Transport calibration could not find an error-free acknowledgement interval.');
         const acknowledgementInterval = best.interval;
         byId('throughputStatus').textContent = `Using acknowledgements every ${acknowledgementInterval} messages · warming up…`;
-        task.deviceErrors = 0;
 
         // Warm up USB/driver buffers, then reset optional firmware counters immediately before the
         // measured workload. Devices without the vendor extension continue with host-side timing.
         await sendCycleBatch(Math.min(acknowledgementInterval, 16));
         const hasFirmwareMetrics = await optionalPerformanceMetrics({ reset: true }) !== null;
+        task.deviceErrors = 0;
         startedAt = performance.now();
         lastMetricsUpdate = startedAt;
 
@@ -2254,19 +2283,20 @@
           }
         }
 
+        const measuredFinishedAt = performance.now();
+        const elapsed = Math.max(1, measuredFinishedAt - startedAt);
         if (client) await client.getConfig({ timeout: timeoutFor(1) });
         const firmwareMetrics = client && hasFirmwareMetrics
           ? await optionalPerformanceMetrics()
           : null;
         await delay(0);
-        const elapsed = Math.max(1, performance.now() - startedAt);
         byId('throughputMessages').textContent = String(messages);
         byId('throughputErrors').textContent = String(task.deviceErrors);
         byId('throughputRate').textContent = `${formatBytes(bytes / elapsed * 1000)}/s`;
         byId('throughputBytes').textContent = formatBytes(bytes);
         byId('throughputElapsed').textContent = `${(elapsed / 1000).toFixed(1)} s`;
         if (firmwareMetrics) {
-          const average = (total, count) => count ? `${(total / count).toFixed(1)} µs avg` : '—';
+          const average = (total, count) => count ? `${Math.round(total / count)} µs avg` : '—';
           byId('throughputCobs').textContent = `${average(firmwareMetrics.cobsUs, firmwareMetrics.frames)} · ${firmwareMetrics.cobsMaxUs} µs max`;
           byId('throughputCrc').textContent = `${average(firmwareMetrics.crcUs, firmwareMetrics.frames)} · ${firmwareMetrics.crcMaxUs} µs max`;
           byId('throughputPixelCopy').textContent = `${average(firmwareMetrics.pixelCopyUs, firmwareMetrics.pixelMessages)} · ${firmwareMetrics.pixelCopyMaxUs} µs max`;
@@ -2303,10 +2333,10 @@
         byId('throughputStatus').textContent = task.cancelled
           ? `Stopped · ${formatBytes(measuredRate)}/s`
           : `Serial payload rate: ${formatBytes(measuredRate)}/s with ${task.deviceErrors} errors (Every ${acknowledgementInterval} messages · ${mode}).`;
-        addLog(task.deviceErrors ? 'warn' : 'ok', `Serial throughput test: ${formatBytes(measuredRate)}/s; ${task.deviceErrors} errors; ${mode}.`);
+        addLog(task.deviceErrors ? 'warn' : 'ok', `Transport test: ${formatBytes(measuredRate)}/s; ${task.deviceErrors} errors; ${mode}.`);
       } catch (err) {
-        byId('throughputStatus').textContent = `Throughput test stopped: ${friendlyError(err)}`;
-        reportError('Serial throughput test failed', err);
+        byId('throughputStatus').textContent = `Transport test stopped: ${friendlyError(err)}`;
+        reportError('Transport test failed', err);
       } finally {
         byId('throughputStatus').classList.remove('is-busy');
         byId('throughputStatus').removeAttribute('aria-busy');
@@ -2320,11 +2350,12 @@
 
     byId('startThroughputTest').addEventListener('click', async () => {
       await stopActiveLedTask({ blackoutAfter: false });
+      clearThroughputResults();
       byId('startThroughputTest').hidden = true;
       byId('stopThroughputTest').hidden = false;
       byId('throughputStatus').classList.add('is-busy');
       byId('throughputStatus').setAttribute('aria-busy', 'true');
-      byId('throughputStatus').textContent = 'Starting throughput test…';
+      byId('throughputStatus').textContent = 'Starting transport test…';
       const task = { type: 'throughput', cancelled: false, promise: null, deviceErrors: 0 };
       activeLedTask = task;
       task.promise = runThroughputTest(task);
@@ -2345,10 +2376,54 @@
       const average = latencies.length ? latencies.reduce((sum, value) => sum + value, 0) / latencies.length : 0;
       byId('stressFrames').textContent = String(frames);
       byId('stressErrors').textContent = String(errors);
-      byId('stressFps').textContent = `${(frames / elapsed * 1000).toFixed(1)} fps`;
+      byId('stressFps').textContent = `${Math.round(frames / elapsed * 1000)} fps`;
       byId('stressAverage').textContent = latencies.length ? `${average.toFixed(1)} ms` : '—';
       byId('stressDataRate').textContent = `${formatBytes(bytes / elapsed * 1000)}/s`;
       byId('stressBytes').textContent = formatBytes(bytes);
+    }
+
+    function clearStressResults() {
+      const values = {
+        stressLeds: '—', stressLimit: '—', stressFrames: '0', stressErrors: '0',
+        stressFps: '0 fps', stressAverage: '—', stressDataRate: '0 B/s', stressBytes: '0 B',
+        stressPixelCopy: '—', stressOutputCopy: '—', stressOutputSubmit: '—',
+        stressOutputDrain: '—', stressShow: '—', stressBottleneck: '—', stressVerification: '—',
+      };
+      for (const [id, value] of Object.entries(values)) byId(id).textContent = value;
+      byId('stressResultSummary').textContent = '';
+      byId('stressResultSummary').hidden = true;
+      byId('stressVerificationDetails').textContent = '';
+      byId('stressVerificationDetails').hidden = true;
+      byId('stressResults').hidden = true;
+    }
+
+    function renderStressFirmwareMetrics(metrics) {
+      if (!metrics) return;
+      const average = (total, count) => count ? `${Math.round(total / count)} µs avg` : '—';
+      byId('stressPixelCopy').textContent = `${average(metrics.pixelCopyUs, metrics.pixelMessages)} · ${metrics.pixelCopyMaxUs} µs max`;
+      byId('stressOutputCopy').textContent = metrics.outputCopyUs == null
+        ? '—' : `${average(metrics.outputCopyUs, metrics.showCount)} · ${metrics.outputCopyMaxUs} µs max`;
+      byId('stressOutputSubmit').textContent = metrics.outputSubmitUs == null
+        ? '—' : `${average(metrics.outputSubmitUs, metrics.showCount)} · ${metrics.outputSubmitMaxUs} µs max`;
+      byId('stressOutputDrain').textContent = metrics.outputSubmitUs == null
+        ? '—'
+        : `${Math.max(0, Math.round((metrics.showUs - metrics.outputCopyUs - metrics.outputSubmitUs) / Math.max(1, metrics.showCount)))} µs avg`;
+      byId('stressShow').textContent = `${average(metrics.showUs, metrics.showCount)} · ${metrics.showMaxUs} µs max`;
+    }
+
+    function classifyStressBottleneck(metrics, p95, targetFps) {
+      const showUs = metrics?.showCount ? metrics.showUs / metrics.showCount : null;
+      const submitUs = metrics?.showCount && metrics.outputSubmitUs != null
+        ? metrics.outputSubmitUs / metrics.showCount : null;
+      const copyUs = metrics?.showCount && metrics.outputCopyUs != null
+        ? metrics.outputCopyUs / metrics.showCount : 0;
+      const drainUs = submitUs != null && showUs != null
+        ? Math.max(0, showUs - submitUs - copyUs) : null;
+      const frameBudgetMs = 1000 / targetFps;
+      if (submitUs != null && submitUs >= drainUs && showUs / 1000 >= frameBudgetMs * 0.9) return 'Output frame encoding';
+      if (drainUs != null && drainUs / 1000 >= frameBudgetMs * 0.9) return 'Physical LED output';
+      if (showUs != null && showUs / 1000 >= frameBudgetMs * 0.9) return 'Controller output pipeline';
+      return p95 >= frameBudgetMs * 0.9 ? 'Transport / host preparation' : 'Transport / controller pipeline';
     }
 
     function describeStressCandidate(entries, ledsPerChannel) {
@@ -2368,10 +2443,9 @@
       };
       const frameTarget = channelScope.all ? BROADCAST_CHANNEL : channelScope.channels;
       const targetFps = Number(byId('stressTargetFps').value);
-      const dataMode = byId('stressDataMode').value;
       const pacingMode = byId('stressPacingMode').value;
       const fixedCountMode = byId('stressCountMode').value === 'configured';
-      const baseFrameGenerator = dataMode === 'identical' ? identicalStressColor : stressColor;
+      const baseFrameGenerator = stressColor;
       // The marker advances exactly one LED every two physical frames so it visits every position
       // at half the previous speed. Only the fade is normalized to its 60 fps real-time speed;
       // lower rates therefore change its brightness by larger steps without making the marker skip.
@@ -2387,9 +2461,7 @@
         const generator = (index, count, entry) => baseFrameGenerator(
           index, count, entry, frame, fadeFrame,
         );
-        generator.buildWire = (entry, ledCount) => buildStressWire(
-          entry, ledCount, frame, fadeFrame, dataMode === 'identical',
-        );
+        generator.buildWire = (entry, ledCount) => buildStressWire(entry, ledCount, frame, fadeFrame);
         return generator;
       };
       const pipelined = pacingMode === 'pipelined';
@@ -2431,10 +2503,13 @@
           ledCount: stressConfigEntry.ledCount,
         }));
         stressConfigurationChanged = false;
-        renderConfigTable(client.config);
         buildTestChannelSelect(client.config);
       };
-      byId('stressMetrics').hidden = false;
+      byId('stressResults').hidden = false;
+      byId('stressResultSummary').hidden = true;
+      byId('stressResultSummary').textContent = '';
+      byId('stressVerificationDetails').hidden = true;
+      byId('stressVerificationDetails').textContent = '';
       setLedOutputMode('none');
       byId('stressLeds').textContent = '—';
       byId('stressLimit').textContent = 'Finding…';
@@ -2449,22 +2524,20 @@
         const targetFrameTime = 1000 / targetFps;
         let low = 1;
         let high = fixedCountMode ? ledScope.maximum : protocolLedLimit;
-        // Begin automatic search at the user's working configuration. Starting at 64 forced several
-        // needless backend rebuilds before reaching the useful range, perturbing allocation and
-        // understating the steady-state ceiling on large controllers.
-        let coarseCandidate = Math.min(ledScope.maximum, high);
+        // Make automatic discovery visible and predictable: begin at 64 LEDs/channel, double until
+        // the first rejection, then refine the successful range. Configured-count mode continues to
+        // test exactly the controller's current setting without preliminary passes.
+        let coarseCandidate = fixedCountMode ? ledScope.maximum : Math.min(64, high);
         let refining = false;
         // A fixed-count run doubles as a visual soak test: keep one uninterrupted animation alive
         // for 30 seconds. Automatic search retains short samples and a separate boundary check.
-        // Automatic candidates need enough completed-frame intervals to distinguish sustained
-        // cadence from scheduler noise. Two seconds is still quick enough for binary search while
-        // avoiding decisions based on a handful of browser/USB timing samples.
+        // Exploratory candidates need enough completed-frame intervals to distinguish sustained
+        // cadence from scheduler noise. Configured-count mode remains a 30-second soak test.
         const samplesPerLevel = fixedCountMode ? Math.ceil(targetFps * 30) : Math.ceil(targetFps * 2);
-        // Auto Max must survive the same 30-second end-to-end run as configured-count mode.
-        // A shorter confirmation could recommend a marginal count that failed immediately when
-        // checked with the stricter fixed-count test.
-        const verificationFrames = Math.ceil(targetFps * 30);
-        const channelDataLabel = dataMode === 'identical' ? 'identical channel data' : 'independent channel data';
+        // Confirm for five seconds before the separate ten-second visual sequence. Retain at least
+        // 30 completed frames at slow rates so the boundary is still judged from a useful sample.
+        const verificationFrames = Math.max(30, Math.ceil(targetFps * 5));
+        const channelDataLabel = 'independent channel data';
         const pacingLabel = pipelined ? 'one-deep pipeline' : 'lock-step acknowledgements';
         const workloadLabel = channelScope.all
           ? `all ${ledScope.entries.length} channels · ${channelDataLabel} · ${pacingLabel}`
@@ -2646,7 +2719,7 @@
             && physicalTimingPassed;
 
           updateStressMetrics(frames, errors, latencies, bytes, startedAt);
-          byId('stressFps').textContent = Number.isFinite(candidateFps) ? `${candidateFps.toFixed(1)} fps` : '—';
+          byId('stressFps').textContent = Number.isFinite(candidateFps) ? `${Math.round(candidateFps)} fps` : '—';
           if (passed) {
             candidateFailures.delete(candidate);
             bestLimit = candidate;
@@ -2865,10 +2938,30 @@
             bestFirmwareMetrics = confirmed.firmwareMetrics;
             byId('stressLeds').textContent = describeStressCandidate(ledScope.entries, confirmed.limit);
             byId('stressLimit').textContent = `${confirmed.limit}/channel`;
-            byId('stressFrames').textContent = String(verificationFrames);
+            byId('stressFrames').textContent = String(frames);
             byId('stressErrors').textContent = '0';
-            byId('stressFps').textContent = `${confirmed.fps.toFixed(1)} fps`;
+            byId('stressFps').textContent = `${Math.round(confirmed.fps)} fps`;
             byId('stressDataRate').textContent = `${formatBytes(confirmed.dataRate)}/s`;
+            renderStressFirmwareMetrics(bestFirmwareMetrics);
+            if (!bestFirmwareMetrics) {
+              const unavailable = `Unavailable · ${firmwareMetricsFailure || 'firmware diagnostics did not return data'}`;
+              for (const id of ['stressPixelCopy', 'stressOutputCopy', 'stressOutputSubmit', 'stressOutputDrain', 'stressShow']) {
+                byId(id).textContent = unavailable;
+              }
+            }
+            byId('stressBottleneck').textContent = classifyStressBottleneck(
+              bestFirmwareMetrics, confirmed.p95, targetFps,
+            );
+            byId('stressVerification').textContent = `${verificationFrames} frames`;
+            byId('stressVerificationDetails').textContent = bestFirmwareMetrics
+              ? `Verification: Firmware-confirmed · ${workloadLabel}.`
+              : `Verification: Acknowledged fallback · ${workloadLabel} · firmware metrics unavailable: ${firmwareMetricsFailure || 'no response'}.`;
+            byId('stressVerificationDetails').hidden = false;
+            const confirmedLabel = bestFirmwareMetrics ? 'Recommended maximum' : 'Host-only estimate';
+            byId('stressResultSummary').textContent = `${confirmedLabel}: ${confirmed.limit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.${nearestRejection && nearestRejection.candidate > confirmed.limit
+              ? ` ${nearestRejection.candidate} was rejected: ${nearestRejection.reason}.`
+              : ''}`;
+            byId('stressResultSummary').hidden = false;
 
             // Verification is silent. Once the result is known, announce it once and immediately
             // run a distinct ten-second presentation at the confirmed maximum.
@@ -2880,6 +2973,7 @@
               { ledLimit: confirmed.limit, ack: false },
             );
             soundCandidateTransition();
+            byId('stressStatus').classList.add('is-confirmed');
             byId('stressStatus').textContent = `Confirmed maximum · animating ${confirmed.limit} LEDs/channel for 10 seconds…`;
             const presentationStarted = performance.now();
             let presentationShow = commitGeneratedFrame(frameTarget, true);
@@ -2919,7 +3013,7 @@
 
         const firmwareMetrics = bestFirmwareMetrics ?? displayedFirmwareMetrics;
         if (firmwareMetrics) {
-          const average = (total, count) => count ? `${(total / count).toFixed(1)} µs avg` : '—';
+          const average = (total, count) => count ? `${Math.round(total / count)} µs avg` : '—';
           byId('stressPixelCopy').textContent = `${average(firmwareMetrics.pixelCopyUs, firmwareMetrics.pixelMessages)} · ${firmwareMetrics.pixelCopyMaxUs} µs max`;
           byId('stressOutputCopy').textContent = firmwareMetrics.outputCopyUs == null
             ? '—'
@@ -2963,32 +3057,46 @@
               ? 'Transport / host preparation'
               : 'Transport / controller pipeline';
           byId('stressBottleneck').textContent = bottleneck;
-          byId('stressVerification').textContent = bestFirmwareMetrics
-            ? `${verificationFrames} frames · firmware-confirmed · ${workloadLabel}`
-            : `${verificationFrames} frames · acknowledged fallback · ${workloadLabel} · firmware metrics unavailable: ${firmwareMetricsFailure || 'no response'}`;
+          byId('stressVerification').textContent = `${verificationFrames} frames`;
+          byId('stressVerificationDetails').textContent = bestFirmwareMetrics
+            ? `Verification: Firmware-confirmed · ${workloadLabel}.`
+            : `Verification: Acknowledged fallback · ${workloadLabel} · firmware metrics unavailable: ${firmwareMetricsFailure || 'no response'}.`;
+          byId('stressVerificationDetails').hidden = false;
           task.bottleneck = bottleneck;
-          task.verification = byId('stressVerification').textContent;
+          task.verification = `${byId('stressVerification').textContent} · ${byId('stressVerificationDetails').textContent}`;
         } else {
           byId('stressBottleneck').textContent = errors ? 'Communication errors' : 'Below target cadence';
-          byId('stressVerification').textContent = firmwareMetricsSupported
-            ? 'Firmware metrics available' : 'Acknowledged fallback';
+          byId('stressVerification').textContent = '0 frames';
+          byId('stressVerificationDetails').textContent = firmwareMetricsSupported
+            ? 'Verification: No count confirmed; firmware metrics were available.'
+            : 'Verification: No count confirmed; acknowledged fallback was used.';
+          byId('stressVerificationDetails').hidden = false;
         }
 
         if (task.cancelled) {
+          byId('stressStatus').classList.remove('is-confirmed');
           byId('stressStatus').textContent = `Stopped · Best verified: ${bestLimit || 'none'} LEDs/channel`;
         } else if (bestLimit) {
           const reachedProtocolLimit = bestLimit === protocolLedLimit;
           byId('stressLimit').textContent = reachedProtocolLimit
             ? `≥${bestLimit}/channel`
             : `${bestLimit}/channel`;
-          byId('stressFps').textContent = `${bestFps.toFixed(1)} fps`;
+          byId('stressFps').textContent = `${Math.round(bestFps)} fps`;
           byId('stressDataRate').textContent = `${formatBytes(bestDataRate)}/s`;
+          const resultLabel = fixedCountMode
+            ? 'Configured count sustained'
+            : bestFirmwareMetrics ? 'Recommended maximum' : 'Host-only estimate';
           byId('stressStatus').textContent = reachedProtocolLimit
+            ? `Limit verified: ≥${bestLimit} LEDs/channel at ${targetFps} fps.`
+            : `${resultLabel}: ${bestLimit} LEDs/channel at ${targetFps} fps.`;
+          byId('stressResultSummary').textContent = reachedProtocolLimit
             ? `Opalinx limit verified: at least ${bestLimit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.`
-            : `${fixedCountMode ? 'Configured count sustained' : bestFirmwareMetrics ? 'Recommended maximum' : 'Host-only estimate'}: ${bestLimit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.${nearestRejection && nearestRejection.candidate > bestLimit
+            : `${resultLabel}: ${bestLimit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.${nearestRejection && nearestRejection.candidate > bestLimit
               ? ` ${nearestRejection.candidate} was rejected: ${nearestRejection.reason}.`
               : ''}`;
+          byId('stressResultSummary').hidden = false;
         } else {
+          byId('stressStatus').classList.remove('is-confirmed');
           byId('stressLimit').textContent = 'Below target';
           byId('stressStatus').textContent = fixedCountMode
             ? `Configured count of ${currentCandidate} LEDs/channel did not sustain ${targetFps} fps. Try a lower LED count or refresh rate.`
@@ -2996,6 +3104,7 @@
         }
         addLog(errors ? 'warn' : 'ok', `LED refresh test: reliable limit ${bestLimit || 'below target'} LEDs/channel at ${targetFps} fps; ${errors} errors.`);
       } catch (err) {
+        byId('stressStatus').classList.remove('is-confirmed');
         const candidateContext = currentCandidate ? ` at ${currentCandidate} LEDs/channel` : '';
         byId('stressStatus').textContent = `Refresh test stopped${candidateContext}: ${friendlyError(err)}`;
         const failureMetrics = await optionalPerformanceMetrics();
@@ -3021,8 +3130,10 @@
     }
 
     byId('startStressTest').addEventListener('click', async () => {
+      byId('stressStatus').classList.remove('is-confirmed');
       armTransitionAudio();
       await stopActiveLedTask({ blackoutAfter: false });
+      clearStressResults();
       byId('startStressTest').hidden = true;
       byId('stopStressTest').hidden = false;
       byId('stressStatus').textContent = 'Finding the reliable LED limit…';
@@ -3038,6 +3149,7 @@
     let patternUpdateTimer = null;
     let patternUpdateRunning = false;
     let patternUpdatePending = false;
+    let patternUpdateVersion = 0;
 
     async function applyCurrentPattern({ log = false } = {}) {
       if (!client) return;
@@ -3051,15 +3163,24 @@
       try {
         do {
           patternUpdatePending = false;
+          const version = patternUpdateVersion;
           await stopActiveLedTask({ blackoutAfter: false });
           const type = byId('patternType').value;
-          const brightness = Number(byId('patternBrightness').value) / 100;
-          await writeGeneratedFrame(
-            Number(byId('patternChannel').value),
-            (index, count) => patternColor(type, index, count, brightness),
+          const channel = Number(byId('testChannel').value);
+          await prepareSelectedPatternFrame(
+            channel,
+            selectedPatternGenerator(type),
           );
+          // A newer control value arrived while this complete frame was being staged. Do not
+          // display the stale frame; the next loop pass replaces it with the latest selection.
+          if (version !== patternUpdateVersion) {
+            patternUpdatePending = true;
+            continue;
+          }
+          await commitGeneratedFrame(channel);
+          patternControlsDirty = false;
           setLedOutputMode('pattern');
-          byId('patternStatus').textContent = `${byId('patternType').selectedOptions[0].text} displayed at ${byId('patternBrightness').value}% brightness.`;
+          byId('patternStatus').textContent = `${byId('patternType').selectedOptions[0].text} displayed at ${byId('testBrightness').value}% brightness.`;
           if (log) addLog('ok', `Displayed ${byId('patternType').selectedOptions[0].text.toLowerCase()} test pattern.`);
         } while (patternUpdatePending && client);
       } catch (err) {
@@ -3067,31 +3188,70 @@
         reportError('Test pattern failed', err);
       } finally {
         patternUpdateRunning = false;
-        button.disabled = ledOutputMode === 'pattern';
+        button.disabled = ledOutputMode === 'pattern' && !patternControlsDirty;
       }
     }
 
     function schedulePatternUpdate(delay = 0) {
+      patternUpdateVersion++;
       clearTimeout(patternUpdateTimer);
       patternUpdateTimer = setTimeout(() => applyCurrentPattern(), delay);
     }
 
-    byId('patternBrightness').addEventListener('input', () => {
-      byId('patternBrightnessValue').value = `${byId('patternBrightness').value}%`;
-      schedulePatternUpdate(100);
+    byId('testBrightness').addEventListener('input', () => {
+      byId('testBrightnessValue').value = `${byId('testBrightness').value}%`;
+      if (activeLedTask?.type !== 'signal') schedulePatternUpdate(100);
     });
-    byId('patternType').addEventListener('change', () => schedulePatternUpdate());
-    byId('patternChannel').addEventListener('change', () => schedulePatternUpdate());
-    byId('showPattern').addEventListener('click', () => {
+    byId('patternType').addEventListener('change', async () => {
+      patternUpdateVersion++;
       clearTimeout(patternUpdateTimer);
-      applyCurrentPattern({ log: true });
+      if (activeLedTask?.type === 'signal') await stopActiveLedTask();
+      renderPatternControls();
+      if (selectedPatternIsAnimated()) {
+        byId('patternStatus').textContent = 'Press Show to start the animation.';
+      } else {
+        schedulePatternUpdate();
+      }
+    });
+    byId('testColor').addEventListener('input', () => {
+      if (activeLedTask?.type !== 'signal') schedulePatternUpdate(75);
+    });
+    byId('testWhite').addEventListener('input', () => {
+      byId('testWhiteValue').value = byId('testWhite').value;
+      if (activeLedTask?.type !== 'signal') schedulePatternUpdate(75);
+    });
+    for (const scope of document.querySelectorAll('input[name="testScope"]')) {
+      scope.addEventListener('change', () => {
+        updateTestControls();
+        if (activeLedTask?.type !== 'signal') schedulePatternUpdate();
+      });
+    }
+    function stagePatternRangeChange() {
+      patternUpdateVersion++;
+      patternControlsDirty = true;
+      clearTimeout(patternUpdateTimer);
+      if (activeLedTask?.type === 'signal') activeLedTask.cancelled = true;
+      byId('showPattern').disabled = false;
+      byId('patternStatus').textContent = 'Range changed. Press Show to apply it.';
+    }
+    for (const id of ['testRangeMin', 'testRangeMax']) {
+      byId(id).addEventListener('input', stagePatternRangeChange);
+      byId(id).addEventListener('change', stagePatternRangeChange);
+    }
+    byId('showPattern').addEventListener('click', () => {
+      patternUpdateVersion++;
+      clearTimeout(patternUpdateTimer);
+      if (selectedPatternIsAnimated()) startPatternAnimation();
+      else applyCurrentPattern({ log: true });
     });
     byId('patternBlackout').addEventListener('click', async () => {
       try {
+        patternUpdateVersion++;
+        patternControlsDirty = false;
         clearTimeout(patternUpdateTimer);
         await stopActiveLedTask();
         byId('patternStatus').textContent = 'All channels blacked out.';
-      } catch (err) { reportError('Pattern blackout failed', err); }
+      } catch (err) { reportError('LED test blackout failed', err); }
     });
 
     function updatePowerEstimate() {
@@ -3178,13 +3338,13 @@
       }
 
       lines.push('', 'TEST RESULTS');
-      if (byId('stressMetrics').hidden) {
+      if (byId('stressResults').hidden) {
         lines.push('LED refresh test: Not run');
       } else {
         lines.push(
-          `LED refresh test: ${byId('stressStatus').textContent.trim() || 'Result available'}`,
+          `LED refresh test: ${byId('stressResultSummary').textContent.trim() || byId('stressStatus').textContent.trim() || 'Result available'}`,
           '  Acknowledgements: Every frame (physical completion)',
-          `  Frames: ${byId('stressFrames').textContent}`,
+          `  Total frames: ${byId('stressFrames').textContent}`,
           `  Errors: ${byId('stressErrors').textContent}`,
           `  Frame rate: ${byId('stressFps').textContent}`,
           `  Average latency: ${byId('stressAverage').textContent}`,
@@ -3196,14 +3356,14 @@
           `  DMA / wire: ${byId('stressOutputDrain').textContent}`,
           `  Firmware output total: ${byId('stressShow').textContent}`,
           `  Bottleneck: ${byId('stressBottleneck').textContent}`,
-          `  Verification: ${byId('stressVerification').textContent}`,
+          `  Confirmation frames: ${byId('stressVerification').textContent}${byId('stressVerificationDetails').textContent ? ` · ${byId('stressVerificationDetails').textContent.replace(/^Verification:\s*/, '')}` : ''}`,
         );
       }
-      if (byId('throughputMetrics').hidden) {
-        lines.push('Serial throughput test: Not run');
+      if (byId('throughputResults').hidden) {
+        lines.push('Transport test: Not run');
       } else {
         lines.push(
-          `Serial throughput test: ${byId('throughputStatus').textContent.trim() || 'Result available'}`,
+          `Transport test: ${byId('throughputStatus').textContent.trim() || 'Result available'}`,
           `  Acknowledgements: ${lastThroughputResult?.acknowledgementInterval ? `Every ${lastThroughputResult.acknowledgementInterval} messages (automatic)` : 'Unavailable'}`,
           `  Channel mode: ${byId('throughputMode').selectedOptions[0]?.text || 'Single channel'}`,
           `  Payload: ${byId('throughputPayload').textContent}`,
@@ -3310,6 +3470,23 @@
 
     // ---- Device reset ----
     const resetDialog = byId('resetDialog');
+    let deviceFeedbackTimer = null;
+    const showDeviceFeedback = (message, kind) => {
+      const feedback = byId('deviceFeedback');
+      clearTimeout(deviceFeedbackTimer);
+      byId('connPill').hidden = true;
+      feedback.className = `inline-feedback card-header-message ${kind}`;
+      feedback.textContent = message;
+      feedback.hidden = false;
+      deviceFeedbackTimer = setTimeout(() => {
+        feedback.classList.add('is-fading');
+        deviceFeedbackTimer = setTimeout(() => {
+          feedback.hidden = true;
+          feedback.classList.remove('is-fading');
+          byId('connPill').hidden = !client;
+        }, 400);
+      }, 3000);
+    };
     byId('openReset').addEventListener('click', () => resetDialog.showModal());
     byId('cancelReset').addEventListener('click', () => resetDialog.close());
     byId('confirmReset').addEventListener('click', async () => {
@@ -3319,11 +3496,11 @@
         await stopActiveLedTask({ blackoutAfter: false });
         await client.reset({ timeout: 5000 });
         await refreshConfig();
-        byId('identifyLegend').innerHTML = '';
         byId('detectResult').textContent = '';
         resetDialog.close();
         setStatus('Device reset to its power-on state.', 'ok');
-        addLog('warn', 'Device reset completed; configuration and LED buffers returned to power-on defaults.');
+        showDeviceFeedback('Device reset.', 'is-ok');
+        addLog('ok', 'Device reset completed; configuration and LED buffers returned to power-on defaults.');
       } catch (err) {
         resetDialog.close();
         reportError('Device reset failed', err);
@@ -3350,6 +3527,7 @@
       const seq = components === 4 ? ['r', 'g', 'b', 'w'] : ['r', 'g', 'b'];
       const level = 64; // dim, to be gentle and limit current
       const original = client?.config?.[0] ? { ...client.config[0] } : null;
+      const previousOutputMode = ledOutputMode;
       byId('detectResult').textContent = '';
       setLedOutputMode('none');
 
@@ -3364,15 +3542,23 @@
         await refreshConfig();
       };
 
-      try {
-        // Configure identity order so each logical component maps straight to a wire byte.
-        await client.configure({
-          channel: BROADCAST_CHANNEL, colorOrder: identity, protocol: byId('cfgSpeed').value,
-          ledCount: Number(byId('cfgLeds').value),
-        });
+      const restorePreviousOutput = async () => {
+        if (previousOutputMode === 'pattern') {
+          await applyCurrentPattern();
+        } else {
+          await blackout({ queryConfig: false });
+        }
+      };
 
+      try {
         const observed = [];
         for (let step = 0; step < seq.length; step++) {
+          // Use identity order only while transmitting this probe. Restore the active configuration
+          // before waiting for the answer so other cards never operate against temporary RGBW state.
+          await client.configure({
+            channel: BROADCAST_CHANNEL, colorOrder: identity, protocol: byId('cfgSpeed').value,
+            ledCount: Number(byId('cfgLeds').value),
+          });
           const color = { r: 0, g: 0, b: 0 };
           if (components === 4) color.w = 0;
           color[seq[step]] = level;
@@ -3380,13 +3566,14 @@
           // retroactively acknowledge a preceding TxID-0 Fill that may have been rejected.
           await client.fillChannel(BROADCAST_CHANNEL, color, { ack: true });
           await client.show(BROADCAST_CHANNEL, { waitForDisplay: true });
+          await restoreOriginalConfiguration();
 
           const answer = await askColor(`Step ${step + 1}/${seq.length}: which color is lit?`);
           if (answer === '?') {
             byId('detectResult').textContent = 'Inconclusive — no clear color reported. Try again with a connected strip.';
             byId('detectButtons').hidden = true;
             byId('detectPrompt').textContent = '';
-            await restoreOriginalConfiguration();
+            await restorePreviousOutput();
             return;
           }
           observed.push(answer);
@@ -3394,9 +3581,9 @@
 
         byId('detectButtons').hidden = true;
         byId('detectPrompt').textContent = '';
-        // Detection uses an identity configuration only as a temporary probe. Restore the active
-        // configuration before presenting the result; changing it remains an explicit user action.
-        await restoreOriginalConfiguration();
+        // The active configuration was restored before every answer. Restore whichever Workbench
+        // output was active before setup; the RGB/RGBW probe choice is never global state.
+        await restorePreviousOutput();
 
         const detected = observed.join('');
         if (COLOR_ORDERS.includes(detected)) {
@@ -3417,6 +3604,7 @@
                 ledCount: Number(byId('cfgLeds').value),
               });
               await refreshConfig();
+              await restorePreviousOutput();
               setStatus(`Applied detected color order ${detected}.`, 'ok');
               addLog('ok', `Detected and applied ${detected} color order.`);
             } catch (err) { reportError('Apply detected color order failed', err); }
@@ -3426,7 +3614,10 @@
             `Observed sequence "${detected}" is not a known order — check for duplicate answers.`;
         }
       } catch (err) {
-        try { await restoreOriginalConfiguration(); }
+        try {
+          await restoreOriginalConfiguration();
+          await restorePreviousOutput();
+        }
         catch (restoreError) { reportError('Could not restore configuration after color order setup', restoreError); }
         reportError('Color order setup failed', err);
       }
@@ -3474,7 +3665,6 @@
         setLedOutputMode('none');
         const config = await client.getConfig();
         const identities = buildIdentities(config.length);
-        const legend = [];
         for (let c = 0; c < config.length; c++) {
           const identity = identities[c];
           const components = bytesPerLed(config[c].colorOrder);
@@ -3482,11 +3672,10 @@
           const wire = reorderToWire(logical, config[c].colorOrder);
           // Acknowledged so a rejected per-channel write throws here (this one-shot has no later
           // frame to surface a fire-and-forget failure — it would otherwise report false success).
-          await client.setPixels(c, config[c].ledCount, wire, { ack: true });
-          legend.push(legendItem(c, identity));
+          await client.setPixels(config[c].channel, config[c].ledCount, wire, { ack: true });
         }
         await client.show(BROADCAST_CHANNEL, { waitForDisplay: true }); // broadcast commit, confirm display
-        byId('identifyLegend').innerHTML = legend.join('');
+        renderIdentifyLegend(config);
         setStatus('All channels lit with distinct identities.', 'ok');
         addLog('ok', `Applied distinct identities to ${config.length} channels.`);
       } catch (err) {
@@ -3497,7 +3686,6 @@
     byId('blackout').addEventListener('click', async () => {
       try {
         await stopActiveLedTask();
-        byId('identifyLegend').innerHTML = '';
         setStatus('Blacked out.', 'ok');
         addLog('ok', 'Blacked out all channels.');
       }
