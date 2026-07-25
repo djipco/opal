@@ -229,7 +229,10 @@
       min-width: 0; max-width: 24rem; padding: 0;
       border: 0; background: transparent; color: var(--fg);
     }
-    .device-header #connLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .device-header #connLabel {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-size: 1rem; font-weight: 650;
+    }
     .card-header-message {
       grid-area: message; justify-self: center; min-width: 0; max-width: 100%;
       margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -710,7 +713,7 @@
           <button id="stopStressTest" class="danger" hidden>Stop</button>
         </header>
         <div class="body">
-          <p class="test-guidance">Automatically find the highest LED count that can sustain the selected refresh rate.</p>
+          <p class="test-guidance">Automatically find the highest sustainable LED count, then animate the result for 10 seconds; or verify the configured count continuously.</p>
           <div class="tool-control-grid">
             <label class="field"><span>Channels</span><select id="stressChannelScope">
               <option value="all" selected>All channels</option>
@@ -725,6 +728,18 @@
               <option value="30" selected>30 fps</option>
               <option value="40">40 fps</option>
               <option value="60">60 fps</option>
+            </select></label>
+            <label class="field"><span>Channel data</span><select id="stressDataMode">
+              <option value="independent" selected>Independent per channel</option>
+              <option value="identical">Identical on every channel</option>
+            </select></label>
+            <label class="field"><span>Show pacing</span><select id="stressPacingMode">
+              <option value="pipelined" selected>One-deep pipeline</option>
+              <option value="lockstep">Lock-step acknowledgements</option>
+            </select></label>
+            <label class="field"><span>LED count</span><select id="stressCountMode">
+              <option value="search" selected>Find maximum automatically</option>
+              <option value="configured">Use configured count only</option>
             </select></label>
           </div>
           <dl id="stressMetrics" class="metric-grid" hidden>
@@ -861,7 +876,7 @@
     </dialog>
 
     <footer>
-      <span id="workbenchVersion" data-version="0.1.37">Opalinx Workbench v0.1.37</span>
+      <span id="workbenchVersion" data-version="0.1.69">Opalinx Workbench v0.1.69</span>
       <span>&copy; 2026 Jean-Philippe Cô</span>
     </footer>
   </div>
@@ -883,7 +898,10 @@
       if (typeof client?.getPerformanceMetrics !== 'function') {
         throw new Error('This Opalinx client cannot request firmware metrics.');
       }
-      return client.getPerformanceMetrics({ reset, timeout });
+      const namespace = info?.deviceName?.startsWith('Pixel Lynx ')
+        ? 'co.djip.pixellynx'
+        : 'co.djip.opalinx';
+      return client.getPerformanceMetrics({ reset, timeout, namespace });
     }
 
     async function optionalPerformanceMetrics(options = {}) {
@@ -891,6 +909,7 @@
       try {
         const metrics = await getPerformanceMetrics(options);
         firmwareMetricsSupport = true;
+        firmwareMetricsFailure = null;
         return metrics;
       } catch (err) {
         // Performance metrics are a vendor extension, not an Opalinx requirement. Unknown-command,
@@ -910,6 +929,37 @@
         }
         throw err;
       }
+    }
+
+    async function probePerformanceMetrics(options = {}) {
+      // A timeout during an overloaded candidate must not permanently disable diagnostics for the
+      // rest of the browser session. Every performance test starts from an idle pipeline and gets a
+      // fresh probe, with short retries for a delayed vendor response.
+      firmwareMetricsSupport = null;
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const metrics = await getPerformanceMetrics(options);
+          firmwareMetricsSupport = true;
+          firmwareMetricsFailure = null;
+          return metrics;
+        } catch (err) {
+          lastError = err;
+          const unavailable = err?.name === 'OpalinxError'
+            && [ErrorCode.UNKNOWN_IDENTIFIER, ErrorCode.UNSUPPORTED].includes(err.code);
+          if (unavailable || /performance metrics|firmware metrics|unsupported/i.test(err?.message || '')) {
+            firmwareMetricsSupport = false;
+            firmwareMetricsFailure = friendlyError(err);
+            return null;
+          }
+          if (err?.name !== 'OpalinxTimeoutError') throw err;
+          if (attempt < 2) await delay(100);
+        }
+      }
+      firmwareMetricsSupport = false;
+      firmwareMetricsFailure = friendlyError(lastError) || 'Request timed out';
+      addLog('warn', `Firmware performance metrics unavailable: ${lastError?.message || 'request timed out'}.`);
+      return null;
     }
 
     // Card disclosure state is local to this browser and restored on the next visit.
@@ -1073,6 +1123,7 @@
     let info = null;
     let serialEnvironment = null;
     let firmwareMetricsSupport = null;
+    let firmwareMetricsFailure = null;
     const browserDetailsPromise = navigator.userAgentData?.getHighEntropyValues?.([
       'architecture', 'bitness', 'model', 'platformVersion', 'fullVersionList',
     ]).catch(() => null) ?? Promise.resolve(null);
@@ -1245,6 +1296,7 @@
         client = null;
         info = null;
         firmwareMetricsSupport = null;
+        firmwareMetricsFailure = null;
         connectToggle.textContent = 'Connect';
         connectToggle.hidden = false;
         connectToggle.classList.remove('danger');
@@ -1304,6 +1356,7 @@
           client = null;
           info = null;
           firmwareMetricsSupport = null;
+          firmwareMetricsFailure = null;
           connectToggle.textContent = 'Connect';
           connectToggle.hidden = false;
           connectToggle.classList.remove('danger');
@@ -1392,14 +1445,13 @@
     // ---- Info rendering ----
     function renderInfo(i) {
       const rows = {
-        Protocol: `v${i.protocol.major}.${i.protocol.minor}.${i.protocol.patch}`,
+        Opalinx: `v${i.protocol.major}.${i.protocol.minor}.${i.protocol.patch}`,
         Firmware: `v${i.firmware.major}.${i.firmware.minor}.${i.firmware.patch}`,
-        'Hardware revision': formatRevision(i.hardwareRevision),
-        'Hardware platform': i.hardwarePlatform,
+        Hardware: formatRevision(i.hardwareRevision),
+        Platform: i.hardwarePlatform,
         Transport: i.transport,
         Channels: i.channelCount,
-        'Max payload': `${i.maxPayloadLength} bytes`,
-        'Capability flags': `0x${i.capabilities.toString(16).padStart(2, '0')} (reserved)`,
+        'Max Payload': `${i.maxPayloadLength} bytes`,
         'USB ID': `${hexId(serialEnvironment?.usb?.usbVendorId)}:${hexId(serialEnvironment?.usb?.usbProductId)}`,
       };
       byId('infoList').innerHTML = Object.entries(rows)
@@ -1713,7 +1765,7 @@
       clearTimeout(configApplyTimer);
       if (!client || !byId('cfgLeds').checkValidity()) return;
 
-      const controls = ['cfgChannel', 'cfgOrder', 'cfgSpeed', 'cfgLeds'].map($);
+      const controls = ['cfgChannel', 'cfgOrder', 'cfgSpeed', 'cfgLeds'].map(byId);
       const requestedLedCount = Number(byId('cfgLeds').value);
       controls.forEach((control) => { control.disabled = true; });
       showConfigFeedback('Updating device…', '');
@@ -1725,6 +1777,8 @@
           protocol: byId('cfgSpeed').value,
           ledCount: requestedLedCount,
         });
+        const applied = config.every((entry) => entry.ledCount === requestedLedCount);
+        if (!applied) throw new Error('The device response did not contain the requested LED count.');
         renderConfigTable(config);
         buildTestChannelSelect(config);
         setStatus('Configuration updated.', 'ok');
@@ -1764,6 +1818,38 @@
     let lastThroughputResult = null;
 
     const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+    let transitionAudioContext = null;
+    function armTransitionAudio() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        transitionAudioContext ??= new AudioContextClass();
+        if (transitionAudioContext.state === 'suspended') transitionAudioContext.resume().catch(() => {});
+      } catch (_) {
+        // Audio is a non-essential cue; status text and the visible blackout remain authoritative.
+      }
+    }
+    function soundCandidateTransition() {
+      try {
+        if (!transitionAudioContext || transitionAudioContext.state !== 'running') return;
+        const started = transitionAudioContext.currentTime;
+        for (const [index, frequency] of [660, 780, 920].entries()) {
+          const toneStarted = started + index * 0.14;
+          const oscillator = transitionAudioContext.createOscillator();
+          const gain = transitionAudioContext.createGain();
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(frequency, toneStarted);
+          gain.gain.setValueAtTime(0.0001, toneStarted);
+          gain.gain.exponentialRampToValueAtTime(0.12, toneStarted + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.0001, toneStarted + 0.105);
+          oscillator.connect(gain).connect(transitionAudioContext.destination);
+          oscillator.start(toneStarted);
+          oscillator.stop(toneStarted + 0.115);
+        }
+      } catch (_) {
+        // Some embedded browser shells expose Web Audio incompletely; keep the test operational.
+      }
+    }
     const isBusyError = (err) => err?.name === 'OpalinxError' && err.code === ErrorCode.BUSY;
     const isPipelineSaturation = (err) => isBusyError(err) || err?.name === 'OpalinxTimeoutError';
     const requireCondition = (condition, message) => {
@@ -1810,6 +1896,102 @@
       return off;
     }
 
+    const animatedStressCache = Array.from({ length: 16 }, () => ({}));
+
+    function stressMarkerPosition(frame, channelPhase, blockLength) {
+      if (blockLength <= 1) return 0;
+      const span = blockLength - 1;
+      const cycle = span * 2;
+      const step = (Math.floor(frame / 2) + channelPhase * 7) % cycle;
+      return step <= span ? step : cycle - step;
+    }
+
+    function animatedStressColor(index, count, channel, frame, fadeFrame = frame) {
+      // A coherent, low-current animation makes frame tearing and dropped output visible while the
+      // benchmark still sends a complete, changing payload. The background fades smoothly over
+      // four seconds at 30 fps. Each 100-LED block has a marker that advances one position every
+      // two physical frames and bounces between the block's ends. A final partial block uses its
+      // actual length.
+      const channelPhase = channel & 0x0f;
+      const blockStart = Math.floor(index / 100) * 100;
+      const blockLength = Math.max(1, Math.min(100, count - blockStart));
+      const marker = stressMarkerPosition(frame, channelPhase, blockLength);
+      const localIndex = index - blockStart;
+      // Every non-marker pixel on one channel has the same colour for the whole frame. Cache the
+      // two four-byte values instead of recalculating them—and allocating two temporary arrays—for
+      // every LED. At 60 fps × 16 × 500 LEDs those allocations consumed meaningful frame time on
+      // the browser thread and lowered the end-to-end result despite spare USB bandwidth.
+      const cached = animatedStressCache[channelPhase];
+      if (cached.fadeFrame !== fadeFrame) {
+        const fadeStep = fadeFrame % 120;
+        const triangle = fadeStep <= 60 ? fadeStep : 120 - fadeStep;
+        const background = 3 + Math.round(triangle * 0.45); // 3..30, then back to 3
+        const low = Math.max(1, Math.round(background * 0.35));
+        const tint = channelPhase % 3;
+        const red = tint === 0 ? background : low;
+        const green = tint === 1 ? background : low;
+        const blue = tint === 2 ? background : low;
+        cached.fadeFrame = fadeFrame;
+        cached.background = [red, green, blue, low];
+        cached.marker = [
+          Math.min(255, red + 96),
+          Math.min(255, green + 96),
+          Math.min(255, blue + 96),
+          32,
+        ];
+      }
+      return localIndex === marker ? cached.marker : cached.background;
+    }
+
+    function stressColor(index, count, entry, frame, fadeFrame = frame) {
+      return animatedStressColor(index, count, entry.channel, frame, fadeFrame);
+    }
+
+    function identicalStressColor(index, count, _entry, frame, fadeFrame = frame) {
+      return animatedStressColor(index, count, 0, frame, fadeFrame);
+    }
+
+    function buildStressWire(entry, ledCount, frame, fadeFrame, identical) {
+      const channel = identical ? 0 : entry.channel;
+      const channelPhase = channel & 0x0f;
+      const fadeStep = fadeFrame % 120;
+      const triangle = fadeStep <= 60 ? fadeStep : 120 - fadeStep;
+      const background = 3 + Math.round(triangle * 0.45);
+      const low = Math.max(1, Math.round(background * 0.35));
+      const tint = channelPhase % 3;
+      const normal = [
+        tint === 0 ? background : low,
+        tint === 1 ? background : low,
+        tint === 2 ? background : low,
+        low,
+      ];
+      const highlighted = [
+        Math.min(255, normal[0] + 96),
+        Math.min(255, normal[1] + 96),
+        Math.min(255, normal[2] + 96),
+        32,
+      ];
+      const order = typeof entry.colorOrder === 'number'
+        ? COLOR_ORDERS[entry.colorOrder]
+        : entry.colorOrder;
+      const logicalIndex = { R: 0, G: 1, B: 2, W: 3 };
+      const components = order.length;
+      const wire = new Uint8Array(ledCount * components);
+      for (let blockStart = 0; blockStart < ledCount; blockStart += 100) {
+        const blockLength = Math.min(100, ledCount - blockStart);
+        const marker = stressMarkerPosition(frame, channelPhase, blockLength);
+        const blockEnd = blockStart + blockLength;
+        for (let led = blockStart; led < blockEnd; led++) {
+          const color = led - blockStart === marker ? highlighted : normal;
+          const base = led * components;
+          for (let component = 0; component < components; component++) {
+            wire[base + component] = color[logicalIndex[order[component]]];
+          }
+        }
+      }
+      return wire;
+    }
+
     async function prepareGeneratedFrame(
       channel,
       generator,
@@ -1827,11 +2009,22 @@
       for (const entry of entries) {
         const ledCount = ledLimit == null ? entry.ledCount : Math.min(entry.ledCount, ledLimit);
         const components = bytesPerLed(entry.colorOrder);
-        const logical = new Uint8Array(ledCount * components);
-        for (let led = 0; led < ledCount; led++) {
-          logical.set(generator(led, ledCount, entry).slice(0, components), led * components);
+        let wire;
+        if (generator.buildWire) {
+          // The refresh benchmark knows its complete frame analytically. Generate it directly in
+          // device wire order, avoiding thousands of callback calls plus a second full-frame pass.
+          wire = generator.buildWire(entry, ledCount);
+        } else {
+          const logical = new Uint8Array(ledCount * components);
+          for (let led = 0; led < ledCount; led++) {
+            const color = generator(led, ledCount, entry);
+            const base = led * components;
+            for (let component = 0; component < components; component++) {
+              logical[base + component] = color[component];
+            }
+          }
+          wire = reorderToWire(logical, entry.colorOrder);
         }
-        const wire = reorderToWire(logical, entry.colorOrder);
         const maxChunk = maxPixelsPerRequest(components);
         for (let offset = 0; offset < ledCount; offset += maxChunk) {
           const count = Math.min(maxChunk, ledCount - offset);
@@ -2175,6 +2368,31 @@
       };
       const frameTarget = channelScope.all ? BROADCAST_CHANNEL : channelScope.channels;
       const targetFps = Number(byId('stressTargetFps').value);
+      const dataMode = byId('stressDataMode').value;
+      const pacingMode = byId('stressPacingMode').value;
+      const fixedCountMode = byId('stressCountMode').value === 'configured';
+      const baseFrameGenerator = dataMode === 'identical' ? identicalStressColor : stressColor;
+      // The marker advances exactly one LED every two physical frames so it visits every position
+      // at half the previous speed. Only the fade is normalized to its 60 fps real-time speed;
+      // lower rates therefore change its brightness by larger steps without making the marker skip.
+      const frameGenerator = (index, count, entry, frame) => baseFrameGenerator(
+        index,
+        count,
+        entry,
+        frame,
+        Math.floor(frame * 60 / targetFps),
+      );
+      frameGenerator.forFrame = (frame) => {
+        const fadeFrame = Math.floor(frame * 60 / targetFps);
+        const generator = (index, count, entry) => baseFrameGenerator(
+          index, count, entry, frame, fadeFrame,
+        );
+        generator.buildWire = (entry, ledCount) => buildStressWire(
+          entry, ledCount, frame, fadeFrame, dataMode === 'identical',
+        );
+        return generator;
+      };
+      const pipelined = pacingMode === 'pipelined';
       const startedAt = performance.now();
       let frames = 0;
       let errors = 0;
@@ -2185,6 +2403,8 @@
       let bestP95 = Infinity;
       let bestFirmwareMetrics = null;
       let displayedFirmwareMetrics = null;
+      let nearestRejection = null;
+      const candidateFailures = new Map();
       let currentCandidate = null;
       const latencies = [];
       const originalConfig = (client?.config ?? []).map((entry) => ({ ...entry }));
@@ -2221,40 +2441,43 @@
       updateStressMetrics(0, 0, [], 0, startedAt);
       try {
         requireCondition(ledScope.maximum > 0, 'No configured channel is available for this test.');
-        const firmwareMetricsSupported = await optionalPerformanceMetrics({ reset: true }) !== null;
+        const firmwareMetricsSupported = await probePerformanceMetrics({ reset: true, timeout: 3000 }) !== null;
         // The configured LED count is only a safe starting point, not the test ceiling. Expand
         // automatically until output timing fails or CONFIGURE reports the device's capacity, then
         // use binary search to locate the reliable boundary. Opalinx LED counts are 16-bit values.
         const protocolLedLimit = 0xffff;
         const targetFrameTime = 1000 / targetFps;
-        // WS281x output has a hard serial-wire ceiling independent of USB or controller speed.
-        // Use the slowest selected channel configuration as the upper search bound instead of
-        // spending time measuring LED counts that cannot physically meet the requested cadence.
-        const physicalLedLimit = stressConfigEntries.reduce((limit, entry) => {
-          const bitTimeUs = entry.protocolValue === 1 ? 2.5 : 1.25;
-          const resetUs = 300;
-          const availableUs = Math.max(0, targetFrameTime * 1000 - resetUs);
-          const channelLimit = Math.floor(availableUs / (bytesPerLed(entry.colorOrder) * 8 * bitTimeUs));
-          return Math.min(limit, channelLimit);
-        }, protocolLedLimit);
         let low = 1;
-        let high = Math.max(1, Math.min(protocolLedLimit, physicalLedLimit));
-        let coarseCandidate = Math.min(64, high);
+        let high = fixedCountMode ? ledScope.maximum : protocolLedLimit;
+        // Begin automatic search at the user's working configuration. Starting at 64 forced several
+        // needless backend rebuilds before reaching the useful range, perturbing allocation and
+        // understating the steady-state ceiling on large controllers.
+        let coarseCandidate = Math.min(ledScope.maximum, high);
         let refining = false;
-        const samplesPerLevel = 24;
-        const verificationFrames = Math.max(30, Math.ceil(targetFps * 1.5));
-        const passedCandidates = [];
+        // A fixed-count run doubles as a visual soak test: keep one uninterrupted animation alive
+        // for 30 seconds. Automatic search retains short samples and a separate boundary check.
+        // Automatic candidates need enough completed-frame intervals to distinguish sustained
+        // cadence from scheduler noise. Two seconds is still quick enough for binary search while
+        // avoiding decisions based on a handful of browser/USB timing samples.
+        const samplesPerLevel = fixedCountMode ? Math.ceil(targetFps * 30) : Math.ceil(targetFps * 2);
+        // Auto Max must survive the same 30-second end-to-end run as configured-count mode.
+        // A shorter confirmation could recommend a marginal count that failed immediately when
+        // checked with the stricter fixed-count test.
+        const verificationFrames = Math.ceil(targetFps * 30);
+        const channelDataLabel = dataMode === 'identical' ? 'identical channel data' : 'independent channel data';
+        const pacingLabel = pipelined ? 'one-deep pipeline' : 'lock-step acknowledgements';
         const workloadLabel = channelScope.all
-          ? `all ${ledScope.entries.length} independent channels`
+          ? `all ${ledScope.entries.length} channels · ${channelDataLabel} · ${pacingLabel}`
           : channelScope.first === channelScope.last
-            ? `channel ${channelScope.first}`
-            : `channels ${channelScope.first}–${channelScope.last} (${ledScope.entries.length} independent channels)`;
+            ? `channel ${channelScope.first} · ${pacingLabel}`
+            : `channels ${channelScope.first}–${channelScope.last} · ${channelDataLabel} · ${pacingLabel}`;
 
         while (!task.cancelled && client) {
           if (refining && low > high) break;
           const candidate = refining ? Math.ceil((low + high) / 2) : coarseCandidate;
           currentCandidate = candidate;
           const candidateLatencies = [];
+          const candidateCompletions = [];
           let candidateErrors = 0;
           let candidateSaturated = false;
           const errorsBeforeCandidate = task.deviceErrors;
@@ -2280,7 +2503,7 @@
           try {
             await writeGeneratedFrame(
               frameTarget,
-              (index, count) => patternColor('checker', index, count, 0.18, 0),
+              frameGenerator.forFrame(0),
               { ledLimit: candidate, ack: false, commitAck: true },
             );
           } catch (err) {
@@ -2307,7 +2530,7 @@
           // frame plus one queued frame without allowing frame N+2 to overwrite the staging buffer.
           bytes += await prepareGeneratedFrame(
             frameTarget,
-            (index, count) => patternColor('checker', index, count, 0.18, frames),
+            frameGenerator.forFrame(frames),
             { ledLimit: candidate, ack: false },
           );
           let showCompleted = commitGeneratedFrame(frameTarget, true);
@@ -2318,10 +2541,10 @@
             try {
               let preparedBytes = 0;
               let nextShowCompleted = null;
-              if (sample + 1 < samplesPerLevel) {
+              if (pipelined && sample + 1 < samplesPerLevel) {
                 preparedBytes = await prepareGeneratedFrame(
                   frameTarget,
-                  (index, count) => patternColor('checker', index, count, 0.18, frames + 1),
+                  frameGenerator.forFrame(frames + 1),
                   { ledLimit: candidate, ack: false },
                 );
                 // Queue the successor before waiting for the current frame's completion. This is
@@ -2329,10 +2552,19 @@
                 nextShowCompleted = commitGeneratedFrame(frameTarget, true);
               }
               await showCompleted;
+              if (!pipelined && sample + 1 < samplesPerLevel) {
+                preparedBytes = await prepareGeneratedFrame(
+                  frameTarget,
+                  frameGenerator.forFrame(frames + 1),
+                  { ledLimit: candidate, ack: false },
+                );
+                nextShowCompleted = commitGeneratedFrame(frameTarget, true);
+              }
               showCompleted = nextShowCompleted;
               bytes += 1 + preparedBytes;
               const latency = performance.now() - frameStarted;
               candidateLatencies.push(latency);
+              candidateCompletions.push(performance.now());
               latencies.push(latency);
               frames++;
             } catch (err) {
@@ -2373,19 +2605,30 @@
             )]
             : Infinity;
           const candidateElapsed = Math.max(1, candidateFinished - candidateStarted);
-          const completedRefreshes = candidateFirmwareMetrics?.showCount
-            ?? candidateLatencies.length;
-          const candidateFps = completedRefreshes / candidateElapsed * 1000;
-          const candidateDataRate = (bytes - bytesBeforeCandidate) / candidateElapsed * 1000;
+          // Sustainable cadence is the rate between completed frames. Do not include staging and
+          // submitting the first frame: during steady pipelining that work overlaps the preceding
+          // physical frame, but at the start of an isolated candidate there is no predecessor.
+          // Including that one-time startup cost made short automatic runs reject counts that a
+          // 900-frame configured-count run demonstrably sustained.
+          const steadyIntervals = Math.max(0, candidateCompletions.length - 1);
+          const steadyElapsed = steadyIntervals
+            ? Math.max(1, candidateCompletions.at(-1) - candidateCompletions[0])
+            : Infinity;
+          const candidateFps = steadyIntervals ? steadyIntervals / steadyElapsed * 1000 : 0;
+          const candidateDataRate = candidateLatencies.length
+            ? (bytes - bytesBeforeCandidate) / candidateLatencies.length * candidateFps
+            : 0;
           const averageShowUs = candidateFirmwareMetrics?.showCount
             ? candidateFirmwareMetrics.showUs / candidateFirmwareMetrics.showCount
             : null;
           // A refresh level is sustainable only when the physical LED engine—not merely the USB
-          // producer—completes at the requested cadence. A small rate tolerance absorbs browser
-          // timer quantisation; the measured output duration itself must fit inside one frame.
+          // producer—completes at the requested cadence. Apply the same 2% tolerance to physical
+          // duration and measured cadence. The physical engine must retain 2% of the frame period
+          // as scheduling margin; dividing by 0.98 inverted that margin and admitted marginal
+          // counts whose output nearly or actually consumed the complete frame budget.
           const physicalTimingPassed = !candidateFirmwareMetrics || (
             candidateFirmwareMetrics.showCount >= samplesPerLevel
-            && averageShowUs <= targetFrameTime * 1000
+            && averageShowUs <= targetFrameTime * 1000 * 0.98
           );
           // Firmware-confirmed output timing is authoritative when available. Browser-side P95 is
           // only a fallback because a single scheduler pause can otherwise reject a valid 60 fps
@@ -2405,20 +2648,16 @@
           updateStressMetrics(frames, errors, latencies, bytes, startedAt);
           byId('stressFps').textContent = Number.isFinite(candidateFps) ? `${candidateFps.toFixed(1)} fps` : '—';
           if (passed) {
+            candidateFailures.delete(candidate);
             bestLimit = candidate;
             bestFps = candidateFps;
             bestDataRate = candidateDataRate;
             bestP95 = candidateP95;
             bestFirmwareMetrics = candidateFirmwareMetrics;
-            passedCandidates.push({
-              limit: candidate,
-              fps: candidateFps,
-              dataRate: candidateDataRate,
-              p95: candidateP95,
-              firmwareMetrics: candidateFirmwareMetrics,
-            });
             byId('stressLimit').textContent = `${bestLimit}/channel`;
-            if (refining) {
+            if (fixedCountMode) {
+              break;
+            } else if (refining) {
               low = candidate + 1;
             } else if (candidate >= high) {
               break;
@@ -2432,7 +2671,35 @@
               }
             }
           } else {
-            if (refining) {
+            const failedAttempts = (candidateFailures.get(candidate) ?? 0) + 1;
+            candidateFailures.set(candidate, failedAttempts);
+            const plausibleTransient = candidateErrors === 0
+              && candidateLatencies.length === samplesPerLevel
+              && candidateFps >= targetFps * 0.90
+              && candidateP95 <= targetFrameTime * 1.25
+              && (averageShowUs == null || averageShowUs <= targetFrameTime * 1100);
+            if (!fixedCountMode && plausibleTransient && failedAttempts < 3) {
+              byId('stressStatus').textContent = `${candidate} LEDs/channel missed the target once (${candidateFps.toFixed(1)} fps); retrying ${failedAttempts + 1}/3…`;
+              await delay(Math.max(100, targetFrameTime * 4));
+              continue;
+            }
+            const rejectionReasons = [];
+            if (candidateErrors) rejectionReasons.push(`${candidateErrors} device error${candidateErrors === 1 ? '' : 's'}`);
+            if (candidateLatencies.length !== samplesPerLevel) rejectionReasons.push(`${candidateLatencies.length}/${samplesPerLevel} frames completed`);
+            if (!cadencePassed) rejectionReasons.push(`${candidateFps.toFixed(1)} fps achieved`);
+            if (!hostTimingPassed) rejectionReasons.push(`${candidateP95.toFixed(1)} ms host P95`);
+            if (!physicalTimingPassed && candidateFirmwareMetrics?.showCount < samplesPerLevel) {
+              rejectionReasons.push(`${candidateFirmwareMetrics.showCount}/${samplesPerLevel} physical frames completed`);
+            } else if (!physicalTimingPassed && averageShowUs != null) {
+              rejectionReasons.push(`${(averageShowUs / 1000).toFixed(1)} ms physical output`);
+            }
+            nearestRejection = {
+              candidate,
+              reason: `${rejectionReasons.join(', ') || 'did not meet the reliability criteria'}${failedAttempts > 1 ? ` after ${failedAttempts} attempts` : ''}`,
+            };
+            if (fixedCountMode) {
+              break;
+            } else if (refining) {
               high = candidate - 1;
             } else {
               refining = true;
@@ -2443,38 +2710,48 @@
           await delay(0);
         }
 
-        // Confirm the proposed boundary with a longer run. If an edge candidate was a transient
-        // success, fall back to the next-highest candidate that already passed the search phase.
-        if (bestLimit && !task.cancelled && client) {
-          const confirmationCandidates = [...passedCandidates]
-            .sort((a, b) => b.limit - a.limit)
-            .filter((entry, index, entries) => index === 0 || entry.limit !== entries[index - 1].limit);
+        // Confirm the proposed end-to-end boundary with long runs. A failed edge no longer falls
+        // back through sparse historical midpoints: step down until a long-run pass establishes a
+        // lower bound, then binary-search every remaining count range between that pass and the
+        // nearest long-run failure.
+        if (bestLimit && !fixedCountMode && !task.cancelled && client) {
           let confirmed = null;
-          for (const record of confirmationCandidates) {
-            byId('stressStatus').textContent = `Confirming ${record.limit} LEDs/channel across ${workloadLabel}…`;
+          let confirmationLow = 0;
+          let confirmationHigh = bestLimit;
+          let confirmationCandidate = bestLimit;
+          while (confirmationCandidate >= 1 && confirmationLow <= confirmationHigh
+                 && !task.cancelled && client) {
+            const record = { limit: confirmationCandidate };
+            byId('stressStatus').textContent = `Preparing final ${record.limit}-LED/channel verification…`;
             await configureStressCount(record.limit);
             try {
               await writeGeneratedFrame(
                 frameTarget,
-                (index, count) => patternColor('checker', index, count, 0.18, 0),
+                frameGenerator.forFrame(0),
                 { ledLimit: record.limit, ack: false, commitAck: true },
               );
             } catch (err) {
               if (!isPipelineSaturation(err)) propagateUnexpectedError(err);
               errors++;
               await delay(Math.max(100, targetFrameTime * 4));
+              confirmationHigh = record.limit - 1;
+              confirmationCandidate = confirmationLow
+                ? Math.ceil((confirmationLow + confirmationHigh) / 2)
+                : Math.max(1, record.limit - 32);
               continue;
             }
             if (firmwareMetricsSupported) await optionalPerformanceMetrics({ reset: true });
+            byId('stressStatus').textContent = `Maximum candidate found · animating ${record.limit} LEDs/channel for 10 seconds…`;
             const confirmationStarted = performance.now();
             const confirmationBytesBefore = bytes;
             const confirmationErrorsBefore = task.deviceErrors;
             const confirmationLatencies = [];
+            const confirmationCompletions = [];
             let confirmationFailed = false;
 
             bytes += await prepareGeneratedFrame(
               frameTarget,
-              (index, count) => patternColor('checker', index, count, 0.18, frames),
+              frameGenerator.forFrame(0),
               { ledLimit: record.limit, ack: false },
             );
             let showCompleted = commitGeneratedFrame(frameTarget, true);
@@ -2485,19 +2762,28 @@
               try {
                 let preparedBytes = 0;
                 let nextShowCompleted = null;
-                if (sample + 1 < verificationFrames) {
+                if (pipelined && sample + 1 < verificationFrames) {
                   preparedBytes = await prepareGeneratedFrame(
                     frameTarget,
-                    (index, count) => patternColor('checker', index, count, 0.18, frames + 1),
+                    frameGenerator.forFrame(sample + 1),
                     { ledLimit: record.limit, ack: false },
                   );
                   nextShowCompleted = commitGeneratedFrame(frameTarget, true);
                 }
                 await showCompleted;
+                if (!pipelined && sample + 1 < verificationFrames) {
+                  preparedBytes = await prepareGeneratedFrame(
+                    frameTarget,
+                    frameGenerator.forFrame(sample + 1),
+                    { ledLimit: record.limit, ack: false },
+                  );
+                  nextShowCompleted = commitGeneratedFrame(frameTarget, true);
+                }
                 showCompleted = nextShowCompleted;
                 bytes += 1 + preparedBytes;
                 const latency = performance.now() - frameStarted;
                 confirmationLatencies.push(latency);
+                confirmationCompletions.push(performance.now());
                 latencies.push(latency);
                 frames++;
               } catch (err) {
@@ -2529,30 +2815,45 @@
               )]
               : Infinity;
             const elapsed = Math.max(1, confirmationFinished - confirmationStarted);
-            const completed = confirmationMetrics?.showCount ?? confirmationLatencies.length;
             const averageShowUs = confirmationMetrics?.showCount
               ? confirmationMetrics.showUs / confirmationMetrics.showCount
               : null;
             const expectedLatencies = verificationFrames;
-            const confirmationFps = completed / elapsed * 1000;
+            const confirmationIntervals = Math.max(0, confirmationCompletions.length - 1);
+            const confirmationSteadyElapsed = confirmationIntervals
+              ? Math.max(1, confirmationCompletions.at(-1) - confirmationCompletions[0])
+              : Infinity;
+            const confirmationFps = confirmationIntervals
+              ? confirmationIntervals / confirmationSteadyElapsed * 1000
+              : 0;
             const confirmationPassed = !confirmationFailed
               && deviceErrors === 0
               && confirmationLatencies.length === expectedLatencies
               && confirmationFps >= targetFps * 0.98
               && (confirmationMetrics
                 ? confirmationMetrics.showCount >= verificationFrames
-                  && averageShowUs <= targetFrameTime * 1000
+                  && averageShowUs <= targetFrameTime * 1000 * 0.98
                 : confirmationP95 <= targetFrameTime * 1.10);
 
             if (confirmationPassed) {
               confirmed = {
                 limit: record.limit,
                 fps: confirmationFps,
-                dataRate: (bytes - confirmationBytesBefore) / elapsed * 1000,
+                dataRate: confirmationLatencies.length
+                  ? (bytes - confirmationBytesBefore) / confirmationLatencies.length * confirmationFps
+                  : 0,
                 p95: confirmationP95,
                 firmwareMetrics: confirmationMetrics,
               };
-              break;
+              confirmationLow = record.limit;
+              if (confirmationLow >= confirmationHigh) break;
+              confirmationCandidate = Math.ceil((confirmationLow + confirmationHigh) / 2);
+            } else {
+              confirmationHigh = record.limit - 1;
+              if (confirmationHigh < 1 || confirmationLow > confirmationHigh) break;
+              confirmationCandidate = confirmationLow
+                ? Math.ceil((confirmationLow + confirmationHigh) / 2)
+                : Math.max(1, record.limit - 32);
             }
           }
 
@@ -2562,6 +2863,55 @@
             bestDataRate = confirmed.dataRate;
             bestP95 = confirmed.p95;
             bestFirmwareMetrics = confirmed.firmwareMetrics;
+            byId('stressLeds').textContent = describeStressCandidate(ledScope.entries, confirmed.limit);
+            byId('stressLimit').textContent = `${confirmed.limit}/channel`;
+            byId('stressFrames').textContent = String(verificationFrames);
+            byId('stressErrors').textContent = '0';
+            byId('stressFps').textContent = `${confirmed.fps.toFixed(1)} fps`;
+            byId('stressDataRate').textContent = `${formatBytes(confirmed.dataRate)}/s`;
+
+            // Verification is silent. Once the result is known, announce it once and immediately
+            // run a distinct ten-second presentation at the confirmed maximum.
+            const presentationFrames = Math.ceil(targetFps * 10);
+            byId('stressStatus').textContent = `Confirmed ${confirmed.limit} LEDs/channel · preparing final animation…`;
+            bytes += await prepareGeneratedFrame(
+              frameTarget,
+              frameGenerator.forFrame(0),
+              { ledLimit: confirmed.limit, ack: false },
+            );
+            soundCandidateTransition();
+            byId('stressStatus').textContent = `Confirmed maximum · animating ${confirmed.limit} LEDs/channel for 10 seconds…`;
+            const presentationStarted = performance.now();
+            let presentationShow = commitGeneratedFrame(frameTarget, true);
+            for (let sample = 0; sample < presentationFrames && !task.cancelled && client; sample++) {
+              let preparedBytes = 0;
+              let nextPresentationShow = null;
+              if (pipelined && sample + 1 < presentationFrames) {
+                preparedBytes = await prepareGeneratedFrame(
+                  frameTarget,
+                  frameGenerator.forFrame(sample + 1),
+                  { ledLimit: confirmed.limit, ack: false },
+                );
+                nextPresentationShow = commitGeneratedFrame(frameTarget, true);
+              }
+              await presentationShow;
+              if (!pipelined && sample + 1 < presentationFrames) {
+                preparedBytes = await prepareGeneratedFrame(
+                  frameTarget,
+                  frameGenerator.forFrame(sample + 1),
+                  { ledLimit: confirmed.limit, ack: false },
+                );
+                nextPresentationShow = commitGeneratedFrame(frameTarget, true);
+              }
+              presentationShow = nextPresentationShow;
+              bytes += 1 + preparedBytes;
+              frames++;
+              // Keep the confirmed verification result visible during this presentation. Global
+              // search totals include rejected candidates and deliberate reconfiguration pauses,
+              // so presenting them as the confirmed candidate's FPS and LED count was misleading.
+              const deadline = presentationStarted + (sample + 1) * targetFrameTime;
+              if (performance.now() < deadline) await delay(deadline - performance.now());
+            }
           } else if (!task.cancelled) {
             bestLimit = 0;
           }
@@ -2582,6 +2932,13 @@
             : `${Math.max(0, Math.round((firmwareMetrics.showUs - firmwareMetrics.outputCopyUs - firmwareMetrics.outputSubmitUs) / Math.max(1, firmwareMetrics.showCount)))} µs avg`;
           byId('stressShow').textContent = `${average(firmwareMetrics.showUs, firmwareMetrics.showCount)} · ${firmwareMetrics.showMaxUs} µs max`;
           task.firmwareMetrics = firmwareMetrics;
+        } else {
+          const unavailable = firmwareMetricsFailure
+            ? `Unavailable · ${firmwareMetricsFailure}`
+            : 'Unavailable · firmware diagnostics did not return data';
+          for (const id of ['stressPixelCopy', 'stressOutputCopy', 'stressOutputSubmit', 'stressOutputDrain', 'stressShow']) {
+            byId(id).textContent = unavailable;
+          }
         }
 
         if (bestLimit) {
@@ -2606,9 +2963,9 @@
               ? 'Transport / host preparation'
               : 'Transport / controller pipeline';
           byId('stressBottleneck').textContent = bottleneck;
-          byId('stressVerification').textContent = firmwareMetricsSupported
+          byId('stressVerification').textContent = bestFirmwareMetrics
             ? `${verificationFrames} frames · firmware-confirmed · ${workloadLabel}`
-            : `${verificationFrames} frames · acknowledged fallback · ${workloadLabel}`;
+            : `${verificationFrames} frames · acknowledged fallback · ${workloadLabel} · firmware metrics unavailable: ${firmwareMetricsFailure || 'no response'}`;
           task.bottleneck = bottleneck;
           task.verification = byId('stressVerification').textContent;
         } else {
@@ -2628,10 +2985,14 @@
           byId('stressDataRate').textContent = `${formatBytes(bestDataRate)}/s`;
           byId('stressStatus').textContent = reachedProtocolLimit
             ? `Opalinx limit verified: at least ${bestLimit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.`
-            : `Recommended maximum: ${bestLimit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.`;
+            : `${fixedCountMode ? 'Configured count sustained' : bestFirmwareMetrics ? 'Recommended maximum' : 'Host-only estimate'}: ${bestLimit} LEDs/channel at ${targetFps} fps · ${workloadLabel}.${nearestRejection && nearestRejection.candidate > bestLimit
+              ? ` ${nearestRejection.candidate} was rejected: ${nearestRejection.reason}.`
+              : ''}`;
         } else {
           byId('stressLimit').textContent = 'Below target';
-          byId('stressStatus').textContent = `No LED count sustained ${targetFps} fps without errors. Try a lower target.`;
+          byId('stressStatus').textContent = fixedCountMode
+            ? `Configured count of ${currentCandidate} LEDs/channel did not sustain ${targetFps} fps. Try a lower LED count or refresh rate.`
+            : `No tested LED count sustained ${targetFps} fps without errors. Try a lower target.`;
         }
         addLog(errors ? 'warn' : 'ok', `LED refresh test: reliable limit ${bestLimit || 'below target'} LEDs/channel at ${targetFps} fps; ${errors} errors.`);
       } catch (err) {
@@ -2660,6 +3021,7 @@
     }
 
     byId('startStressTest').addEventListener('click', async () => {
+      armTransitionAudio();
       await stopActiveLedTask({ blackoutAfter: false });
       byId('startStressTest').hidden = true;
       byId('stopStressTest').hidden = false;
@@ -2799,7 +3161,6 @@
           `Transport: ${info.transport}`,
           `Channels: ${info.channelCount}`,
           `Maximum payload: ${info.maxPayloadLength} bytes`,
-          `Capability flags: 0x${info.capabilities.toString(16).padStart(2, '0')} (reserved)`,
           `USB VID: ${hexId(serialEnvironment?.usb?.usbVendorId)}`,
           `USB PID: ${hexId(serialEnvironment?.usb?.usbProductId)}`,
         );
@@ -2988,8 +3349,20 @@
       const identity = components === 4 ? 'RGBW' : 'RGB';
       const seq = components === 4 ? ['r', 'g', 'b', 'w'] : ['r', 'g', 'b'];
       const level = 64; // dim, to be gentle and limit current
+      const original = client?.config?.[0] ? { ...client.config[0] } : null;
       byId('detectResult').textContent = '';
       setLedOutputMode('none');
+
+      const restoreOriginalConfiguration = async () => {
+        if (!original) return;
+        await client.configure({
+          channel: BROADCAST_CHANNEL,
+          colorOrder: original.colorOrder,
+          protocol: original.protocolValue,
+          ledCount: original.ledCount,
+        });
+        await refreshConfig();
+      };
 
       try {
         // Configure identity order so each logical component maps straight to a wire byte.
@@ -3013,7 +3386,7 @@
             byId('detectResult').textContent = 'Inconclusive — no clear color reported. Try again with a connected strip.';
             byId('detectButtons').hidden = true;
             byId('detectPrompt').textContent = '';
-            await blackout();
+            await restoreOriginalConfiguration();
             return;
           }
           observed.push(answer);
@@ -3021,13 +3394,21 @@
 
         byId('detectButtons').hidden = true;
         byId('detectPrompt').textContent = '';
-        await blackout();
+        // Detection uses an identity configuration only as a temporary probe. Restore the active
+        // configuration before presenting the result; changing it remains an explicit user action.
+        await restoreOriginalConfiguration();
 
         const detected = observed.join('');
         if (COLOR_ORDERS.includes(detected)) {
-          byId('detectResult').innerHTML =
-            `Detected color order: <strong>${detected}</strong> ` +
-            `<button id="applyDetected" class="primary">Apply</button>`;
+          const alreadyConfigured = detected === original?.colorOrder;
+          byId('detectResult').innerHTML = alreadyConfigured
+            ? `Detected color order: <strong>${detected}</strong>. This is already the configured order.`
+            : `Detected color order: <strong>${detected}</strong> <button id="applyDetected" class="primary">Apply</button>`;
+          if (alreadyConfigured) {
+            setStatus(`Detected color order ${detected}; no configuration change is needed.`, 'ok');
+            addLog('ok', `Detected ${detected} color order; it was already configured.`);
+            return;
+          }
           byId('applyDetected').addEventListener('click', async () => {
             try {
               byId('cfgOrder').value = detected;
@@ -3045,6 +3426,8 @@
             `Observed sequence "${detected}" is not a known order — check for duplicate answers.`;
         }
       } catch (err) {
+        try { await restoreOriginalConfiguration(); }
+        catch (restoreError) { reportError('Could not restore configuration after color order setup', restoreError); }
         reportError('Color order setup failed', err);
       }
     });
