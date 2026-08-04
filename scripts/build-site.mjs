@@ -11,7 +11,8 @@ function slugify(value) {
     .replace(/<[^>]+>/g, '')
     .replace(/&[^;]+;/g, ' ')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(?<=\d)\.(?=\d)/g, '')
+    .replace(/[^a-z0-9_]+/g, '-')
     .replace(/^-|-$/g, '');
 }
 
@@ -31,7 +32,6 @@ function navigation(prefix, active) {
     ['spec', 'Specification', `${prefix}spec/`],
     ['conformance', 'Conformance', `${prefix}conformance/`],
     ['libraries', 'Libraries', `${prefix}libraries/`],
-    ['workbench', 'Workbench', `${prefix}get-workbench/`],
   ];
   return items.map(([key, label, href]) => `<a${key === active ? ' aria-current="page"' : ''} href="${href}">${label}</a>`).join('');
 }
@@ -108,11 +108,6 @@ async function build() {
   });
   await cp(path.join(root, 'conformance', 'vectors.json'), path.join(output, 'conformance', 'vectors.json'));
   await cp(path.join(root, 'conformance', 'schema.json'), path.join(output, 'conformance', 'schema.json'));
-
-  const workbenchOutput = path.join(output, 'workbench');
-  await mkdir(path.join(workbenchOutput, 'node_modules'), { recursive: true });
-  await cp(path.join(root, 'node_modules', 'opalinx'), path.join(workbenchOutput, 'node_modules', 'opalinx'), { recursive: true });
-  await cp(path.join(root, 'node_modules', 'djipevents'), path.join(workbenchOutput, 'node_modules', 'djipevents'), { recursive: true });
 
   await writeFile(path.join(output, '.nojekyll'), '');
   console.log(`Built Opalinx site in ${output}`);
