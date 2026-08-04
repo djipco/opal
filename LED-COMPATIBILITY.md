@@ -20,10 +20,9 @@ framing are not representable by the three current 8-bit formats.
 
 Mappings rely on the cited datasheets and apply to the identified product or revision; they must not
 be generalized to undocumented revisions, clones, or assembled products sold under the same family
-name. **Not yet assigned** means that no current profile can be selected from the available evidence;
-the notes identify the missing or conflicting information.
+name. Products without an assigned Opalinx 1.0 profile are listed separately in the future table.
 
-## Current mappings and unresolved products
+## Current mappings
 
 | LED product or family | Interface | Pixel format | Suggested profile | Notes |
 |---|---|---|---|---|
@@ -35,22 +34,22 @@ the notes identify the missing or conflicting information.
 | WS2815 / WS2818 | Data + backup | RGB8 | `0x02` | Controller must provide suitable backup wiring if used. |
 | SK6812 RGB | Data only | RGB8 | `0x00` | Commonly GRB. |
 | SK6812 RGBW | Data only | RGBW8 | `0x00` | Commonly GRBW. |
-| APA104 | Data only | RGB8 | Not yet assigned | Published sheets conflict materially on `T1H` and reset timing; identify the exact part and revision. |
 | SK6805-2427 Rev. 01 | Data only | RGB8 | `0x00` | 1.25 µs nominal cell, 0.30 µs `T0H`, 0.60 µs `T1H`, and ≥80 µs reset. Other SK6805 packages/revisions need separate checks. |
 | SK6813-05-EC20 Rev. 05 | Data + backup | RGB8 | `0x00` | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
 | GS8208 V0.1 | Data + backup | RGB8 | `0x02` | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |
-| GS8206 / GS8208B and other revisions | Data + backup | RGB8 | Not yet assigned | Do not infer compatibility from GS8208 V0.1; framing, current-control features, and reset behavior require revision-specific confirmation. |
 | SM16703 / SM16704 | Data only | RGB8 / RGBW8 | `0x02` | SM16703 timing evidence gives 0.30 µs `T0H`, 0.90 µs `T1H`, and >80 µs reset; SM16704 is documented as its RGBW counterpart. Confirm the exact revision. |
-| TM1803 | Data only | RGB8 | Not yet assigned | The reviewed sheet defines distinct 400 kbit/s and half-period high-speed modes, but neither is fully contained by a current profile's timing envelope. |
-| TM1804 / TM1809 / TM1812 | Data only | RGB8 | Not yet assigned | These products are not assumed interchangeable; a revision-specific manufacturer timing table is still required. |
-| TM1814 | Data only | RGBW8 | Not yet assigned | Published documentation includes additional current/brightness control behavior; confirm framing and the intended default before mapping ordinary RGBW data. |
-| UCS1903 / UCS2903 / UCS2904 | Data only | RGB8 / RGBW8 | Not yet assigned | Interface, depth, and rate are documented, but a revision-specific manufacturer timing table is still required; UCS1903 also has 400 and 800 kbit/s variants. |
 | WS2805 V0.3 | Data + backup | RGBCCT8 | `0x02` | 40-bit RGBW1W2 frames, approximately 1.25 µs cells, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and ≥280 µs reset; profile `0x02` supplies ≥300 µs reset. |
 
-## Products requiring future profiles or formats
+## Future profiles, formats, or mappings
 
-| Product or family | Why current Opalinx 1.0 profiles do not describe it |
+| Product or family | What is needed |
 |---|---|
+| APA104 | Resolve materially conflicting published `T1H` and reset timings for an exact part and revision before assigning a profile. |
+| GS8206 / GS8208B and other GS8208 revisions | Obtain revision-specific framing, current-control, timing, and reset evidence; do not infer compatibility from GS8208 V0.1. |
+| TM1803 | Define a profile whose complete timing envelope covers one of the documented 400 kbit/s or half-period high-speed modes. |
+| TM1804 / TM1809 / TM1812 | Obtain revision-specific manufacturer timing tables; these products are not assumed interchangeable. |
+| TM1814 | Confirm its additional current or brightness behavior, framing, and intended default before defining a mapping. |
+| UCS1903 / UCS2903 / UCS2904 | Obtain revision-specific manufacturer timing tables; UCS1903 also needs separate treatment of its 400 and 800 kbit/s variants. |
 | APA102 / APA102C / DotStar, APA107, HD107S, LPD6803/8806, P9813, SK9822/9826, WS2801/2803 | Data-and-clock interface. |
 | HD108, SJ1221 (16-bit), SPXL-16bit, TLC5973 (16-bit), UCS7604 (16-bit), UCS8903/8904 (16-bit), 9PDOT (16-bit) | Component depth or framing is not one of the current 8-bit formats. |
 | LD1510 12-bit and other 12-bit products | A future component-depth format is required. |
