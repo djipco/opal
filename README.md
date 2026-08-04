@@ -24,12 +24,14 @@ transmitted to the LEDs.
 
 ### 1.2. Applicability
 
-Opalinx is intended primarily for a direct, point-to-point connection between one host and one LED
-controller, typically using serial over USB. It is suitable when the host owns rendering and pacing
-while the controller owns validation, buffering, and physical LED signaling.
+Opalinx is intended for a logical point-to-point connection between one host and one LED controller.
+The connection is typically serial over USB, but the core protocol is transport-independent and can
+also operate over a reliable, ordered IP byte stream such as TCP. It is suitable when the host owns
+rendering and pacing while the controller owns validation, buffering, and physical LED signaling.
 
-Opalinx is not a stage-lighting distribution protocol or a general-purpose multi-node network
-protocol. It does not replace DMX512, Art-Net, or sACN where console interoperability, lighting
+Opalinx 1.0 does not itself define multi-controller distribution, routing, or IP discovery. This does
+not preclude standard Opalinx bindings for IP transports or future protocol extensions for networked
+operation. Opalinx does not replace DMX512, Art-Net, or sACN where console interoperability, lighting
 universes, or network-wide distribution are required. Those protocols may coexist with Opalinx in a
 controller or installation.
 
@@ -53,7 +55,7 @@ Opalinx 1.0 does not define:
 - rendering, animation, color management, or user-interface behavior;
 - electrical interfaces, connectors, power delivery, or LED power management;
 - authentication, authorization, or encryption;
-- distribution to multiple controllers; or
+- discovery, routing, or distribution across multiple controllers; or
 - the internal software, firmware, buffering, or scheduling architecture of an implementation.
 
 ## 2. Scope
