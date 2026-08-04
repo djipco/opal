@@ -1,6 +1,6 @@
 {
   "$schema": "./schema.json",
-  "corpus_version": 6,
+  "corpus_version": 7,
   "protocol_version": "1.0.0-alpha.0",
   "valid_frames": [
     {
@@ -90,6 +90,30 @@
       "payload_hex": "",
       "decoded_hex": "ffff020000606e",
       "wire_hex": "04ffff020103606e00"
+    },
+    {
+      "name": "get_network_config",
+      "tx_id": 16640,
+      "identifier": 3,
+      "payload_hex": "",
+      "decoded_hex": "00410300007450",
+      "wire_hex": "010341030103745000"
+    },
+    {
+      "name": "configure_network_dhcp",
+      "tx_id": 16641,
+      "identifier": 33,
+      "payload_hex": "00000000000000000000076c6c782d313670",
+      "decoded_hex": "014121120000000000000000000000076c6c782d3136706783",
+      "wire_hex": "0501412112010101010101010101010b076c6c782d313670678300"
+    },
+    {
+      "name": "network_config_response",
+      "tx_id": 16642,
+      "identifier": 131,
+      "payload_hex": "07000000000000000000c0a8012a18c0a80101076c6c782d313670060200839faabb",
+      "decoded_hex": "024183220007000000000000000000c0a8012a18c0a80101076c6c782d313670060200839faabb064b",
+      "wire_hex": "05024183220207010101010101010114c0a8012a18c0a80101076c6c782d313670060207839faabb064b00"
     },
     {
       "name": "reset",
@@ -300,8 +324,8 @@
       },
       "steps": [
         {
-          "input": { "tx_id": 8449, "identifier": 3, "payload_hex": "" },
-          "expect": { "responses": [{ "tx_id": 8449, "identifier": 224, "payload_hex": "0103" }] }
+          "input": { "tx_id": 8449, "identifier": 4, "payload_hex": "" },
+          "expect": { "responses": [{ "tx_id": 8449, "identifier": 224, "payload_hex": "0104" }] }
         },
         {
           "input": { "tx_id": 8450, "identifier": 32, "payload_hex": "" },
