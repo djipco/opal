@@ -49,6 +49,7 @@ for (const required of [
   'index.html',
   'spec/index.html',
   'conformance/index.html',
+  'compatibility/index.html',
   'libraries/index.html',
 ]) {
   try { await access(path.join(output, required)); }

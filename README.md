@@ -56,9 +56,18 @@ Opalinx 1.0 does not define:
 
 ## 2. Scope
 
-**Opalinx** targets one-wire, addressable-LED chips in the **WS281x** family, including **WS2811**,
-**WS2812**, **WS2812B**, **WS2813**, and their variants (e.g., **WS2814**, **WS2815**, **SK6812**).
-Both 3-component (RGB) and 4-component (RGBW) chips are supported.
+**Opalinx** 1.0 controls devices that expose one or more outputs for clockless, single-data-wire
+addressable LEDs with three or four 8-bit color components per pixel. The protocol carries pixel
+values and selects a registered **output profile**; each device reports the profiles it implements.
+
+An output profile defines observable signaling behavior such as pulse encoding, nominal bit rate,
+symbol timing, and reset or latch timing. It does not identify one LED product. Product-family names
+such as WS2812B, WS2813, or SK6812 are informative compatibility references rather than definitions
+of Opalinx behavior. Compatibility with a particular LED model depends on the selected output
+profile, color order, controller implementation, wiring, and the exact LED revision.
+
+The separate [LED compatibility addendum](LED-COMPATIBILITY.md) records informative product mappings
+without making them part of the normative protocol specification.
 
 
 ## 3. Protocol Model
@@ -89,7 +98,7 @@ the controller's topology or configuration.
 
 Opalinx distinguishes three kinds of LED-control state:
 
-- **Configuration state** defines each channel's color order, signaling protocol, and LED count.
+- **Configuration state** defines each channel's color order, output profile, and LED count.
 - **Staging state** contains the pixel values most recently written with **Set Pixels** or
   **Fill Channel**.
 - **Displayed output** is the pixel state most recently transmitted to the physical LEDs.
@@ -467,11 +476,11 @@ responds with `ERR_UNSUPPORTED`.
 
 ### 10.4. Configure Device (`0x20`)
 
-Sets the LED color order, signaling protocol, and LED count for all channels simultaneously.
+Sets the LED color order, output profile, and LED count for all channels simultaneously.
 
-| TX ID   | IDENTIFIER | PAYLOAD LENGTH | CHANNEL | COLOR ORDER | PROTOCOL | LED COUNT | CHECKSUM |
-|---------|------------|----------------|---------|-------------|----------|-----------|----------|
-| 2 bytes | `0x20`     | `0x05` `0x00`  | 1 byte  | 1 byte      | 1 byte   | 2 bytes   | 2 bytes  |
+| TX ID   | IDENTIFIER | PAYLOAD LENGTH | CHANNEL | COLOR ORDER | OUTPUT PROFILE | LED COUNT | CHECKSUM |
+|---------|------------|----------------|---------|-------------|----------------|-----------|----------|
+| 2 bytes | `0x20`     | `0x05` `0x00`  | 1 byte  | 1 byte      | 1 byte         | 2 bytes   | 2 bytes  |
 
 **Channel number**:
 
@@ -500,27 +509,33 @@ MUST support all assigned color-order values (`0x00`–`0x1D`). CONFIG readers
 MUST preserve and expose an unknown numeric color-order value rather than rejecting the entire
 response; a host MUST NOT send a color-order value it does not understand.
 
-**Protocol values**: select the WS281x signaling protocol — the chip family and its bit timing.
+**Output profile values** select the waveform generated between the controller and its LEDs.
 
-| Value  | Protocol           |
-|--------|--------------------|
-| `0x00` | WS2811 at 800 kHz  |
-| `0x01` | WS2811 at 400 kHz  |
-| `0x02` | WS2813 at 800 kHz  |
+| Value | Symbolic name | Bit cell | `T0H` | `T1H` | Minimum reset low |
+|-------|---------------|----------|-------|-------|-------------------|
+| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | 1.25 µs | 312.5 ns | 625 ns | 80 µs |
+| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | 2.5 µs | 500 ns | 1.25 µs | 80 µs |
+| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | 1.25 µs | 312.5 ns | 781.25 ns | 300 µs |
 
-The protocol value selects the signaling profile used by the device. Color order independently
-determines whether 24 or 32 component bits are transmitted per LED. Electrical timing conformance is
-determined by compatibility with the named LED family and is outside the Opalinx wire protocol.
-A device may use the same output waveform for multiple profiles if that waveform is compatible with
-each named LED family and signaling rate.
+All three profiles use one non-inverted data signal without a separate clock. Each bit begins high,
+returns low within its bit cell, and is distinguished by its high-pulse duration. Pixel bytes are
+transmitted most-significant bit first. `T0H` is the nominal high duration for a zero bit and `T1H`
+is the nominal high duration for a one bit. The signal remains low for at least the listed reset time
+after the final bit. Color order independently determines whether 24 or 32 component bits are sent
+per pixel and their order.
 
-Every conformant device MUST support `0x00`. Support for other assigned values is advertised by the
-`Supported signaling protocols` INFO record. A host MUST only request a protocol value that it
-understands and that the device advertises as supported. If the record is absent, the supported set
-is `{0x00}`.
+The values above define the target waveform. Permitted electrical conformance tolerances will be
+frozen before Opalinx 1.0; prerelease implementations SHOULD generate the listed nominal timings as
+closely as their output hardware permits and MUST meet the listed minimum reset time.
 
-CONFIG readers MUST preserve and expose unknown numeric protocol values rather than rejecting the
-response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
+Every conformant device MUST support profile `0x00`. Support for other assigned profiles is
+advertised by the `Supported output profiles` INFO record. In Opalinx 1.0, every advertised profile
+MUST be supported on every channel and for both three- and four-component color orders. A host MUST
+only request a profile value that it understands and that the device advertises. If the record is
+absent, the supported set is `{0x00}`.
+
+CONFIG readers MUST preserve and expose unknown numeric output-profile values rather than rejecting
+the response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
 unsupported value with `ERR_UNSUPPORTED`.
 
 **LEDs on channel**: A 16-bit unsigned integer, little-endian. Devices MUST reject a value of
@@ -727,7 +742,7 @@ request MUST follow that operation's admission rule. Other vendor requests defin
 admission rules.
 
 An active Show completes after every affected channel has completed physical transmission, including
-the reset/latch interval required by its selected signaling protocol. When it completes:
+the reset/latch interval required by its selected output profile. When it completes:
 
 - with no pending Show, the device enters `IDLE`;
 - with a pending Show, the device starts it and enters `ACTIVE`.
@@ -882,7 +897,7 @@ The Opalinx 1.0 standard records are:
 | `0x03` | Hardware revision   | Optional    | UTF-8, `1`–`63` bytes                             |
 | `0x04` | Hardware platform   | Optional    | UTF-8, `1`–`63` bytes                             |
 | `0x05` | Transport           | Optional    | UTF-8 identifier, `1`–`63` bytes                  |
-| `0x06` | Supported signaling protocols | Conditional | Complete ascending set of accepted one-byte protocol values |
+| `0x06` | Supported output profiles | Conditional | Complete ascending set of accepted one-byte output-profile values |
 | `0x07` | LED capacity        | Required    | Exactly 4 bytes: maximum RGB and RGBW LEDs per channel, each unsigned little-endian 16-bit |
 | `0xFF` | Vendor information  | Optional    | Namespaced vendor-information envelope            |
 
@@ -924,12 +939,12 @@ transport identifiers and MUST NOT reject a device because its transport is unre
 transport string identifies the binding only; it MUST NOT contain link speed, driver, adapter, or
 other diagnostic details.
 
-Every device supports the baseline signaling protocol `0x00`. Absence of record `0x06` means that
-`0x00` is the device's complete supported set. A device that accepts any other signaling-protocol
-value in `Configure Device` MUST include record `0x06`; when present, the record MUST list the
-complete supported set, including `0x00`, in ascending numeric order. Values are one byte each, the
-record MUST be non-empty, and no value may repeat. Unknown values are retained as numbers; their
-presence does not make INFO incompatible.
+Every device supports baseline output profile `0x00`. Absence of record `0x06` means that `0x00` is
+the device's complete supported set. A device that accepts any other output-profile value in
+`Configure Device` MUST include record `0x06`; when present, the record MUST list the complete
+supported set, including `0x00`, in ascending numeric order. Values are one byte each, the record
+MUST be non-empty, and no value may repeat. Unknown values are retained as numbers; their presence
+does not make INFO incompatible.
 
 The LED-capacity record contains the largest LED count accepted by `Configure Device`
 for a three-component RGB color order followed by the largest count accepted for a four-component
@@ -975,7 +990,7 @@ Each entry has the following structure:
 | Field            | Size    | Description                                           |
 |------------------|---------|-------------------------------------------------------|
 | Color order      | 1 byte  | Encoding matches the `Configure Device` message       |
-| Protocol         | 1 byte  | Encoding matches the `Configure Device` message       |
+| Output profile   | 1 byte  | Encoding matches the `Configure Device` message       |
 | LED count        | 2 bytes | 16-bit unsigned integer, little-endian                |
 
 Each CONFIG LED count is in the range `1`–`65535`. The number of entries is exactly the INFO
@@ -1054,7 +1069,7 @@ affected channel's transmission and required reset/latch interval have completed
 
 **Note:** Hosts should use response timeouts appropriate to the transport and device. A `SHOW_ACK`
 is sent only after physical output completes, so its latency depends on the configured LED counts,
-signaling protocols, and channel-output concurrency.
+output profiles, and channel-output concurrency.
 
 ### 11.7. RESET_ACK (`0xD1`)
 
@@ -1146,16 +1161,16 @@ baseline is:
 |-----------------|-------------------------|
 | Device information and configuration query | Mandatory |
 | Network query and configuration | Mandatory when `CAP_NETWORK_CONFIG` is advertised; otherwise `ERR_UNSUPPORTED` |
-| Broadcast Configure using any assigned 3-component order and protocol `0x00` | Mandatory |
+| Broadcast Configure using any assigned 3-component order and output profile `0x00` | Mandatory |
 | Set Pixels and Fill Channel for valid configured channels | Mandatory |
 | Broadcast Show | Mandatory |
 | Reset | Mandatory |
 | Namespaced vendor request | Envelope validation mandatory; individual namespaces optional |
 | Configuration and pixel data using every assigned RGB and RGBW color order | Mandatory |
-| Additional signaling protocols | Mandatory only for values advertised in INFO record `0x06` |
+| Additional output profiles | Mandatory only for values advertised in INFO record `0x06` |
 
-An advertised protocol value is a behavioral promise, not merely descriptive metadata. A device MUST
-support that protocol for every otherwise-valid use.
+An advertised output-profile value is a behavioral promise, not merely descriptive metadata. A
+device MUST support that profile for every otherwise-valid use.
 
 A host implementation is conformant when it satisfies every applicable host requirement in this
 specification, including the safe-acceptance requirements in
@@ -1201,7 +1216,7 @@ A typical client session driving 300 RGB LEDs per channel on an 8-channel device
 2. Client sends `Request Device Information` (`0x01`) with a nonzero transaction ID and waits for
    the corresponding `INFO` (`0x81`).
 3. Client sends `Configure Device` (`0x20`) with a new nonzero transaction ID, channel `255`, GRB
-   color order, the WS2811 800 kHz protocol, and 300 LEDs per channel. It waits for the corresponding
+   color order, output profile `SINGLE_WIRE_PULSE_800K_T1`, and 300 LEDs per channel. It waits for the corresponding
    `CONFIG` (`0xA0`).
 4. Client sends `Set Pixels` (`0x40`) with transaction ID zero for channel 0 and 900 bytes
    (300 × 3) of pixel data.

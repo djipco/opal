@@ -31,6 +31,7 @@ function navigation(prefix, active) {
   const items = [
     ['spec', 'Specification', `${prefix}spec/`],
     ['conformance', 'Conformance', `${prefix}conformance/`],
+    ['compatibility', 'LED compatibility', `${prefix}compatibility/`],
     ['libraries', 'Libraries', `${prefix}libraries/`],
   ];
   return items.map(([key, label, href]) => `<a${key === active ? ' aria-current="page"' : ''} href="${href}">${label}</a>`).join('');
@@ -69,7 +70,11 @@ async function renderPage(source, destination, options) {
   if (source === 'README.md') {
     markdown = markdown
       .replace('(conformance/README.md)', '(../conformance/)')
+      .replace('(LED-COMPATIBILITY.md)', '(../compatibility/)')
       .replaceAll('(LICENSE.md', '(../license/');
+  }
+  if (source === 'LED-COMPATIBILITY.md') {
+    markdown = markdown.replace('(README.md)', '(../spec/)');
   }
   if (source === 'conformance/README.md') {
     markdown = markdown.replaceAll('../site/assets/', '../assets/');
@@ -101,6 +106,11 @@ async function build() {
     title: 'Conformance corpus',
     description: 'Canonical Opalinx wire vectors and observable behavior cases.',
     active: 'conformance',
+  });
+  await renderPage('LED-COMPATIBILITY.md', 'compatibility', {
+    title: 'LED compatibility addendum',
+    description: 'Informative mappings between LED products and Opalinx output profiles.',
+    active: 'compatibility',
   });
   await renderPage('LICENSE.md', 'license', {
     title: 'Licence',
