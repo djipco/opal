@@ -140,6 +140,40 @@ required reset or latch interval have completed. **Reset** is an ordering barrie
 active Show to finish, cancels a pending Show, restores LED-control defaults, transmits the reset
 output, and completes before subsequent requests are processed.
 
+Accepting a Show logically captures the staged frame for that operation. Once captured, later
+requests cannot alter it. This is an observable frame-isolation guarantee, not a storage or
+processing requirement.
+
+The admission table uses `IDLE` for no active Show, `ACTIVE` for one active Show, and
+`ACTIVE_PENDING` for one active and one pending Show. It applies after all request-specific
+validation. Rejection does not change pipeline or pixel state.
+
+An implementation MAY complete Show synchronously. If it does not evaluate another request until
+that Show completes, the `ACTIVE` and `ACTIVE_PENDING` states are not externally observable, and no
+pending-Show storage is required.
+
+| Request | `IDLE` | `ACTIVE` | `ACTIVE_PENDING` |
+|---------|--------|----------|------------------|
+| `Set Pixels`, `Fill Channel` | Accept | Accept for the next frame | `ERR_BUSY` |
+| `Show` | Start and enter `ACTIVE` | Capture as pending and enter `ACTIVE_PENDING` | `ERR_BUSY` |
+| `Configure Device` | Accept | `ERR_BUSY` | `ERR_BUSY` |
+| `Reset` | Accept | Accept; run after active Show | Accept; cancel pending Show and run after active Show |
+| Query requests | Accept | Accept | Accept |
+
+A vendor request MUST NOT violate core Opalinx state or pipelining guarantees. If it accesses state
+governed by this table, its vendor contract MUST identify the equivalent core operation and the
+request MUST follow that operation's admission rule. Other vendor requests define their own
+admission rules.
+
+An active Show completes after every affected channel has completed physical transmission, including
+the reset/latch interval required by its selected output profile. When it completes:
+
+- with no pending Show, the device enters `IDLE`;
+- with a pending Show, the device starts it and enters `ACTIVE`.
+
+Only after that transition does the device emit `SHOW_ACK` for the completed Show, if its transaction
+ID is nonzero. Show acknowledgements are emitted in accepted order.
+
 ### 3.6. State lifetime
 
 Protocol state does not all share the same lifetime:
@@ -512,8 +546,8 @@ numbered channel by an extension.
 | `0x40` | [Set Pixels](#106-set-pixels-0x40) | [`SET_PIXELS_ACK`](#114-set_pixels_ack-0xc0) (`0xC0`) |
 | `0x41` | [Fill Channel](#107-fill-channel-0x41) | [`FILL_CHANNEL_ACK`](#115-fill_channel_ack-0xc1) (`0xC1`) |
 | `0x50` | [Show](#108-show-0x50) | [`SHOW_ACK`](#116-show_ack-0xd0) (`0xD0`) |
-| `0x51` | [Reset](#1010-reset-0x51) | [`RESET_ACK`](#117-reset_ack-0xd1) (`0xD1`) |
-| `0x7F` | [Namespaced Vendor Request](#1011-namespaced-vendor-request-0x7f) | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) (`0xFF`) |
+| `0x51` | [Reset](#109-reset-0x51) | [`RESET_ACK`](#117-reset_ack-0xd1) (`0xD1`) |
+| `0x7F` | [Namespaced Vendor Request](#1010-namespaced-vendor-request-0x7f) | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) (`0xFF`) |
 
 ### 10.1. Request Device Information (`0x01`)
 
@@ -739,49 +773,11 @@ reset/latch interval complete if `TxID ≠ 0x0000`; no response if `TxID = 0x000
 [`ERROR`](#119-error-0xe0) on failure only if
 `TxID ≠ 0x0000`. Hosts that use a non-zero `TxID` for `Show` and wait for `SHOW_ACK` before
 issuing the next `Show` are guaranteed never to receive `ERR_BUSY`. `SHOW_ACK` provides an observable
-completion boundary for pacing under [Frame Pipelining](#109-frame-pipelining); a Show with
-`TxID = 0x0000` provides no completion or rejection feedback.
+completion boundary for pacing under
+[Output pipeline and barriers](#35-output-pipeline-and-barriers); a Show with `TxID = 0x0000`
+provides no completion or rejection feedback.
 
-### 10.9. Frame Pipelining
-
-Opalinx 1.0 supports one active `Show` and one pending `Show`. A third `Show` is rejected with
-`ERR_BUSY`.
-
-Accepting a `Show` logically captures the staged frame for that operation. Once captured, later
-requests cannot alter it. This is an observable frame-isolation guarantee, not a storage or
-processing requirement.
-
-The admission table uses `IDLE` for no active Show, `ACTIVE` for one active Show, and
-`ACTIVE_PENDING` for one active and one pending Show. It applies after all request-specific
-validation. Rejection does not change pipeline or pixel state.
-
-An implementation MAY complete Show synchronously. If it does not evaluate another request until
-that Show completes, the `ACTIVE` and `ACTIVE_PENDING` states are not externally observable, and no
-pending-Show storage is required.
-
-| Request | `IDLE` | `ACTIVE` | `ACTIVE_PENDING` |
-|---------|--------|----------|------------------|
-| `Set Pixels`, `Fill Channel` | Accept | Accept for the next frame | `ERR_BUSY` |
-| `Show` | Start and enter `ACTIVE` | Capture as pending and enter `ACTIVE_PENDING` | `ERR_BUSY` |
-| `Configure Device` | Accept | `ERR_BUSY` | `ERR_BUSY` |
-| `Reset` | Accept | Accept; run after active Show | Accept; cancel pending Show and run after active Show |
-| Query requests | Accept | Accept | Accept |
-
-A vendor request MUST NOT violate core Opalinx state or pipelining guarantees. If it accesses state
-governed by this table, its vendor contract MUST identify the equivalent core operation and the
-request MUST follow that operation's admission rule. Other vendor requests define their own
-admission rules.
-
-An active Show completes after every affected channel has completed physical transmission, including
-the reset/latch interval required by its selected output profile. When it completes:
-
-- with no pending Show, the device enters `IDLE`;
-- with a pending Show, the device starts it and enters `ACTIVE`.
-
-Only after that transition does the device emit `SHOW_ACK` for the completed Show, if its transaction
-ID is nonzero. Show acknowledgements are emitted in accepted order.
-
-### 10.10. Reset (`0x51`)
+### 10.9. Reset (`0x51`)
 
 Restores the LED-control state to its device-defined defaults: resets all channel configurations,
 clears all channel buffers to zero, and outputs zeros to the physical LEDs.
@@ -811,7 +807,7 @@ rejecting Reset does not retire any other transaction ID, and a Reset with trans
 provides no observable transaction-ID reclamation point. This reclamation path is destructive: it
 also restores the LED-control state to its device-defined defaults as described above.
 
-### 10.11. Namespaced Vendor Request (`0x7F`)
+### 10.10. Namespaced Vendor Request (`0x7F`)
 
 Carries an extension command without consuming a globally shared identifier. Its payload is:
 
@@ -849,9 +845,9 @@ used as private extension points.
 | `0xC0` | [`SET_PIXELS_ACK`](#114-set_pixels_ack-0xc0) | [Set Pixels](#106-set-pixels-0x40) |
 | `0xC1` | [`FILL_CHANNEL_ACK`](#115-fill_channel_ack-0xc1) | [Fill Channel](#107-fill-channel-0x41) |
 | `0xD0` | [`SHOW_ACK`](#116-show_ack-0xd0) | [Show](#108-show-0x50) |
-| `0xD1` | [`RESET_ACK`](#117-reset_ack-0xd1) | [Reset](#1010-reset-0x51) |
+| `0xD1` | [`RESET_ACK`](#117-reset_ack-0xd1) | [Reset](#109-reset-0x51) |
 | `0xE0` | [`ERROR`](#119-error-0xe0) | Rejected request with a nonzero transaction ID |
-| `0xFF` | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) | [Namespaced Vendor Request](#1011-namespaced-vendor-request-0x7f) |
+| `0xFF` | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) | [Namespaced Vendor Request](#1010-namespaced-vendor-request-0x7f) |
 
 ### 11.1. INFO (`0x81`)
 
@@ -1106,7 +1102,7 @@ output profiles, and channel-output concurrency.
 
 ### 11.7. RESET_ACK (`0xD1`)
 
-Sent in response to a successful [`Reset`](#1010-reset-0x51), after LED transmission has completed.
+Sent in response to a successful [`Reset`](#109-reset-0x51), after LED transmission has completed.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | CHECKSUM |
 |----------------|------------|----------------|----------|
@@ -1114,7 +1110,7 @@ Sent in response to a successful [`Reset`](#1010-reset-0x51), after LED transmis
 
 ### 11.8. Namespaced Vendor Response (`0xFF`)
 
-Sent after successful handling of a [`Namespaced Vendor Request`](#1011-namespaced-vendor-request-0x7f)
+Sent after successful handling of a [`Namespaced Vendor Request`](#1010-namespaced-vendor-request-0x7f)
 with a nonzero transaction ID. Its payload repeats the request's namespace length, namespace, and
 command ID, followed by the command-specific response payload. The echoed transaction ID remains the
 primary correlation key; repeating the namespace and command prevents decoding under the wrong
@@ -1164,7 +1160,7 @@ carried in the namespaced vendor response payload; vendors MUST NOT allocate pri
 
 `ERR_BUSY` governs requests that exceed the one-Show backlog or require mutable pixel/configuration
 state that is not currently available. The normative cases are defined by the
-[pipeline admission table](#109-frame-pipelining).
+[pipeline admission table](#35-output-pipeline-and-barriers).
 
 Framing and checksum failures do not produce error responses because they provide no trustworthy
 nonzero correlation key. Implementations MAY count or expose these failures through local diagnostics.
@@ -1232,7 +1228,7 @@ A device is considered **Opalinx** 1.0 conformant if it:
   subsequent request is processed, and `RESET_ACK` is emitted only after every response still
   required for an earlier request has been emitted and the reset transmission has completed.
 - Implements the one-Show backlog, admission, frame-protection, completion, and acknowledgement
-  guarantees defined in [Frame Pipelining](#109-frame-pipelining).
+  guarantees defined in [Output pipeline and barriers](#35-output-pipeline-and-barriers).
 - Sends `SET_PIXELS_ACK`, `FILL_CHANNEL_ACK`, and `SHOW_ACK` responses for pixel and show
   operations received with `TxID ≠ 0x0000`.
 - Applies all field-specific reserved and unknown-value rules.
@@ -1263,7 +1259,7 @@ For installations where all channels display the same content (mirror mode), ste
 into a single `Set Pixels` with channel `255`.
 
 This example uses lock-step operation for clarity. A host may prepare and queue the next frame while
-a Show is active by following [Frame Pipelining](#109-frame-pipelining).
+a Show is active by following [Output pipeline and barriers](#35-output-pipeline-and-barriers).
 
 
 ## 14. Security Considerations
