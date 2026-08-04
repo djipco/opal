@@ -61,6 +61,11 @@ single-data-wire addressable LEDs using the `RGB8`, `RGBW8`, or `RGBCCT8` pixel 
 carries pixel values and selects a registered **output profile**; each device reports the pixel
 formats and profiles it implements.
 
+These names identify independently controlled color components, with `8` meaning an unsigned 8-bit
+intensity per component: `RGB8` provides red, green, and blue; `RGBW8` adds one white component; and
+`RGBCCT8` adds cool-white and warm-white components for correlated color temperature (CCT) control.
+Products may market the last format as RGBWW or RGB+CCT.
+
 An output profile defines observable signaling behavior such as pulse encoding, nominal bit rate,
 symbol timing, and reset or latch timing. It does not identify one LED product. Product-family names
 such as WS2812B, WS2813, or SK6812 are informative compatibility references rather than definitions
