@@ -417,7 +417,75 @@ request identifier with the high bit set: a request with identifier `0x01` is pa
 response with identifier `0x81`. Error responses always use `ERROR` (`0xE0`) regardless of the
 originating request.
 
-## 9. Channel Addressing Convention
+## 9. Configuration Registries and Channel Addressing
+
+This section defines the shared values used by configuration, capability reporting, and pixel-data
+operations. Message definitions reference these registries rather than redefining their values.
+
+### 9.1. Pixel formats
+
+| Value | Name | Components | Bytes per pixel |
+|-------|------|------------|-----------------|
+| `0x00` | `RGB8` | R, G, B | 3 |
+| `0x01` | `RGBW8` | R, G, B, W | 4 |
+| `0x02` | `RGBCCT8` | R, G, B, CW, WW | 5 |
+
+Every component is an unsigned 8-bit intensity. `CW` and `WW` identify the cool-white and
+warm-white components; products marketed as RGBWW or RGB+CCT use `RGBCCT8` when their five
+independently addressable components have these semantics. A device MUST support `RGB8`; support
+for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
+`ERR_INVALID_PARAMETER`; an assigned but unadvertised format is rejected with `ERR_UNSUPPORTED`.
+
+### 9.2. Component order
+
+Component order is an unsigned 16-bit little-endian value containing five 3-bit slots. Slot 0
+occupies bits 0–2 and names the first component transmitted to each LED; slot 4 occupies bits 12–14
+and names the last. Bit 15 is reserved and MUST be zero.
+
+| Code | Component | Code | Component |
+|------|-----------|------|-----------|
+| `0` | R | `3` | W |
+| `1` | G | `4` | CW |
+| `2` | B | `5` | WW |
+| `6` | Reserved | `7` | UNUSED |
+
+For `RGB8`, slots 0–2 MUST contain R, G, and B exactly once and slots 3–4 MUST be UNUSED. For
+`RGBW8`, slots 0–3 MUST contain R, G, B, and W exactly once and slot 4 MUST be UNUSED. For
+`RGBCCT8`, all five slots MUST contain R, G, B, CW, and WW exactly once. Any other encoding is
+rejected with `ERR_INVALID_PARAMETER`. For example, GRB is `0x7E81`, GRBW is `0x7681`, and
+RGB-CW-WW is `0x5888`. This representation supports every meaningful permutation without assigning
+a separate protocol value to each one.
+
+### 9.3. Output profiles
+
+Output profiles select the waveform generated between the controller and its LEDs.
+
+| Value | Symbolic name | Interface | Bit cell | `T0H` | `T1H` | Minimum reset low |
+|-------|---------------|-----------|----------|-------|-------|-------------------|
+| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 550–850 ns | 80 µs |
+| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | `DATA_ONLY` | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | 80 µs |
+| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 700–900 ns | 300 µs |
+
+All three profiles use one non-inverted data signal without a separate clock. Each bit begins high,
+returns low within its bit cell, and is distinguished by its high-pulse duration. Pixel bytes are
+transmitted most-significant bit first. `T0H` is the high duration for a zero bit and `T1H` is the
+high duration for a one bit; the low duration is the remainder of the bit cell. The signal MUST
+remain low between frames and for at least the listed reset time after the final bit. Every measured
+bit cell, `T0H`, and `T1H` MUST fall within its inclusive range. The output interface is `DATA_ONLY`:
+the profile defines no clock or redundant-data conductor. Voltage levels, drive strength, connectors,
+and any additional product-specific conductors remain outside Opalinx.
+
+Every conformant device MUST support profile `0x00`. Support for other assigned profiles is
+advertised by the `Supported output profiles` INFO record. In Opalinx 1.0, every advertised profile
+MUST be supported on every channel and for every advertised pixel format. A host MUST only request a
+profile value that it understands and that the device advertises. If the record is absent, the
+supported set is `{0x00}`.
+
+CONFIG readers MUST preserve and expose unknown numeric output-profile values rather than rejecting
+the response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
+unsupported value with `ERR_UNSUPPORTED`.
+
+### 9.4. Channel addressing
 
 Messages that operate on a single LED channel use a one-byte channel identifier with the following
 convention:
@@ -495,64 +563,9 @@ Sets the pixel format, component order, output profile, and LED count for all ch
   `ERR_UNSUPPORTED`.
 - `255`: broadcast. Applies the same configuration to all channels simultaneously.
 
-**Pixel format values**:
-
-| Value | Name | Components | Bytes per pixel |
-|-------|------|------------|-----------------|
-| `0x00` | `RGB8` | R, G, B | 3 |
-| `0x01` | `RGBW8` | R, G, B, W | 4 |
-| `0x02` | `RGBCCT8` | R, G, B, CW, WW | 5 |
-
-Every component is an unsigned 8-bit intensity. `CW` and `WW` identify the cool-white and
-warm-white components; products marketed as RGBWW or RGB+CCT use `RGBCCT8` when their five
-independently addressable components have these semantics. A device MUST support `RGB8`; support
-for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
-`ERR_INVALID_PARAMETER`; an assigned but unadvertised format is rejected with `ERR_UNSUPPORTED`.
-
-**Component order** is an unsigned 16-bit little-endian value containing five 3-bit slots. Slot 0
-occupies bits 0–2 and names the first component transmitted to each LED; slot 4 occupies bits 12–14
-and names the last. Bit 15 is reserved and MUST be zero.
-
-| Code | Component | Code | Component |
-|------|-----------|------|-----------|
-| `0` | R | `3` | W |
-| `1` | G | `4` | CW |
-| `2` | B | `5` | WW |
-| `6` | Reserved | `7` | UNUSED |
-
-For `RGB8`, slots 0–2 MUST contain R, G, and B exactly once and slots 3–4 MUST be UNUSED. For
-`RGBW8`, slots 0–3 MUST contain R, G, B, and W exactly once and slot 4 MUST be UNUSED. For
-`RGBCCT8`, all five slots MUST contain R, G, B, CW, and WW exactly once. Any other encoding is
-rejected with `ERR_INVALID_PARAMETER`. For example, GRB is `0x7E81`, GRBW is `0x7681`, and
-RGB-CW-WW is `0x5888`. This representation supports every meaningful permutation without assigning
-a separate protocol value to each one.
-
-**Output profile values** select the waveform generated between the controller and its LEDs.
-
-| Value | Symbolic name | Interface | Bit cell | `T0H` | `T1H` | Minimum reset low |
-|-------|---------------|-----------|----------|-------|-------|-------------------|
-| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 550–850 ns | 80 µs |
-| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | `DATA_ONLY` | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | 80 µs |
-| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 700–900 ns | 300 µs |
-
-All three profiles use one non-inverted data signal without a separate clock. Each bit begins high,
-returns low within its bit cell, and is distinguished by its high-pulse duration. Pixel bytes are
-transmitted most-significant bit first. `T0H` is the high duration for a zero bit and `T1H` is the
-high duration for a one bit; the low duration is the remainder of the bit cell. The signal MUST
-remain low between frames and for at least the listed reset time after the final bit. Every measured
-bit cell, `T0H`, and `T1H` MUST fall within its inclusive range. The output interface is `DATA_ONLY`:
-the profile defines no clock or redundant-data conductor. Voltage levels, drive strength, connectors,
-and any additional product-specific conductors remain outside Opalinx.
-
-Every conformant device MUST support profile `0x00`. Support for other assigned profiles is
-advertised by the `Supported output profiles` INFO record. In Opalinx 1.0, every advertised profile
-MUST be supported on every channel and for every advertised pixel format. A host MUST
-only request a profile value that it understands and that the device advertises. If the record is
-absent, the supported set is `{0x00}`.
-
-CONFIG readers MUST preserve and expose unknown numeric output-profile values rather than rejecting
-the response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
-unsupported value with `ERR_UNSUPPORTED`.
+The pixel format, component order, and output profile fields use the registries in
+[Section 9](#9-configuration-registries-and-channel-addressing). A device validates each field as
+specified by its registry and advertised capabilities.
 
 **LEDs on channel**: A 16-bit unsigned integer, little-endian. Devices MUST reject a value of
 `0` or any value exceeding their capacity with `ERR_INVALID_PARAMETER`.
