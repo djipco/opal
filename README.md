@@ -5,10 +5,6 @@
 > **This is a prerelease specification and is not production-ready.** Breaking changes may occur
 > before `1.0.0`.
 
-**Opalinx** is a lightweight binary protocol that allows interfacing with compatible LED controllers
-over a reliable byte stream (typically, serial over USB).
-
-
 ## 1. Introduction
 
 ### 1.1. Purpose
