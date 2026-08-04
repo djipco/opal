@@ -61,7 +61,88 @@ Opalinx 1.0 does not define:
 Both 3-component (RGB) and 4-component (RGBW) chips are supported.
 
 
-## 3. Conventions
+## 3. Protocol Model
+
+### 3.1. Endpoint roles
+
+An Opalinx session connects exactly one **host** to exactly one **device**. The host initiates every
+protocol operation by sending a request. The device validates and executes requests and sends the
+corresponding success or error responses. Opalinx 1.0 does not permit unsolicited device messages.
+
+The host is responsible for application behavior, including rendering pixel values, selecting when
+to update or display them, correlating responses, and pacing traffic within the limits reported by
+the device. The device is responsible for protocol validation, configuration and pixel state,
+request execution, physical LED signaling, and reporting observable results.
+
+### 3.2. Channels and addressing
+
+A device exposes one or more numbered LED **channels**. Each channel represents one independently
+configurable physical LED output with its own configuration and pixel staging buffer. Requests can
+address one channel or use the broadcast address to apply one operation to every channel for which
+the request is valid.
+
+Channel count and device capabilities are discovered through **INFO**. Current channel configuration
+is discovered through **CONFIG**. A newly connected host therefore does not need prior knowledge of
+the controller's topology or configuration.
+
+### 3.3. Configuration, staging, and displayed output
+
+Opalinx distinguishes three kinds of LED-control state:
+
+- **Configuration state** defines each channel's color order, signaling protocol, and LED count.
+- **Staging state** contains the pixel values most recently written with **Set Pixels** or
+  **Fill Channel**.
+- **Displayed output** is the pixel state most recently transmitted to the physical LEDs.
+
+Pixel-data requests modify staging state but do not themselves update the physical outputs. A
+**Show** request selects one channel or all channels and commits their staged values to the LEDs.
+Staging state remains available after Show, allowing the same values to be displayed again or
+partially overwritten before a later Show.
+
+### 3.4. Transactions and results
+
+Every request carries a 16-bit transaction identifier. A nonzero identifier establishes a
+transaction whose result is reported in a correlated success or **ERROR** response. Identifier zero
+selects fire-and-forget operation: the request is still validated and, if valid, executed in request
+order, but the device sends no response. Fire-and-forget traffic therefore provides no evidence that
+an individual request was received or accepted.
+
+A response reports the result of one request; it does not create a new transaction. Responses may be
+emitted out of request order unless a message defines a stronger ordering or barrier rule. The host
+uses transaction identifiers, rather than response position, to associate results with requests.
+
+### 3.5. Output pipeline and barriers
+
+Physical LED transmission can take substantially longer than parsing a request. A device may have
+one Show actively transmitting and one later Show pending. The active operation protects the pixel
+and configuration state it is transmitting, while the pending operation protects the state of its
+own selected channels. Requests that would exceed this bounded pipeline or mutate protected state
+are rejected with **ERR_BUSY** as defined by the Show admission rules.
+
+Successful Show completion is observable: **SHOW_ACK** is emitted only after transmission and the
+required reset or latch interval have completed. **Reset** is an ordering barrier. It allows an
+active Show to finish, cancels a pending Show, restores LED-control defaults, transmits the reset
+output, and completes before subsequent requests are processed.
+
+### 3.6. State lifetime
+
+Protocol state does not all share the same lifetime:
+
+| State | Initial or discovered value | Session boundary | Changed by |
+|-------|-----------------------------|------------------|------------|
+| Device identity and capabilities | Device-defined; reported by INFO | Persists | Firmware or hardware implementation |
+| Channel configuration | Device-defined; reported by CONFIG | Persists | Configure Device, Reset |
+| Network configuration | Stored device configuration | Persists | Configure Network |
+| Pixel staging buffers | All zero at power-on | Persists | Set Pixels, Fill Channel, Configure Device, Reset |
+| Displayed LED output | Device-defined at startup | Persists | Show, Reset |
+| Transaction identifiers | No outstanding transactions | Ends | Requests, responses, Reset barrier |
+| Active or pending Show | None at startup | Active transmission may finish; pending Show is canceled | Show, Reset |
+
+A transport session ending does not imply a device reset. A new host must discover compatible device
+information and current configuration and must not assume that staging buffers or displayed output
+contain startup values.
+
+## 4. Conventions
 
 - **Key words**: **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are used as
   defined in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
@@ -70,7 +151,7 @@ Both 3-component (RGB) and 4-component (RGBW) chips are supported.
 
 - **Strings**: UTF-8 encoded with a length prefix, not null-terminated.
 
-## 4. Versioning and wire compatibility
+## 5. Versioning and wire compatibility
 
 Specification releases follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html). The
 three protocol-version bytes at the start of `INFO` carry only the SemVer core `major.minor.patch`;
@@ -87,7 +168,7 @@ major version, feature support is determined by the messages, capability bits, a
 defined for those features—not by comparing minor or patch numbers alone.
 
 
-## 5. General Message Format
+## 6. General Message Format
 
 All **Opalinx** messages, whether sent by a host (request) or by a device (response), share the
 following unencoded structure:
@@ -96,7 +177,7 @@ following unencoded structure:
 |----------------|----------------------|----------------|----------|----------|
 | 2 bytes        | 1 byte               | 2 bytes        | variable | 2 bytes  |
 
-### 5.1. Fields
+### 6.1. Fields
 
  - **Transaction ID**: A 16-bit unsigned integer, little-endian, generated by the host for each
    request. The device MUST echo the same value in the corresponding response. `0x0000` is a
@@ -132,7 +213,7 @@ following unencoded structure:
  - **Checksum**: Two bytes, little-endian, containing a CRC-16/CCITT-FALSE over `transaction id` +
    `identifier` + `payload length` + `payload`.
 
-### 5.2. CRC
+### 6.2. CRC
 
 The format used is **CRC-16/CCITT-FALSE** with the following parameters:
 
@@ -143,14 +224,14 @@ The format used is **CRC-16/CCITT-FALSE** with the following parameters:
 As a check value, CRC-16/CCITT-FALSE over the nine ASCII bytes `123456789` is `0x29B1`. When stored
 in an Opalinx checksum field, this value is transmitted little-endian as bytes `B1 29`.
 
-### 5.3. Encoding and Delimiting
+### 6.3. Encoding and Delimiting
 
 **Opalinx** frames are encoded with
 [Consistent Overhead Byte Stuffing (COBS)](https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing)
 and terminated with a single `0x00` delimiter byte. The encoded frame is guaranteed not to contain
 `0x00`.
 
-### 5.4. Frame Size
+### 6.4. Frame Size
 
 The 16-bit payload-length field can represent payloads from 0 to 65535 bytes. Every device MUST
 accept at least 9 request payload bytes, enough for one RGBW `Set Pixels` operation (`5` addressing
@@ -164,7 +245,7 @@ Each device advertises the largest request payload it accepts in the `max_payloa
 the `INFO` response. This is a wire limit, not a statement about storage or processing architecture.
 Clients MUST derive their chunk size from that field and MUST NOT send a request payload exceeding
 the advertised value. The rejection and recovery rules for requests exceeding this limit are defined
-in [Receiver Framing and Recovery](#55-receiver-framing-and-recovery).
+in [Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
 
 For an endpoint required to accept payloads of at most `P` bytes, the maximum decoded frame length is
 `D = P + 7`. The applicable encoded-frame limit, excluding the terminating delimiter, is:
@@ -177,7 +258,7 @@ therefore occupy `E + 1` bytes including its `0x00` delimiter. A device uses its
 to accept, which MUST be at least 2048. An endpoint supporting the full wire-format maximum uses
 `P = 65535`; then `D = 65542`, `E = 65801`, and the complete delimited frame is at most 65802 bytes.
 
-### 5.5. Receiver Framing and Recovery
+### 6.5. Receiver Framing and Recovery
 
 Each endpoint MUST limit the bytes retained between delimiters to its applicable encoded-frame limit
 `E`. The terminating delimiter is not part of that limit.
@@ -217,7 +298,7 @@ declared length, identifier and direction, and message-specific structure before
 It reports failures locally, discards the candidate, continues at the next delimiter, and MUST NOT
 send an `ERROR` response.
 
-### 5.6. Request and Response Ordering
+### 6.6. Request and Response Ordering
 
 A device MUST evaluate complete requests in the order received. Each request is evaluated against
 the protocol state resulting from all earlier accepted requests, including requests with transaction
@@ -229,9 +310,9 @@ correlate them by transaction ID. `Show` acknowledgement ordering and the `Reset
 by those messages.
 
 
-## 6. Transport and Sessions
+## 7. Transport and Sessions
 
-### 6.1. Core transport contract
+### 7.1. Core transport contract
 
 **Opalinx** 1.0 is defined over a reliable, ordered, bidirectional byte transport connecting one host
 to one device. Discovery, connection establishment, and transport-specific configuration are outside
@@ -248,7 +329,7 @@ CRC and delimiter recovery detect corruption and restore framing after a fault; 
 unreliable transport reliable. Loss of a valid fire-and-forget request cannot be recovered by the
 core protocol, and transaction IDs provide correlation rather than retransmission or deduplication.
 
-### 6.2. Connection and session boundaries
+### 7.2. Connection and session boundaries
 
 One established transport connection is one Opalinx session. Transaction IDs and responses are
 scoped to that session and have no meaning after its connection ends. An incomplete frame at a
@@ -280,12 +361,12 @@ The standard transport identifiers define observable session boundaries as follo
   UART overrun is a transport failure even if frame parsing later resynchronizes.
 
 
-## 7. Message Ranges
+## 8. Message Ranges
 
 Messages are grouped by purpose. The high bit of the identifier byte distinguishes requests
 (host→device) from responses (device→host).
 
-### 7.1. Requests (`0x01`–`0x7F`)
+### 8.1. Requests (`0x01`–`0x7F`)
 
 | Range           | Purpose                                                    |
 |-----------------|------------------------------------------------------------|
@@ -300,7 +381,7 @@ Messages are grouped by purpose. The high bit of the identifier byte distinguish
 | `0x70` – `0x7E` | Reserved                                                   |
 | `0x7F`          | Standard namespaced vendor request envelope                 |
 
-### 7.2. Responses (`0x81`–`0xFF`)
+### 8.2. Responses (`0x81`–`0xFF`)
 
 | Range           | Purpose                                                    |
 |-----------------|------------------------------------------------------------|
@@ -320,7 +401,7 @@ request identifier with the high bit set: a request with identifier `0x01` is pa
 response with identifier `0x81`. Error responses always use `ERROR` (`0xE0`) regardless of the
 originating request.
 
-## 8. Channel Addressing Convention
+## 9. Channel Addressing Convention
 
 Messages that operate on a single LED channel use a one-byte channel identifier with the following
 convention:
@@ -335,22 +416,22 @@ convention:
 (`0`–`254`) on one device. The value `255` always means broadcast and MUST NOT be reinterpreted as a
 numbered channel by an extension.
 
-## 9. Request Messages
+## 10. Request Messages
 
 | Identifier | Request | Paired success response |
 |------------|---------|-------------------------|
-| `0x01` | [Request Device Information](#91-request-device-information-0x01) | [`INFO`](#101-info-0x81) (`0x81`) |
-| `0x02` | [Request Device Configuration](#92-request-device-configuration-0x02) | [`CONFIG`](#102-config-0x82-0xa0) (`0x82`) |
-| `0x03` | [Request Network Configuration](#93-request-network-configuration-0x03) | [`NETWORK_CONFIG`](#103-network_config-0x83-0xa1) (`0x83`) |
-| `0x20` | [Configure Device](#94-configure-device-0x20) | [`CONFIG`](#102-config-0x82-0xa0) (`0xA0`) |
-| `0x21` | [Configure Network](#95-configure-network-0x21) | [`NETWORK_CONFIG`](#103-network_config-0x83-0xa1) (`0xA1`) |
-| `0x40` | [Set Pixels](#96-set-pixels-0x40) | [`SET_PIXELS_ACK`](#104-set_pixels_ack-0xc0) (`0xC0`) |
-| `0x41` | [Fill Channel](#97-fill-channel-0x41) | [`FILL_CHANNEL_ACK`](#105-fill_channel_ack-0xc1) (`0xC1`) |
-| `0x50` | [Show](#98-show-0x50) | [`SHOW_ACK`](#106-show_ack-0xd0) (`0xD0`) |
-| `0x51` | [Reset](#910-reset-0x51) | [`RESET_ACK`](#107-reset_ack-0xd1) (`0xD1`) |
-| `0x7F` | [Namespaced Vendor Request](#911-namespaced-vendor-request-0x7f) | [Namespaced Vendor Response](#108-namespaced-vendor-response-0xff) (`0xFF`) |
+| `0x01` | [Request Device Information](#101-request-device-information-0x01) | [`INFO`](#111-info-0x81) (`0x81`) |
+| `0x02` | [Request Device Configuration](#102-request-device-configuration-0x02) | [`CONFIG`](#112-config-0x82-0xa0) (`0x82`) |
+| `0x03` | [Request Network Configuration](#103-request-network-configuration-0x03) | [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0x83`) |
+| `0x20` | [Configure Device](#104-configure-device-0x20) | [`CONFIG`](#112-config-0x82-0xa0) (`0xA0`) |
+| `0x21` | [Configure Network](#105-configure-network-0x21) | [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0xA1`) |
+| `0x40` | [Set Pixels](#106-set-pixels-0x40) | [`SET_PIXELS_ACK`](#114-set_pixels_ack-0xc0) (`0xC0`) |
+| `0x41` | [Fill Channel](#107-fill-channel-0x41) | [`FILL_CHANNEL_ACK`](#115-fill_channel_ack-0xc1) (`0xC1`) |
+| `0x50` | [Show](#108-show-0x50) | [`SHOW_ACK`](#116-show_ack-0xd0) (`0xD0`) |
+| `0x51` | [Reset](#1010-reset-0x51) | [`RESET_ACK`](#117-reset_ack-0xd1) (`0xD1`) |
+| `0x7F` | [Namespaced Vendor Request](#1011-namespaced-vendor-request-0x7f) | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) (`0xFF`) |
 
-### 9.1. Request Device Information (`0x01`)
+### 10.1. Request Device Information (`0x01`)
 
 Queries the device for its identity and protocol compatibility. Clients MUST obtain and validate
 INFO before sending state-changing or vendor requests in a new session. INFO and CONFIG queries may
@@ -360,9 +441,9 @@ otherwise be sent in either order.
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x01`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: [`INFO`](#101-info-0x81).
+**Response**: [`INFO`](#111-info-0x81).
 
-### 9.2. Request Device Configuration (`0x02`)
+### 10.2. Request Device Configuration (`0x02`)
 
 Queries the device for its current configuration.
 
@@ -370,9 +451,9 @@ Queries the device for its current configuration.
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x02`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: [`CONFIG`](#102-config-0x82-0xa0) (`0x82`).
+**Response**: [`CONFIG`](#112-config-0x82-0xa0) (`0x82`).
 
-### 9.3. Request Network Configuration (`0x03`)
+### 10.3. Request Network Configuration (`0x03`)
 
 Queries the device's primary IPv4 interface. The request has no payload and requires a nonzero
 transaction ID. A device that does not advertise `CAP_NETWORK_CONFIG` recognizes this request and
@@ -382,9 +463,9 @@ responds with `ERR_UNSUPPORTED`.
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x03`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: [`NETWORK_CONFIG`](#103-network_config-0x83-0xa1) (`0x83`).
+**Response**: [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0x83`).
 
-### 9.4. Configure Device (`0x20`)
+### 10.4. Configure Device (`0x20`)
 
 Sets the LED color order, signaling protocol, and LED count for all channels simultaneously.
 
@@ -449,10 +530,10 @@ On success, `Configure Device` MUST clear the pixel buffer of every affected cha
 broadcast `Configure Device` MUST be applied atomically: either all channels are reconfigured and
 their buffers cleared, or no channel is modified.
 
-**Response**: [`CONFIG`](#102-config-0x82-0xa0) (`0xA0`, confirming the applied configuration) or
-[`ERROR`](#109-error-0xe0) if the requested configuration is not supported.
+**Response**: [`CONFIG`](#112-config-0x82-0xa0) (`0xA0`, confirming the applied configuration) or
+[`ERROR`](#119-error-0xe0) if the requested configuration is not supported.
 
-### 9.5. Configure Network (`0x21`)
+### 10.5. Configure Network (`0x21`)
 
 Configures the device's primary IPv4 interface. This operation requires a nonzero transaction ID
 and is available when INFO advertises `CAP_NETWORK_CONFIG`. It is independent of the transport
@@ -478,17 +559,17 @@ A Configure Network request with transaction ID zero MUST NOT be applied and pro
 The device validates and persists the complete configuration atomically. A persistence failure
 produces `ERR_DEVICE_FAULT` and leaves the previous stored configuration intact.
 
-A successful request returns [`NETWORK_CONFIG`](#103-network_config-0x83-0xa1) (`0xA1`), confirming
+A successful request returns [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0xA1`), confirming
 that the configuration was accepted and stored, not that connectivity has been established. The
 device sends that response using the previous interface configuration before applying any change
 that could disrupt the current Opalinx transport. It then applies the new configuration and MAY end
 the session. A host using that interface rediscovers or reconnects; a host using another transport
 can poll Request Network Configuration until the active state changes.
 
-### 9.6. Set Pixels (`0x40`)
+### 10.6. Set Pixels (`0x40`)
 
 Sets the color data for one channel or for all channels simultaneously (broadcast). Data is
-buffered on the device; a [`Show`](#98-show-0x50) message is required to commit buffered data to the
+buffered on the device; a [`Show`](#108-show-0x50) message is required to commit buffered data to the
 LEDs.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
@@ -534,13 +615,13 @@ target channel configuration, the exact length MUST equal
 Any rejected `Set Pixels` message MUST be rejected atomically; no channel's buffer may be modified.
 A rejected request with a nonzero transaction ID produces one `ERROR` response.
 
-**Response**: Emits [`SET_PIXELS_ACK`](#104-set_pixels_ack-0xc0) on success if `TxID ≠ 0x0000`; no
-response if `TxID = 0x0000`. Emits [`ERROR`](#109-error-0xe0) on failure only if `TxID ≠ 0x0000`.
+**Response**: Emits [`SET_PIXELS_ACK`](#114-set_pixels_ack-0xc0) on success if `TxID ≠ 0x0000`; no
+response if `TxID = 0x0000`. Emits [`ERROR`](#119-error-0xe0) on failure only if `TxID ≠ 0x0000`.
 
-### 9.7. Fill Channel (`0x41`)
+### 10.7. Fill Channel (`0x41`)
 
 Sets all LEDs on one channel, or all channels (broadcast), to a single uniform color. Data is
-buffered; a [`Show`](#98-show-0x50) message is required to commit.
+buffered; a [`Show`](#108-show-0x50) message is required to commit.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
 |----------------|------------|----------------|-----------|----------|
@@ -557,7 +638,7 @@ buffered; a [`Show`](#98-show-0x50) message is required to commit.
 | Color byte 4   | 1 byte | Fourth component in wire order; present only when channel is RGBW-configured |
 
 The color is supplied in the channel's configured wire order — exactly as for
-[`Set Pixels`](#96-set-pixels-0x40) — and the resulting output applies those component values to every
+[`Set Pixels`](#106-set-pixels-0x40) — and the resulting output applies those component values to every
 LED. A host using a different logical color layout converts it before forming the request. For
 example, on a `GRB` channel the three bytes represent G, R, B in that order.
 
@@ -583,10 +664,10 @@ modified as a result of a rejected message.
 
 `Fill Channel` can be used to turn channels off (all components set to `0`) or to apply test colors.
 
-**Response**: Emits [`FILL_CHANNEL_ACK`](#105-fill_channel_ack-0xc1) on success if `TxID ≠ 0x0000`;
-no response if `TxID = 0x0000`. Emits [`ERROR`](#109-error-0xe0) on failure only if `TxID ≠ 0x0000`.
+**Response**: Emits [`FILL_CHANNEL_ACK`](#115-fill_channel_ack-0xc1) on success if `TxID ≠ 0x0000`;
+no response if `TxID = 0x0000`. Emits [`ERROR`](#119-error-0xe0) on failure only if `TxID ≠ 0x0000`.
 
-### 9.8. Show (`0x50`)
+### 10.8. Show (`0x50`)
 
 Commits buffered channel data (from `Set Pixels` and `Fill Channel`) to all physical LED channels as
 one coordinated output operation.
@@ -607,15 +688,15 @@ one coordinated output operation.
 across `Show` messages, being overwritten only by subsequent `Set Pixels` or `Fill Channel`
 messages targeting that channel, or cleared by a successful `Configure Device`.
 
-**Response**: Emits [`SHOW_ACK`](#106-show_ack-0xd0) after every channel's transmission and required
+**Response**: Emits [`SHOW_ACK`](#116-show_ack-0xd0) after every channel's transmission and required
 reset/latch interval complete if `TxID ≠ 0x0000`; no response if `TxID = 0x0000`. Emits
-[`ERROR`](#109-error-0xe0) on failure only if
+[`ERROR`](#119-error-0xe0) on failure only if
 `TxID ≠ 0x0000`. Hosts that use a non-zero `TxID` for `Show` and wait for `SHOW_ACK` before
 issuing the next `Show` are guaranteed never to receive `ERR_BUSY`. `SHOW_ACK` provides an observable
-completion boundary for pacing under [Frame Pipelining](#99-frame-pipelining); a Show with
+completion boundary for pacing under [Frame Pipelining](#109-frame-pipelining); a Show with
 `TxID = 0x0000` provides no completion or rejection feedback.
 
-### 9.9. Frame Pipelining
+### 10.9. Frame Pipelining
 
 Opalinx 1.0 supports one active `Show` and one pending `Show`. A third `Show` is rejected with
 `ERR_BUSY`.
@@ -654,7 +735,7 @@ the reset/latch interval required by its selected signaling protocol. When it co
 Only after that transition does the device emit `SHOW_ACK` for the completed Show, if its transaction
 ID is nonzero. Show acknowledgements are emitted in accepted order.
 
-### 9.10. Reset (`0x51`)
+### 10.10. Reset (`0x51`)
 
 Restores the LED-control state to its device-defined defaults: resets all channel configurations,
 clears all channel buffers to zero, and outputs zeros to the physical LEDs.
@@ -663,8 +744,8 @@ clears all channel buffers to zero, and outputs zeros to the physical LEDs.
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x51`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: With a nonzero transaction ID, [`RESET_ACK`](#107-reset_ack-0xd1) after LED transmission
-completes, or [`ERROR`](#109-error-0xe0) on failure. A Reset carrying transaction ID zero produces no
+**Response**: With a nonzero transaction ID, [`RESET_ACK`](#117-reset_ack-0xd1) after LED transmission
+completes, or [`ERROR`](#119-error-0xe0) on failure. A Reset carrying transaction ID zero produces no
 response.
 
 Reset MUST be accepted while a Show is actively transmitting. The active Show is allowed to
@@ -684,7 +765,7 @@ rejecting Reset does not retire any other transaction ID, and a Reset with trans
 provides no observable transaction-ID reclamation point. This reclamation path is destructive: it
 also restores the LED-control state to its device-defined defaults as described above.
 
-### 9.11. Namespaced Vendor Request (`0x7F`)
+### 10.11. Namespaced Vendor Request (`0x7F`)
 
 Carries an extension command without consuming a globally shared identifier. Its payload is:
 
@@ -703,32 +784,32 @@ labels are forbidden. The owner of a DNS name controls its reverse-DNS namespace
 A device that does not implement the namespace or command MUST return `ERR_UNSUPPORTED`. Invalid
 envelope structure produces `ERR_INVALID_PAYLOAD_LENGTH`; an invalid namespace produces
 `ERR_INVALID_PARAMETER`. With a nonzero transaction ID, success MUST produce a
-[`Namespaced Vendor Response`](#108-namespaced-vendor-response-0xff). With transaction ID zero, neither
+[`Namespaced Vendor Response`](#118-namespaced-vendor-response-0xff). With transaction ID zero, neither
 success nor failure produces a response. A vendor contract requiring confirmation MUST forbid
 fire-and-forget use and require a nonzero transaction ID.
 
 All vendor-defined requests use this envelope. The reserved request and response ranges MUST NOT be
 used as private extension points.
 
-## 10. Response Messages
+## 11. Response Messages
 
 | Identifier | Response | Request or condition |
 |------------|----------|----------------------|
-| `0x81` | [`INFO`](#101-info-0x81) | [Request Device Information](#91-request-device-information-0x01) |
-| `0x82` | [`CONFIG`](#102-config-0x82-0xa0) | [Request Device Configuration](#92-request-device-configuration-0x02) |
-| `0x83` | [`NETWORK_CONFIG`](#103-network_config-0x83-0xa1) | [Request Network Configuration](#93-request-network-configuration-0x03) |
-| `0xA0` | [`CONFIG`](#102-config-0x82-0xa0) | [Configure Device](#94-configure-device-0x20) |
-| `0xA1` | [`NETWORK_CONFIG`](#103-network_config-0x83-0xa1) | [Configure Network](#95-configure-network-0x21) |
-| `0xC0` | [`SET_PIXELS_ACK`](#104-set_pixels_ack-0xc0) | [Set Pixels](#96-set-pixels-0x40) |
-| `0xC1` | [`FILL_CHANNEL_ACK`](#105-fill_channel_ack-0xc1) | [Fill Channel](#97-fill-channel-0x41) |
-| `0xD0` | [`SHOW_ACK`](#106-show_ack-0xd0) | [Show](#98-show-0x50) |
-| `0xD1` | [`RESET_ACK`](#107-reset_ack-0xd1) | [Reset](#910-reset-0x51) |
-| `0xE0` | [`ERROR`](#109-error-0xe0) | Rejected request with a nonzero transaction ID |
-| `0xFF` | [Namespaced Vendor Response](#108-namespaced-vendor-response-0xff) | [Namespaced Vendor Request](#911-namespaced-vendor-request-0x7f) |
+| `0x81` | [`INFO`](#111-info-0x81) | [Request Device Information](#101-request-device-information-0x01) |
+| `0x82` | [`CONFIG`](#112-config-0x82-0xa0) | [Request Device Configuration](#102-request-device-configuration-0x02) |
+| `0x83` | [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) | [Request Network Configuration](#103-request-network-configuration-0x03) |
+| `0xA0` | [`CONFIG`](#112-config-0x82-0xa0) | [Configure Device](#104-configure-device-0x20) |
+| `0xA1` | [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) | [Configure Network](#105-configure-network-0x21) |
+| `0xC0` | [`SET_PIXELS_ACK`](#114-set_pixels_ack-0xc0) | [Set Pixels](#106-set-pixels-0x40) |
+| `0xC1` | [`FILL_CHANNEL_ACK`](#115-fill_channel_ack-0xc1) | [Fill Channel](#107-fill-channel-0x41) |
+| `0xD0` | [`SHOW_ACK`](#116-show_ack-0xd0) | [Show](#108-show-0x50) |
+| `0xD1` | [`RESET_ACK`](#117-reset_ack-0xd1) | [Reset](#1010-reset-0x51) |
+| `0xE0` | [`ERROR`](#119-error-0xe0) | Rejected request with a nonzero transaction ID |
+| `0xFF` | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) | [Namespaced Vendor Request](#1011-namespaced-vendor-request-0x7f) |
 
-### 10.1. INFO (`0x81`)
+### 11.1. INFO (`0x81`)
 
-Sent in response to [`Request Device Information`](#91-request-device-information-0x01).
+Sent in response to [`Request Device Information`](#101-request-device-information-0x01).
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
 |----------------|------------|----------------|-----------|----------|
@@ -760,7 +841,7 @@ A device with `CAP_NETWORK_CONFIG` clear recognizes Request Network Configuratio
 Network but rejects them with `ERR_UNSUPPORTED`. Capability bits describe optional standard
 operations; structured capability data uses an information record.
 
-#### 10.1.1. INFO extensions
+#### 11.1.1. INFO extensions
 
 Immediately after the 7-byte fixed prefix, the remainder of the INFO payload contains
 type-length-value (TLV) information records. The complete INFO payload, including the fixed prefix,
@@ -864,10 +945,10 @@ extension points.
 A device reports `ERR_INVALID_PARAMETER` when a `Configure Device` request specifies an LED count
 of zero or one that exceeds the matching capacity in record `0x07`.
 
-### 10.2. CONFIG (`0x82`, `0xA0`)
+### 11.2. CONFIG (`0x82`, `0xA0`)
 
-Sent in response to [`Request Device Configuration`](#92-request-device-configuration-0x02)
-(`0x82`) or after a successful [`Configure Device`](#94-configure-device-0x20) message (`0xA0`).
+Sent in response to [`Request Device Configuration`](#102-request-device-configuration-0x02)
+(`0x82`) or after a successful [`Configure Device`](#104-configure-device-0x20) message (`0xA0`).
 Both identifiers share the same payload structure.
 
 | TRANSACTION ID | IDENTIFIER    | PAYLOAD LENGTH | PAYLOAD   | CHECKSUM |
@@ -901,10 +982,10 @@ Each CONFIG LED count is in the range `1`–`65535`. The number of entries is ex
 `channel_count`; therefore a conformant 1.0 CONFIG payload contains `1`–`255` entries and is at most
 1020 bytes.
 
-### 10.3. NETWORK_CONFIG (`0x83`, `0xA1`)
+### 11.3. NETWORK_CONFIG (`0x83`, `0xA1`)
 
-Sent in response to [`Request Network Configuration`](#93-request-network-configuration-0x03)
-(`0x83`) or after a successful [`Configure Network`](#95-configure-network-0x21) (`0xA1`). Both
+Sent in response to [`Request Network Configuration`](#103-request-network-configuration-0x03)
+(`0x83`) or after a successful [`Configure Network`](#105-configure-network-0x21) (`0xA1`). Both
 identifiers share the same payload structure.
 
 | Field                       | Size     | Description |
@@ -944,27 +1025,27 @@ Opalinx 1.0 defines one configurable primary IPv4 interface. Multiple interfaces
 discovery, connection establishment, and transport-specific network behaviour are outside these
 messages and may use separate additive messages in a future specification.
 
-### 10.4. SET_PIXELS_ACK (`0xC0`)
+### 11.4. SET_PIXELS_ACK (`0xC0`)
 
-Sent in response to a successful [`Set Pixels`](#96-set-pixels-0x40) request with `TxID ≠ 0x0000`,
+Sent in response to a successful [`Set Pixels`](#106-set-pixels-0x40) request with `TxID ≠ 0x0000`,
 confirming that the pixel data has been buffered.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | CHECKSUM |
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0xC0`     | `0x00` `0x00`  | 2 bytes  |
 
-### 10.5. FILL_CHANNEL_ACK (`0xC1`)
+### 11.5. FILL_CHANNEL_ACK (`0xC1`)
 
-Sent in response to a successful [`Fill Channel`](#97-fill-channel-0x41) request with `TxID ≠ 0x0000`,
+Sent in response to a successful [`Fill Channel`](#107-fill-channel-0x41) request with `TxID ≠ 0x0000`,
 confirming that the fill has been buffered.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | CHECKSUM |
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0xC1`     | `0x00` `0x00`  | 2 bytes  |
 
-### 10.6. SHOW_ACK (`0xD0`)
+### 11.6. SHOW_ACK (`0xD0`)
 
-Sent in response to a successful [`Show`](#98-show-0x50) request with `TxID ≠ 0x0000`, after every
+Sent in response to a successful [`Show`](#108-show-0x50) request with `TxID ≠ 0x0000`, after every
 affected channel's transmission and required reset/latch interval have completed.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | CHECKSUM |
@@ -975,23 +1056,23 @@ affected channel's transmission and required reset/latch interval have completed
 is sent only after physical output completes, so its latency depends on the configured LED counts,
 signaling protocols, and channel-output concurrency.
 
-### 10.7. RESET_ACK (`0xD1`)
+### 11.7. RESET_ACK (`0xD1`)
 
-Sent in response to a successful [`Reset`](#910-reset-0x51), after LED transmission has completed.
+Sent in response to a successful [`Reset`](#1010-reset-0x51), after LED transmission has completed.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | CHECKSUM |
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0xD1`     | `0x00` `0x00`  | 2 bytes  |
 
-### 10.8. Namespaced Vendor Response (`0xFF`)
+### 11.8. Namespaced Vendor Response (`0xFF`)
 
-Sent after successful handling of a [`Namespaced Vendor Request`](#911-namespaced-vendor-request-0x7f)
+Sent after successful handling of a [`Namespaced Vendor Request`](#1011-namespaced-vendor-request-0x7f)
 with a nonzero transaction ID. Its payload repeats the request's namespace length, namespace, and
 command ID, followed by the command-specific response payload. The echoed transaction ID remains the
 primary correlation key; repeating the namespace and command prevents decoding under the wrong
 vendor contract.
 
-### 10.9. ERROR (`0xE0`)
+### 11.9. ERROR (`0xE0`)
 
 Sent by the device to report a protocol or operational error. Every retained request that passes
 COBS decoding, minimum-size validation, and CRC validation, but is then rejected, MUST trigger
@@ -1035,7 +1116,7 @@ carried in the namespaced vendor response payload; vendors MUST NOT allocate pri
 
 `ERR_BUSY` governs requests that exceed the one-Show backlog or require mutable pixel/configuration
 state that is not currently available. The normative cases are defined by the
-[pipeline admission table](#99-frame-pipelining).
+[pipeline admission table](#109-frame-pipelining).
 
 Framing and checksum failures do not produce error responses because they provide no trustworthy
 nonzero correlation key. Implementations MAY count or expose these failures through local diagnostics.
@@ -1044,7 +1125,7 @@ nonzero correlation key. Implementations MAY count or expose these failures thro
 correlate device replies with host requests.
 
 
-## 11. Conformance
+## 12. Conformance
 
 Canonical Opalinx wire examples and observable device-behavior cases are published in the
 [conformance corpus](conformance/README.md).
@@ -1078,15 +1159,15 @@ support that protocol for every otherwise-valid use.
 
 A host implementation is conformant when it satisfies every applicable host requirement in this
 specification, including the safe-acceptance requirements in
-[Receiver Framing and Recovery](#55-receiver-framing-and-recovery).
+[Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
 
 A device is considered **Opalinx** 1.0 conformant if it:
 
 - Recognizes all standard request messages and supports the mandatory baseline above.
 - Uses the exact rejection precedence defined in
-  [Receiver Framing and Recovery](#55-receiver-framing-and-recovery).
+  [Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
 - Implements the session-boundary cleanup and persistent device state defined in
-  [Connection and session boundaries](#62-connection-and-session-boundaries).
+  [Connection and session boundaries](#72-connection-and-session-boundaries).
 - Silently discards oversized, undecodable, short, and checksum-invalid candidates without affecting
   the state of prior valid messages; sends exactly one appropriate `ERROR` for other rejected requests
   with a nonzero transaction ID.
@@ -1103,7 +1184,7 @@ A device is considered **Opalinx** 1.0 conformant if it:
   subsequent request is processed, and `RESET_ACK` is emitted only after every response still
   required for an earlier request has been emitted and the reset transmission has completed.
 - Implements the one-Show backlog, admission, frame-protection, completion, and acknowledgement
-  guarantees defined in [Frame Pipelining](#99-frame-pipelining).
+  guarantees defined in [Frame Pipelining](#109-frame-pipelining).
 - Sends `SET_PIXELS_ACK`, `FILL_CHANNEL_ACK`, and `SHOW_ACK` responses for pixel and show
   operations received with `TxID ≠ 0x0000`.
 - Applies all field-specific reserved and unknown-value rules.
@@ -1112,7 +1193,7 @@ A device is considered **Opalinx** 1.0 conformant if it:
 - Rejects identifiers in reserved request ranges with `ERR_UNKNOWN_IDENTIFIER`.
 
 
-## 12. Example Session
+## 13. Example Session
 
 A typical client session driving 300 RGB LEDs per channel on an 8-channel device:
 
@@ -1134,10 +1215,10 @@ For installations where all channels display the same content (mirror mode), ste
 into a single `Set Pixels` with channel `255`.
 
 This example uses lock-step operation for clarity. A host may prepare and queue the next frame while
-a Show is active by following [Frame Pipelining](#99-frame-pipelining).
+a Show is active by following [Frame Pipelining](#109-frame-pipelining).
 
 
-## 13. Security Considerations
+## 14. Security Considerations
 
 **Opalinx** 1.0 provides no authentication, authorization, or encryption. It assumes the underlying
 transport is trusted.
@@ -1153,7 +1234,7 @@ protection. An attacker with the ability to modify frames in transit can recompu
 over altered data. **Opalinx** offers no mechanism to detect or prevent deliberate tampering.
 
 
-## 14. Specification Governance
+## 15. Specification Governance
 
 **Opalinx** is a centrally governed protocol. The author and maintainer of this repository is the sole
 authority for publishing official versions of the **Opalinx** specification.
@@ -1163,7 +1244,7 @@ Proposed changes, clarifications, and extensions may be debated in
 by the official **Opalinx** repository are considered authoritative.
 
 
-## 15. Licence
+## 16. Licence
 
 The specification, conformance materials, software, and Opalinx marks are governed by the
 [Opalinx Noncommercial Licence 1.0](LICENSE.md). Noncommercial use is free. Commercial products and
@@ -1172,7 +1253,7 @@ The same document defines permitted factual references to Opalinx and reserves o
 certification marks.
 
 
-## 16. Contributing
+## 17. Contributing
 
 Feedback and questions are welcome. Please use
 [GitHub Discussions](https://github.com/djipco/opalinx-spec/discussions) to debate ideas, proposed
@@ -1181,6 +1262,6 @@ text. Intentional submissions are subject to the contribution terms in
 [section 4 of the licence](LICENSE.md#4-distribution-and-modifications).
 
 
-## 17. Author
+## 18. Author
 
 Opalinx was designed and authored by [Jean-Philippe Cô](https://djip.co), 2026.
