@@ -25,7 +25,7 @@ required of an implementation.
 structure that framing alone cannot validate, with any required session context stated explicitly.
 
 `device_cases` are implementation-independent scripts for device conformance. An initial state
-declares channel capacities, configurations, and staged pixels. Each step supplies either a decoded
+declares pixel-format capacities, channel configurations, and staged pixels. Each step supplies either a decoded
 request message or an observable physical-output completion event, then lists the responses and/or
 physical channel output that must result. `active_show_completed` completes the active Show;
 `reset_output_completed` completes the all-zero transmission performed by Reset. An omitted response

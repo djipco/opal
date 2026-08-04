@@ -5,7 +5,7 @@
   "type": "object",
   "required": ["corpus_version", "protocol_version", "valid_frames", "invalid_decoded_frames", "streams", "host_cases", "device_cases"],
   "properties": {
-    "corpus_version": { "type": "integer", "enum": [7] },
+    "corpus_version": { "type": "integer", "enum": [8] },
     "protocol_version": {
       "type": "string",
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
@@ -118,10 +118,11 @@
     },
     "channelConfiguration": {
       "type": "object",
-      "required": ["color_order", "protocol", "led_count", "pixels_hex"],
+      "required": ["pixel_format", "component_order", "output_profile", "led_count", "pixels_hex"],
       "properties": {
-        "color_order": { "type": "integer", "minimum": 0, "maximum": 255 },
-        "protocol": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "pixel_format": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "component_order": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "output_profile": { "type": "integer", "minimum": 0, "maximum": 255 },
         "led_count": { "type": "integer", "minimum": 1, "maximum": 65535 },
         "pixels_hex": { "$ref": "#/$defs/hex" }
       },
@@ -129,13 +130,21 @@
     },
     "deviceInitialState": {
       "type": "object",
-      "required": ["channel_capacities", "channels"],
+      "required": ["pixel_format_capacities", "channels"],
       "properties": {
-        "channel_capacities": {
+        "pixel_format_capacities": {
           "type": "array",
-          "items": { "type": "integer", "minimum": 1, "maximum": 65535 },
+          "items": {
+            "type": "object",
+            "required": ["pixel_format", "max_led_count"],
+            "properties": {
+              "pixel_format": { "type": "integer", "minimum": 0, "maximum": 255 },
+              "max_led_count": { "type": "integer", "minimum": 1, "maximum": 65535 }
+            },
+            "additionalProperties": false
+          },
           "minItems": 1,
-          "maxItems": 255
+          "maxItems": 85
         },
         "channels": {
           "type": "array",

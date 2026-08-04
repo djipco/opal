@@ -1,5 +1,5 @@
 # Opalinx Protocol Specification
-### Version: 1.0.0-alpha.0
+### Version: 1.0.0-alpha.1
 
 > [!WARNING]
 > **This is a prerelease specification and is not production-ready.** Breaking changes may occur
@@ -56,15 +56,16 @@ Opalinx 1.0 does not define:
 
 ## 2. Scope
 
-**Opalinx** 1.0 controls devices that expose one or more outputs for clockless, single-data-wire
-addressable LEDs with three or four 8-bit color components per pixel. The protocol carries pixel
-values and selects a registered **output profile**; each device reports the profiles it implements.
+**Opalinx** 1.0 controls devices that expose one or more `DATA_ONLY` outputs for clockless,
+single-data-wire addressable LEDs using the `RGB8`, `RGBW8`, or `RGBCCT8` pixel format. The protocol
+carries pixel values and selects a registered **output profile**; each device reports the pixel
+formats and profiles it implements.
 
 An output profile defines observable signaling behavior such as pulse encoding, nominal bit rate,
 symbol timing, and reset or latch timing. It does not identify one LED product. Product-family names
 such as WS2812B, WS2813, or SK6812 are informative compatibility references rather than definitions
 of Opalinx behavior. Compatibility with a particular LED model depends on the selected output
-profile, color order, controller implementation, wiring, and the exact LED revision.
+profile, pixel format, component order, controller implementation, wiring, and the exact LED revision.
 
 The separate [LED compatibility addendum](LED-COMPATIBILITY.md) records informative product mappings
 without making them part of the normative protocol specification.
@@ -98,7 +99,8 @@ the controller's topology or configuration.
 
 Opalinx distinguishes three kinds of LED-control state:
 
-- **Configuration state** defines each channel's color order, output profile, and LED count.
+- **Configuration state** defines each channel's pixel format, component order, output profile, and
+  LED count.
 - **Staging state** contains the pixel values most recently written with **Set Pixels** or
   **Fill Channel**.
 - **Displayed output** is the pixel state most recently transmitted to the physical LEDs.
@@ -243,8 +245,8 @@ and terminated with a single `0x00` delimiter byte. The encoded frame is guarant
 ### 6.4. Frame Size
 
 The 16-bit payload-length field can represent payloads from 0 to 65535 bytes. Every device MUST
-accept at least 9 request payload bytes, enough for one RGBW `Set Pixels` operation (`5` addressing
-bytes + `4` component bytes).
+accept at least 10 request payload bytes, enough for one `RGBCCT8` `Set Pixels` operation (`5`
+addressing bytes + `5` component bytes).
 
 A host MUST accept response payloads up to 2048 bytes. An extension or vendor contract MAY require
 a host using it to accept larger response payloads. A host MAY reject larger unsupported extension
@@ -476,11 +478,11 @@ responds with `ERR_UNSUPPORTED`.
 
 ### 10.4. Configure Device (`0x20`)
 
-Sets the LED color order, output profile, and LED count for all channels simultaneously.
+Sets the pixel format, component order, output profile, and LED count for all channels simultaneously.
 
-| TX ID   | IDENTIFIER | PAYLOAD LENGTH | CHANNEL | COLOR ORDER | OUTPUT PROFILE | LED COUNT | CHECKSUM |
-|---------|------------|----------------|---------|-------------|----------------|-----------|----------|
-| 2 bytes | `0x20`     | `0x05` `0x00`  | 1 byte  | 1 byte      | 1 byte         | 2 bytes   | 2 bytes  |
+| TX ID   | IDENTIFIER | PAYLOAD LENGTH | CHANNEL | PIXEL FORMAT | COMPONENT ORDER | OUTPUT PROFILE | LED COUNT | CHECKSUM |
+|---------|------------|----------------|---------|--------------|-----------------|----------------|-----------|----------|
+| 2 bytes | `0x20`     | `0x07` `0x00`  | 1 byte  | 1 byte       | 2 bytes         | 1 byte         | 2 bytes   | 2 bytes  |
 
 **Channel number**:
 
@@ -488,49 +490,58 @@ Sets the LED color order, output profile, and LED count for all channels simulta
   `ERR_UNSUPPORTED`.
 - `255`: broadcast. Applies the same configuration to all channels simultaneously.
 
-**Color Order values**:
+**Pixel format values**:
 
-| Value  | Order | Value  | Order | Value  | Order |
-|--------|-------|--------|-------|--------|-------|
-| `0x00` | RGB   | `0x0A` | BRGW  | `0x14` | GWRB  |
-| `0x01` | RBG   | `0x0B` | BGRW  | `0x15` | GWBR  |
-| `0x02` | GRB   | `0x0C` | WRGB  | `0x16` | BWRG  |
-| `0x03` | GBR   | `0x0D` | WRBG  | `0x17` | BWGR  |
-| `0x04` | BRG   | `0x0E` | WGRB  | `0x18` | RGWB  |
-| `0x05` | BGR   | `0x0F` | WGBR  | `0x19` | RBWG  |
-| `0x06` | RGBW  | `0x10` | WBRG  | `0x1A` | GRWB  |
-| `0x07` | RBGW  | `0x11` | WBGR  | `0x1B` | GBWR  |
-| `0x08` | GRBW  | `0x12` | RWGB  | `0x1C` | BRWG  |
-| `0x09` | GBRW  | `0x13` | RWBG  | `0x1D` | BGWR  |
+| Value | Name | Components | Bytes per pixel |
+|-------|------|------------|-----------------|
+| `0x00` | `RGB8` | R, G, B | 3 |
+| `0x01` | `RGBW8` | R, G, B, W | 4 |
+| `0x02` | `RGBCCT8` | R, G, B, CW, WW | 5 |
 
-Values `0x00`–`0x05` are 3-component (RGB) and `0x06`–`0x1D` are 4-component (RGBW). Other values
-are unassigned in 1.0 and MUST be rejected with `ERR_INVALID_PARAMETER`. Every conformant device
-MUST support all assigned color-order values (`0x00`–`0x1D`). CONFIG readers
-MUST preserve and expose an unknown numeric color-order value rather than rejecting the entire
-response; a host MUST NOT send a color-order value it does not understand.
+Every component is an unsigned 8-bit intensity. `CW` and `WW` identify the cool-white and
+warm-white components; products marketed as RGBWW or RGB+CCT use `RGBCCT8` when their five
+independently addressable components have these semantics. A device MUST support `RGB8`; support
+for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
+`ERR_INVALID_PARAMETER`; an assigned but unadvertised format is rejected with `ERR_UNSUPPORTED`.
+
+**Component order** is an unsigned 16-bit little-endian value containing five 3-bit slots. Slot 0
+occupies bits 0–2 and names the first component transmitted to each LED; slot 4 occupies bits 12–14
+and names the last. Bit 15 is reserved and MUST be zero.
+
+| Code | Component | Code | Component |
+|------|-----------|------|-----------|
+| `0` | R | `3` | W |
+| `1` | G | `4` | CW |
+| `2` | B | `5` | WW |
+| `6` | Reserved | `7` | UNUSED |
+
+For `RGB8`, slots 0–2 MUST contain R, G, and B exactly once and slots 3–4 MUST be UNUSED. For
+`RGBW8`, slots 0–3 MUST contain R, G, B, and W exactly once and slot 4 MUST be UNUSED. For
+`RGBCCT8`, all five slots MUST contain R, G, B, CW, and WW exactly once. Any other encoding is
+rejected with `ERR_INVALID_PARAMETER`. For example, GRB is `0x7E81`, GRBW is `0x7681`, and
+RGB-CW-WW is `0x5888`. This representation supports every meaningful permutation without assigning
+a separate protocol value to each one.
 
 **Output profile values** select the waveform generated between the controller and its LEDs.
 
-| Value | Symbolic name | Bit cell | `T0H` | `T1H` | Minimum reset low |
-|-------|---------------|----------|-------|-------|-------------------|
-| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | 1.25 µs | 312.5 ns | 625 ns | 80 µs |
-| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | 2.5 µs | 500 ns | 1.25 µs | 80 µs |
-| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | 1.25 µs | 312.5 ns | 781.25 ns | 300 µs |
+| Value | Symbolic name | Interface | Bit cell | `T0H` | `T1H` | Minimum reset low |
+|-------|---------------|-----------|----------|-------|-------|-------------------|
+| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 550–850 ns | 80 µs |
+| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | `DATA_ONLY` | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | 80 µs |
+| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 700–900 ns | 300 µs |
 
 All three profiles use one non-inverted data signal without a separate clock. Each bit begins high,
 returns low within its bit cell, and is distinguished by its high-pulse duration. Pixel bytes are
-transmitted most-significant bit first. `T0H` is the nominal high duration for a zero bit and `T1H`
-is the nominal high duration for a one bit. The signal remains low for at least the listed reset time
-after the final bit. Color order independently determines whether 24 or 32 component bits are sent
-per pixel and their order.
-
-The values above define the target waveform. Permitted electrical conformance tolerances will be
-frozen before Opalinx 1.0; prerelease implementations SHOULD generate the listed nominal timings as
-closely as their output hardware permits and MUST meet the listed minimum reset time.
+transmitted most-significant bit first. `T0H` is the high duration for a zero bit and `T1H` is the
+high duration for a one bit; the low duration is the remainder of the bit cell. The signal MUST
+remain low between frames and for at least the listed reset time after the final bit. Every measured
+bit cell, `T0H`, and `T1H` MUST fall within its inclusive range. The output interface is `DATA_ONLY`:
+the profile defines no clock or redundant-data conductor. Voltage levels, drive strength, connectors,
+and any additional product-specific conductors remain outside Opalinx.
 
 Every conformant device MUST support profile `0x00`. Support for other assigned profiles is
 advertised by the `Supported output profiles` INFO record. In Opalinx 1.0, every advertised profile
-MUST be supported on every channel and for both three- and four-component color orders. A host MUST
+MUST be supported on every channel and for every advertised pixel format. A host MUST
 only request a profile value that it understands and that the device advertises. If the record is
 absent, the supported set is `{0x00}`.
 
@@ -598,16 +609,16 @@ LEDs.
 | Channel number | 1 byte   | Target channel; see channel number description below           |
 | LED offset     | 2 bytes  | Starting LED index within the channel, little-endian           |
 | LED count      | 2 bytes  | Number of LEDs covered by this message, little-endian          |
-| Pixel data     | variable | `LED_count × bytes_per_LED`; see color bytes per LED below     |
+| Pixel data     | variable | `LED_count × bytes_per_LED`; see component bytes per LED below |
 
 **Channel number**:
 
 - `0` through `N-1`: assigns color data to the specified channel.
 - `255`: broadcast. Assigns the same color data to all channels simultaneously.
 
-**Color bytes per LED**: Determined by the configured color order: 3 bytes for RGB-family orders,
-4 bytes for RGBW-family orders. Each LED's bytes represent component values in the channel's
-configured wire order (the color order set by `Configure Device`). The resulting LED output MUST
+**Component bytes per LED**: Determined by the configured pixel format: 3 bytes for `RGB8`, 4 for
+`RGBW8`, and 5 for `RGBCCT8`. Each LED's bytes represent component values in the channel's
+configured component order. The resulting LED output MUST
 match those wire-order values. A host using a different logical color layout converts it before
 forming the request.
 
@@ -624,7 +635,7 @@ target channel configuration, the exact length MUST equal
 - `LED_offset + LED_count` MUST be less than or equal to the configured number of LEDs on the
   target channel.
 - For broadcast pixel operations (`Channel number = 255`), every targeted channel MUST have the
-  same configured color-order value, and each targeted channel's configured LED count MUST be at
+  same configured pixel format and component-order value, and each targeted channel's LED count MUST be at
   least `LED_offset + LED_count`; otherwise the message MUST be rejected.
 
 Any rejected `Set Pixels` message MUST be rejected atomically; no channel's buffer may be modified.
@@ -650,16 +661,17 @@ buffered; a [`Show`](#108-show-0x50) message is required to commit.
 | Color byte 1   | 1 byte | First component in the channel's configured wire order                 |
 | Color byte 2   | 1 byte | Second component in the channel's configured wire order                |
 | Color byte 3   | 1 byte | Third component in the channel's configured wire order                 |
-| Color byte 4   | 1 byte | Fourth component in wire order; present only when channel is RGBW-configured |
+| Color byte 4   | 1 byte | Fourth component; present for `RGBW8` and `RGBCCT8`                    |
+| Color byte 5   | 1 byte | Fifth component; present only for `RGBCCT8`                            |
 
 The color is supplied in the channel's configured wire order — exactly as for
 [`Set Pixels`](#106-set-pixels-0x40) — and the resulting output applies those component values to every
 LED. A host using a different logical color layout converts it before forming the request. For
 example, on a `GRB` channel the three bytes represent G, R, B in that order.
 
-**Payload length**: The structurally permitted lengths are `4` and `5`; any other length produces
+**Payload length**: The structurally permitted lengths are `4`, `5`, and `6`; any other length produces
 `ERR_INVALID_PAYLOAD_LENGTH`. After resolving the target channel configuration, the length MUST be
-`4` for RGB or `5` for RGBW; a mismatch produces `ERR_INVALID_PARAMETER`.
+`4` for `RGB8`, `5` for `RGBW8`, or `6` for `RGBCCT8`; a mismatch produces `ERR_INVALID_PARAMETER`.
 
 **Channel number**:
 
@@ -670,7 +682,8 @@ example, on a `GRB` channel the three bytes represent G, R, B in that order.
 permitted length but does not match the target configuration, including when:
 
 - Its length does not match the selected channel's configured component count.
-- For broadcast, the targeted channels do not all have the same configured color-order value.
+- For broadcast, the targeted channels do not all have the same configured pixel format and
+  component-order value.
   Matching component counts alone are insufficient because the same bytes are written verbatim to
   every channel.
 
@@ -898,7 +911,7 @@ The Opalinx 1.0 standard records are:
 | `0x04` | Hardware platform   | Optional    | UTF-8, `1`–`63` bytes                             |
 | `0x05` | Transport           | Optional    | UTF-8 identifier, `1`–`63` bytes                  |
 | `0x06` | Supported output profiles | Conditional | Complete ascending set of accepted one-byte output-profile values |
-| `0x07` | LED capacity        | Required    | Exactly 4 bytes: maximum RGB and RGBW LEDs per channel, each unsigned little-endian 16-bit |
+| `0x07` | Pixel-format capacities | Required | Repeated 3-byte entries: pixel format followed by maximum LEDs per channel as little-endian 16-bit |
 | `0xFF` | Vendor information  | Optional    | Namespaced vendor-information envelope            |
 
 Every required record MUST occur exactly once. A known standard record with an invalid length or a
@@ -946,10 +959,11 @@ supported set, including `0x00`, in ascending numeric order. Values are one byte
 MUST be non-empty, and no value may repeat. Unknown values are retained as numbers; their presence
 does not make INFO incompatible.
 
-The LED-capacity record contains the largest LED count accepted by `Configure Device`
-for a three-component RGB color order followed by the largest count accepted for a four-component
-RGBW color order. Both values MUST be in the range `1`–`65535`. A host SHOULD use the value matching
-the selected color order as the upper bound of an LED-count control.
+The pixel-format-capacities record advertises both format support and the largest LED count accepted
+by `Configure Device` for each format. Its length MUST be a nonzero multiple of 3. Entries MUST be
+unique and sorted by ascending pixel-format value. Each maximum MUST be in the range `1`–`65535`.
+The record MUST include `RGB8`; it includes `RGBW8` or `RGBCCT8` only when supported. Unknown formats
+are preserved for diagnostics but are not selected by a host that does not understand them.
 
 The `0xFF` vendor-information value contains namespace length (1 byte), namespace, vendor record ID
 (2 bytes little-endian), and vendor data. Namespace syntax and ownership match the Namespaced Vendor
@@ -979,8 +993,8 @@ INFO and CONFIG have separate roles: INFO describes device identity, topology, c
 limits; CONFIG describes mutable per-channel output settings. CONFIG intentionally does not repeat a
 channel-count field because its entry count is unambiguously derived from its payload length.
 
-A CONFIG payload is structurally valid when its length is a nonzero multiple of four; it contains
-`payload_length / 4` entries and can be parsed without INFO. When valid INFO from the same session is
+A CONFIG payload is structurally valid when its length is a nonzero multiple of six; it contains
+`payload_length / 6` entries and can be parsed without INFO. When valid INFO from the same session is
 available, the CONFIG entry count MUST equal INFO `channel_count`; otherwise the host MUST reject the
 CONFIG as inconsistent and MUST NOT replace cached configuration. INFO cached across a connection
 boundary MUST NOT be used for this check.
@@ -989,13 +1003,14 @@ Each entry has the following structure:
 
 | Field            | Size    | Description                                           |
 |------------------|---------|-------------------------------------------------------|
-| Color order      | 1 byte  | Encoding matches the `Configure Device` message       |
+| Pixel format     | 1 byte  | Encoding matches the `Configure Device` message       |
+| Component order  | 2 bytes | Unsigned little-endian packed component slots         |
 | Output profile   | 1 byte  | Encoding matches the `Configure Device` message       |
 | LED count        | 2 bytes | 16-bit unsigned integer, little-endian                |
 
 Each CONFIG LED count is in the range `1`–`65535`. The number of entries is exactly the INFO
 `channel_count`; therefore a conformant 1.0 CONFIG payload contains `1`–`255` entries and is at most
-1020 bytes.
+1530 bytes.
 
 ### 11.3. NETWORK_CONFIG (`0x83`, `0xA1`)
 
@@ -1161,12 +1176,12 @@ baseline is:
 |-----------------|-------------------------|
 | Device information and configuration query | Mandatory |
 | Network query and configuration | Mandatory when `CAP_NETWORK_CONFIG` is advertised; otherwise `ERR_UNSUPPORTED` |
-| Broadcast Configure using any assigned 3-component order and output profile `0x00` | Mandatory |
+| Broadcast Configure using `RGB8`, any valid component order, and output profile `0x00` | Mandatory |
 | Set Pixels and Fill Channel for valid configured channels | Mandatory |
 | Broadcast Show | Mandatory |
 | Reset | Mandatory |
 | Namespaced vendor request | Envelope validation mandatory; individual namespaces optional |
-| Configuration and pixel data using every assigned RGB and RGBW color order | Mandatory |
+| Configuration and pixel data using every advertised pixel format and valid component order | Mandatory |
 | Additional output profiles | Mandatory only for values advertised in INFO record `0x06` |
 
 An advertised output-profile value is a behavioral promise, not merely descriptive metadata. A
@@ -1215,8 +1230,8 @@ A typical client session driving 300 RGB LEDs per channel on an 8-channel device
 1. Client opens serial connection.
 2. Client sends `Request Device Information` (`0x01`) with a nonzero transaction ID and waits for
    the corresponding `INFO` (`0x81`).
-3. Client sends `Configure Device` (`0x20`) with a new nonzero transaction ID, channel `255`, GRB
-   color order, output profile `SINGLE_WIRE_PULSE_800K_T1`, and 300 LEDs per channel. It waits for the corresponding
+3. Client sends `Configure Device` (`0x20`) with a new nonzero transaction ID, channel `255`,
+   `RGB8`, GRB component order (`0x7E81`), output profile `SINGLE_WIRE_PULSE_800K_T1`, and 300 LEDs per channel. It waits for the corresponding
    `CONFIG` (`0xA0`).
 4. Client sends `Set Pixels` (`0x40`) with transaction ID zero for channel 0 and 900 bytes
    (300 × 3) of pixel data.

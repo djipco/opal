@@ -1,62 +1,113 @@
 # Opalinx LED Compatibility Addendum
 
-> **Informative only.** This document is not part of the normative Opalinx specification. A product
-> appearing here does not guarantee compatibility with every revision, clone, strip assembly,
-> controller, cable length, voltage level, or installation. Verify the exact LED datasheet and test
-> the complete system before deployment.
+> **Informative only.** This catalog is a selection aid, not a compatibility guarantee. Product
+> revisions, clones, assembled strips, voltage levels, backup-data wiring, and firmware can differ.
 
-## How to use this table
+## How to select a configuration
 
-Opalinx output profiles identify controller waveform behavior, not LED products. This table maps
-specific product families to the most likely Opalinx profile and commonly encountered color order.
-The mapping is a starting point for configuration and testing.
+Match three independent properties:
 
-Compatibility status has these meanings:
+1. **Pixel format** — `RGB8`, `RGBW8`, or `RGBCCT8` (also marketed as RGBWW or RGB+CCT).
+2. **Component order** — the actual wire order, such as GRB, GRBW, or GRB-CW-WW.
+3. **Output profile** — the data waveform and reset timing.
 
-- **Implemented mapping** — existing Opalinx controller firmware historically exposed this product
-  family under the corresponding numeric profile. This is not a claim that every product revision
-  has been electrically tested.
-- **Timing-compatible candidate** — published timing requirements appear compatible with the
-  profile's nominal waveform, but the mapping has not yet been validated across representative
-  hardware.
-- **Unverified** — insufficient revision-specific evidence or testing is available.
+Opalinx 1.0 profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
+make it clocked and may still be usable according to the controller's wiring. LEDs requiring both
+data and clock need a future clocked profile. Likewise, 12-bit or 16-bit components and special
+framing are not representable by the three current 8-bit formats.
 
-## Compatibility table
+Statuses below mean **mapped** (a current profile is identified), **candidate** (the format and
+interface are representable but timing still needs evidence), or **future profile** (clocking,
+component depth, framing, or channel semantics are not covered today).
 
-| LED product or family | Suggested Opalinx output profile | Common color order | Status | Notes |
-|-----------------------|-----------------------------------|--------------------|--------|-------|
-| WS2811, 800 kbit/s mode | `0x00` — `SINGLE_WIRE_PULSE_800K_T1` | Varies by assembly | Implemented mapping | External driver IC; verify strip wiring and exact revision. |
-| WS2811, 400 kbit/s mode | `0x01` — `SINGLE_WIRE_PULSE_400K_T1` | Varies by assembly | Implemented mapping | Intended for WS2811 products that require or permit the slower mode. |
-| WS2812 / WS2812B | `0x00` — `SINGLE_WIRE_PULSE_800K_T1` | Commonly GRB | Timing-compatible candidate | Product revisions and third-party parts sold under these names vary. |
-| WS2813 / WS2813B | `0x02` — `SINGLE_WIRE_PULSE_800K_T2` | Commonly GRB | Implemented mapping | Uses the longer-high and longer-reset 800 kbit/s profile. Verify backup-data wiring separately. |
-| WS2814 | `0x02` — `SINGLE_WIRE_PULSE_800K_T2` | Varies; often RGBW | Unverified | Confirm the exact part number, component count, color order, and reset requirement. |
-| WS2815 | `0x02` — `SINGLE_WIRE_PULSE_800K_T2` | Commonly GRB | Timing-compatible candidate | Signal waveform and dual-signal wiring are separate concerns. |
-| SK6812 RGB | `0x00` — `SINGLE_WIRE_PULSE_800K_T1` | Commonly GRB | Timing-compatible candidate | Confirm package and revision; SK6812 is used for several product variants. |
-| SK6812 RGBW | `0x00` — `SINGLE_WIRE_PULSE_800K_T1` | Commonly GRBW | Timing-compatible candidate | Configure a four-component color order and verify the white-component position. |
+## Current and candidate mappings
 
-## Profile summary
+| LED product or family | Interface | Pixel format | Suggested profile | Status | Notes |
+|---|---|---|---|---|---|
+| WS2811, 800 kbit/s | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Mapped | Order varies by assembly. |
+| WS2811, 400 kbit/s | Data only | RGB8 | `0x01` `SINGLE_WIRE_PULSE_400K_T1` | Mapped | Select only for parts supporting the slower mode. |
+| WS2812 / WS2812B | Data only | RGB8 | `0x00` | Candidate | Commonly GRB; verify revision. |
+| WS2813 / WS2813B | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Mapped | Backup-data topology is outside the profile. |
+| WS2814 | Data + backup | RGBW8 | `0x02` | Candidate | Verify format, order, and exact revision. |
+| WS2815 / WS2818 | Data + backup | RGB8 | `0x02` | Candidate | Controller must provide suitable backup wiring if used. |
+| SK6812 RGB | Data only | RGB8 | `0x00` | Candidate | Commonly GRB. |
+| SK6812 RGBW | Data only | RGBW8 | `0x00` | Candidate | Commonly GRBW. |
+| APA104, SK6805, SK6813 | Data only | RGB8 or RGBW8 | Not yet assigned | Candidate | Format varies by product; timing mapping needs evidence. |
+| GS8206 / GS8208 / GS8208B | Data + backup | RGB8 | Not yet assigned | Candidate | Backup topology and timing need confirmation. |
+| SM16703 / SM16704 | Data only | RGB8 | Not yet assigned | Candidate | Exact timing mapping needed. |
+| TM1803 / TM1804 / TM1809 / TM1812 | Data only | RGB8 | Not yet assigned | Candidate | Family members are not assumed interchangeable. |
+| TM1814 | Data only | RGBW8 | Not yet assigned | Candidate | Confirm component order and framing. |
+| UCS1903 / UCS2903 / UCS2904 | Data only | RGB8 | Not yet assigned | Candidate | Exact timing mapping needed. |
+| WS2805, RGB+CCT products | Data + backup or product-specific | RGBCCT8 | Not yet assigned | Candidate | Usable only where five independent 8-bit components and framing match. |
 
-| ID | Symbolic name | Nominal bit rate | Nominal `T0H` | Nominal `T1H` | Minimum reset low |
-|----|---------------|------------------|----------------|----------------|-------------------|
-| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | 800 kbit/s | 312.5 ns | 625 ns | 80 µs |
-| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | 400 kbit/s | 500 ns | 1.25 µs | 80 µs |
-| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | 800 kbit/s | 312.5 ns | 781.25 ns | 300 µs |
+## Products requiring future profiles or formats
 
-The normative definitions and numeric assignments are in the
-[Opalinx protocol specification](README.md). This addendum may be corrected or expanded without
-changing the Opalinx wire protocol.
+| Product or family | Why current Opalinx 1.0 profiles do not describe it |
+|---|---|
+| APA102 / APA102C / DotStar, APA107, HD107S, LPD6803/8806, P9813, SK9822/9826, WS2801/2803 | Data-and-clock interface. |
+| HD108, SJ1221 (16-bit), SPXL-16bit, TLC5973 (16-bit), UCS7604 (16-bit), UCS8903/8904 (16-bit), 9PDOT (16-bit) | Component depth or framing is not one of the current 8-bit formats. |
+| LD1510 12-bit and other 12-bit products | A future component-depth format is required. |
+| FW1906 and products with extra function/control components | Their frame semantics do not map directly to RGB8, RGBW8, or RGBCCT8. |
 
-## Evidence still needed
+## Commercial controller catalog comparison
 
-Before changing a mapping to a tested compatibility claim, record:
+This matrix helps identify alternate names and the breadth users may encounter. **Listed** means the
+name appears in the cited manufacturer's current documentation; **family** means a closely related
+base name appears, not that the suffix has been verified. A dash means it was not found, not that
+the controller definitely cannot drive it. Firmware revisions may change these lists.
 
-- exact manufacturer and complete part number;
-- datasheet revision and publication date;
-- controller hardware and firmware version;
-- measured `T0H`, `T1H`, bit-cell, and reset timings;
-- tested supply and logic voltage;
-- pixel count, cable length, and test pattern;
-- observed result and environmental conditions.
+| Product named by ENTTEC OCTO Mk3 | OCTO Mk3 | DESKONTROLLER LITE V3 | Advatek PixLite Mk3 | Opalinx 1.0 classification |
+|---|---:|---:|---:|---|
+| APA102 | Listed | Listed | Listed | Future clocked profile |
+| APA104 | Listed | Listed | Listed | Data-only candidate |
+| GS8208B | Listed | Family (GS8208) | Family (GS8208) | Data-only/backup candidate |
+| SJ1221 (16-bit) | Listed | — | — | Future 16-bit format/profile |
+| SK6805 | Listed | Listed | Listed | Data-only candidate |
+| SK6812 | Listed | Listed | Listed | RGB8/RGBW8 candidate |
+| SK6813 | Listed | Listed | Listed | Data-only candidate |
+| SM16703 | Listed | Listed | Listed | Data-only candidate |
+| SM16704 | Listed | Listed | Listed | Data-only candidate |
+| SPXL-16bit | Listed | — | Listed (ENTTEC SPXL) | Future 16-bit format/profile |
+| TLC5973 (16-bit) | Listed | — | — | Future 16-bit format/profile |
+| TM1804 | Listed | Listed | Listed | Data-only candidate |
+| TM1812 | Listed | Listed | — | Data-only candidate |
+| TM1814 | Listed | Listed | Listed | RGBW8 candidate |
+| UCS1903 | Listed | Listed | Listed | Data-only candidate |
+| UCS2903 | Listed | Listed | Listed | Data-only candidate |
+| UCS2904 | Listed | Listed | Listed | Data-only candidate |
+| UCS7604 (16-bit) | Listed | — | Listed | Future 16-bit format/profile |
+| UCS8903 (16-bit) | Listed | Listed | Listed | Future 16-bit format/profile |
+| UCS8904 (16-bit) | Listed | Listed | Listed | Future 16-bit format/profile |
+| WS2811 | Listed | Listed | Listed | `0x00` or `0x01` |
+| WS2812 / WS2812B | Listed | Listed | Listed | `RGB8` + `0x00` candidate |
+| WS2813 | Listed | Listed | Listed | `RGB8` + `0x02` |
+| WS2814 | Listed | Listed | Listed | `RGBW8` + `0x02` candidate |
+| WS2815 | Listed | Listed | Listed | `RGB8` + `0x02` candidate |
+| WS2818 | Listed | Listed | Listed | `RGB8` + `0x02` candidate |
+| 9PDOT (16-bit) | Listed | — | — | Future 16-bit format/profile |
 
-Clones and assembled strips should be listed separately when their actual controller IC or timing
-requirements are known.
+DESKONTROLLER and Advatek document many additional products. Their catalogs include clocked,
+custom-timing, 12/16-bit, RGBW, RGB+CCT, backup-data, and special-frame devices; the classification
+above explains which Opalinx dimension must expand rather than treating each chip name as a protocol.
+
+## Current profile summary
+
+| ID | Symbolic name | Interface | Bit cell | `T0H` | `T1H` | Reset low |
+|---|---|---|---|---|---|---|
+| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | DATA_ONLY | 1.10–1.40 µs | 250–450 ns | 550–850 ns | ≥80 µs |
+| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | DATA_ONLY | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | ≥80 µs |
+| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | DATA_ONLY | 1.10–1.40 µs | 250–450 ns | 700–900 ns | ≥300 µs |
+
+Normative definitions are in the [Opalinx protocol specification](README.md).
+
+## Sources and evidence
+
+- [ENTTEC OCTO Mk3 product page](https://www.enttec.com/product/led-pixel-control/octo-mk3-32u-led-pixel-controller/)
+- [DESKONTROLLER LITE V3 user manual](https://deskontroller.com/download/deskontroller-lite-V3-user-manual.pdf)
+- [DESKONTROLLER pixel protocols](https://deskontroller.com/support/pixel-protocols/)
+- [Advatek pixel protocol glossary](https://www.advateklighting.com/en-us/pixel-protocols)
+- [Advatek PixLite comparison](https://www.advateklighting.com/pixlite-product-comparison)
+
+Before upgrading a candidate to a tested claim, record the exact part and datasheet revision,
+controller hardware and firmware, measured bit and reset timings, voltage, pixel count, cable length,
+test pattern, and observed result. List clones and assembled strips separately when possible.
