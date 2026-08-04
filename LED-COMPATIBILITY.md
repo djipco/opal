@@ -18,36 +18,34 @@ make it clocked and may still be usable according to the controller's wiring. LE
 data and clock need a future clocked profile. Likewise, 12-bit or 16-bit components and special
 framing are not representable by the three current 8-bit formats.
 
-Statuses below mean **mapped** (published timing and framing information identifies a current
-profile), **candidate** (the format and interface are representable but revision-specific timing
-evidence is still missing or conflicting), or **future profile** (clocking, component depth,
-framing, or channel semantics are not covered today). Mappings rely on the cited datasheets and apply
-to the identified product or revision; they must not be generalized to undocumented revisions,
-clones, or assembled products sold under the same family name.
+Mappings rely on the cited datasheets and apply to the identified product or revision; they must not
+be generalized to undocumented revisions, clones, or assembled products sold under the same family
+name. **Not yet assigned** means that no current profile can be selected from the available evidence;
+the notes identify the missing or conflicting information.
 
-## Current and candidate mappings
+## Current mappings and unresolved products
 
-| LED product or family | Interface | Pixel format | Suggested profile | Status | Notes |
-|---|---|---|---|---|---|
-| WS2811, 800 kbit/s | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Mapped | Order varies by assembly. |
-| WS2811, 400 kbit/s | Data only | RGB8 | `0x01` `SINGLE_WIRE_PULSE_400K_T1` | Mapped | Select only for parts supporting the slower mode. |
-| WS2812 / WS2812B | Data only | RGB8 | `0x00` | Mapped | Commonly GRB; verify revision. |
-| WS2813 / WS2813B | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Mapped | Backup-data topology is outside the profile. |
-| WS2814 | Data + backup | RGBW8 | `0x02` | Mapped | Verify format, order, and exact revision. |
-| WS2815 / WS2818 | Data + backup | RGB8 | `0x02` | Mapped | Controller must provide suitable backup wiring if used. |
-| SK6812 RGB | Data only | RGB8 | `0x00` | Mapped | Commonly GRB. |
-| SK6812 RGBW | Data only | RGBW8 | `0x00` | Mapped | Commonly GRBW. |
-| APA104 | Data only | RGB8 | Not yet assigned | Candidate | Published sheets conflict materially on `T1H` and reset timing; identify the exact part and revision. |
-| SK6805-2427 Rev. 01 | Data only | RGB8 | `0x00` | Mapped | 1.25 µs nominal cell, 0.30 µs `T0H`, 0.60 µs `T1H`, and ≥80 µs reset. Other SK6805 packages/revisions need separate checks. |
-| SK6813-05-EC20 Rev. 05 | Data + backup | RGB8 | `0x00` | Mapped | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
-| GS8208 V0.1 | Data + backup | RGB8 | `0x02` | Mapped | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |
-| GS8206 / GS8208B and other revisions | Data + backup | RGB8 | Not yet assigned | Candidate | Do not infer compatibility from GS8208 V0.1; framing, current-control features, and reset behavior require revision-specific confirmation. |
-| SM16703 / SM16704 | Data only | RGB8 / RGBW8 | `0x02` | Mapped | SM16703 timing evidence gives 0.30 µs `T0H`, 0.90 µs `T1H`, and >80 µs reset; SM16704 is documented as its RGBW counterpart. Confirm the exact revision. |
-| TM1803 | Data only | RGB8 | Not yet assigned | Candidate | The reviewed sheet defines distinct 400 kbit/s and half-period high-speed modes, but neither is fully contained by a current profile's timing envelope. |
-| TM1804 / TM1809 / TM1812 | Data only | RGB8 | Not yet assigned | Candidate | These products are not assumed interchangeable; a revision-specific manufacturer timing table is still required. |
-| TM1814 | Data only | RGBW8 | Not yet assigned | Candidate | Published documentation includes additional current/brightness control behavior; confirm framing and the intended default before mapping ordinary RGBW data. |
-| UCS1903 / UCS2903 / UCS2904 | Data only | RGB8 / RGBW8 | Not yet assigned | Candidate | Interface, depth, and rate are documented, but a revision-specific manufacturer timing table is still required; UCS1903 also has 400 and 800 kbit/s variants. |
-| WS2805 V0.3 | Data + backup | RGBCCT8 | `0x02` | Mapped | 40-bit RGBW1W2 frames, approximately 1.25 µs cells, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and ≥280 µs reset; profile `0x02` supplies ≥300 µs reset. |
+| LED product or family | Interface | Pixel format | Suggested profile | Notes |
+|---|---|---|---|---|
+| WS2811, 800 kbit/s | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Order varies by assembly. |
+| WS2811, 400 kbit/s | Data only | RGB8 | `0x01` `SINGLE_WIRE_PULSE_400K_T1` | Select only for parts supporting the slower mode. |
+| WS2812 / WS2812B | Data only | RGB8 | `0x00` | Commonly GRB; verify revision. |
+| WS2813 / WS2813B | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Backup-data topology is outside the profile. |
+| WS2814 | Data + backup | RGBW8 | `0x02` | Verify format, order, and exact revision. |
+| WS2815 / WS2818 | Data + backup | RGB8 | `0x02` | Controller must provide suitable backup wiring if used. |
+| SK6812 RGB | Data only | RGB8 | `0x00` | Commonly GRB. |
+| SK6812 RGBW | Data only | RGBW8 | `0x00` | Commonly GRBW. |
+| APA104 | Data only | RGB8 | Not yet assigned | Published sheets conflict materially on `T1H` and reset timing; identify the exact part and revision. |
+| SK6805-2427 Rev. 01 | Data only | RGB8 | `0x00` | 1.25 µs nominal cell, 0.30 µs `T0H`, 0.60 µs `T1H`, and ≥80 µs reset. Other SK6805 packages/revisions need separate checks. |
+| SK6813-05-EC20 Rev. 05 | Data + backup | RGB8 | `0x00` | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
+| GS8208 V0.1 | Data + backup | RGB8 | `0x02` | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |
+| GS8206 / GS8208B and other revisions | Data + backup | RGB8 | Not yet assigned | Do not infer compatibility from GS8208 V0.1; framing, current-control features, and reset behavior require revision-specific confirmation. |
+| SM16703 / SM16704 | Data only | RGB8 / RGBW8 | `0x02` | SM16703 timing evidence gives 0.30 µs `T0H`, 0.90 µs `T1H`, and >80 µs reset; SM16704 is documented as its RGBW counterpart. Confirm the exact revision. |
+| TM1803 | Data only | RGB8 | Not yet assigned | The reviewed sheet defines distinct 400 kbit/s and half-period high-speed modes, but neither is fully contained by a current profile's timing envelope. |
+| TM1804 / TM1809 / TM1812 | Data only | RGB8 | Not yet assigned | These products are not assumed interchangeable; a revision-specific manufacturer timing table is still required. |
+| TM1814 | Data only | RGBW8 | Not yet assigned | Published documentation includes additional current/brightness control behavior; confirm framing and the intended default before mapping ordinary RGBW data. |
+| UCS1903 / UCS2903 / UCS2904 | Data only | RGB8 / RGBW8 | Not yet assigned | Interface, depth, and rate are documented, but a revision-specific manufacturer timing table is still required; UCS1903 also has 400 and 800 kbit/s variants. |
+| WS2805 V0.3 | Data + backup | RGBCCT8 | `0x02` | 40-bit RGBW1W2 frames, approximately 1.25 µs cells, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and ≥280 µs reset; profile `0x02` supplies ≥300 µs reset. |
 
 ## Products requiring future profiles or formats
 
@@ -77,8 +75,8 @@ Normative definitions are in the [Opalinx protocol specification](README.md).
 - [TM1803 datasheet](https://www.bestlightingbuy.com/pdf/TM1803%20Datasheet.pdf)
 - [WS2805 V0.3 datasheet](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2805-datasheet.pdf)
 
-Before upgrading a candidate to mapped, obtain a manufacturer datasheet for the exact part and
-revision and verify its format, framing, component order, bit timing, and reset timing against a
-current profile. Hardware results may be recorded as supplemental evidence with the controller,
+Before assigning a profile, obtain a manufacturer datasheet for the exact part and revision and
+verify its format, framing, component order, bit timing, and reset timing against a current profile.
+Hardware results may be recorded as supplemental evidence with the controller,
 firmware, voltage, pixel count, cable length, test pattern, and observed result. List clones and
 assembled strips separately when possible.
