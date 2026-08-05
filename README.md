@@ -725,16 +725,20 @@ hostname contains only ASCII letters, digits, and hyphens, begins and ends with 
 and is at most 63 bytes. Invalid fields produce `ERR_INVALID_PARAMETER`.
 
 The device validates and persists the complete configuration atomically. A persistence failure
-produces `ERR_DEVICE_FAULT` and leaves the previous stored configuration intact.
+produces `ERR_DEVICE_FAULT` and leaves the previous stored configuration intact. Persistence is
+complete only when the configuration can survive a device restart. If reset or power loss interrupts
+persistence, the device MUST subsequently use either the complete previous configuration or the
+complete new configuration; it MUST NOT expose a mixture or corrupted partial configuration.
 
 With a nonzero transaction ID, a successful request returns
 [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0xA1`), confirming that the configuration was
-accepted and stored, not that connectivity has been established. The device sends that response
-using the previous interface configuration before applying any change that could disrupt the current
-Opalinx transport. With transaction ID zero, no response is sent. The device then applies the new
-configuration and MAY end the session. A host requiring confirmation uses a nonzero transaction ID
-and waits for `NETWORK_CONFIG`. A host using the configured interface then rediscovers or reconnects;
-a host using another transport can poll Request Network Configuration until the active state changes.
+accepted and stored, not that connectivity has been established. The device MUST NOT send this
+response until persistence is complete. It sends the response using the previous interface
+configuration before applying any change that could disrupt the current Opalinx transport. With
+transaction ID zero, no response is sent. The device then applies the new configuration and MAY end
+the session. A host requiring confirmation uses a nonzero transaction ID and waits for
+`NETWORK_CONFIG`. A host using the configured interface then rediscovers or reconnects; a host using
+another transport can poll Request Network Configuration until the active state changes.
 
 ### 10.6. Set Pixels (`0x40`)
 
