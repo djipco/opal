@@ -963,7 +963,8 @@ A device with `CAP_NETWORK_CONFIG` clear recognizes Request Network Configuratio
 Network but rejects them with `ERR_UNSUPPORTED`. Capability bits describe optional standard
 operations; structured capability data uses an information record. When `CAP_NETWORK_CONFIG` is
 set, `max_payload_length` MUST be at least 74 bytes so every valid Configure Network request can be
-accepted.
+accepted. A host MUST reject an INFO response when `max_payload_length` is less than 10, or less
+than 74 while `CAP_NETWORK_CONFIG` is set.
 
 #### 11.1.1. INFO extensions
 
