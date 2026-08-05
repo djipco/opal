@@ -76,27 +76,7 @@ without making them part of the normative protocol specification.
 
 ## 3. Protocol Model
 
-### 3.1. Terminology
-
-The following terms have specific meanings in this specification:
-
-| Term | Meaning |
-|------|---------|
-| **Host** | The endpoint that initiates every Opalinx request and consumes device responses. |
-| **Device** | The endpoint that validates and executes requests, maintains protocol state, and drives physical LED outputs. |
-| **Session** | One transport-bounded association between exactly one host and one device. |
-| **Channel** | One independently configurable physical LED output, with its own configuration and staging buffer. |
-| **Broadcast** | A single operation addressed to all channels using channel value `255`; it does not mean transport-layer broadcast. |
-| **Configuration state** | A channel's pixel format, component order, output profile, and LED count. |
-| **Staging state** | Pixel values written for a future Show but not necessarily transmitted to the physical LEDs. |
-| **Displayed output** | The pixel state most recently transmitted to the physical LEDs. |
-| **Pixel format** | The set of independently controlled components and the number of bytes representing one pixel. |
-| **Component order** | The order in which a pixel's component bytes are transmitted to its LED output. |
-| **Output profile** | Registered physical signaling behavior, including interface, encoding, bit timing, and reset or latch timing. |
-| **Transaction** | One request with a nonzero transaction identifier and its correlated success or error result. |
-| **Barrier** | An operation that imposes an ordering boundary on processing, state changes, or observable responses. |
-
-### 3.2. Endpoint roles
+### 3.1. Endpoint roles
 
 An Opalinx session connects exactly one **host** to exactly one **device**. The host initiates every
 protocol operation by sending a request. The device validates and executes requests and sends the
@@ -107,7 +87,7 @@ to update or display them, correlating responses, and pacing traffic within the 
 the device. The device is responsible for protocol validation, configuration and pixel state,
 request execution, physical LED signaling, and reporting observable results.
 
-### 3.3. Channels and addressing
+### 3.2. Channels and addressing
 
 A device exposes one or more numbered LED **channels**. Each channel represents one independently
 configurable physical LED output with its own configuration and pixel staging buffer. Requests can
@@ -118,7 +98,7 @@ Channel count and device capabilities are discovered through **INFO**. Current c
 is discovered through **CONFIG**. A newly connected host therefore does not need prior knowledge of
 the controller's topology or configuration.
 
-### 3.4. Configuration, staging, and displayed output
+### 3.3. Configuration, staging, and displayed output
 
 Opalinx distinguishes three kinds of LED-control state:
 
@@ -133,7 +113,7 @@ Pixel-data requests modify staging state but do not themselves update the physic
 Staging state remains available after Show, allowing the same values to be displayed again or
 partially overwritten before a later Show.
 
-### 3.5. Transactions and results
+### 3.4. Transactions and results
 
 Every request carries a 16-bit transaction identifier. A nonzero identifier establishes a
 transaction whose result is reported in a correlated success or **ERROR** response. Identifier zero
@@ -173,7 +153,7 @@ interval complete. A host sending sustained fire-and-forget traffic can periodic
 with a nonzero identifier and require its response to confirm that the session remains responsive;
 this does not confirm delivery of earlier fire-and-forget requests.
 
-### 3.6. Output pipeline and barriers
+### 3.5. Output pipeline and barriers
 
 Physical LED transmission can take substantially longer than parsing a request. A device may have
 one Show actively transmitting and one later Show pending. The active operation protects the pixel
@@ -220,7 +200,7 @@ the reset/latch interval required by its selected output profile. When it comple
 Only after that transition does the device emit `SHOW_ACK` for the completed Show, if its transaction
 ID is nonzero. Show acknowledgements are emitted in accepted order.
 
-### 3.7. State lifetime
+### 3.6. State lifetime
 
 Protocol state does not all share the same lifetime:
 
@@ -238,7 +218,7 @@ A transport session ending does not imply a device reset. A new host must discov
 information and current configuration and must not assume that staging buffers or displayed output
 contain startup values.
 
-### 3.8. Flow control and resource limits
+### 3.7. Flow control and resource limits
 
 Opalinx 1.0 does not advertise a generic request-rate or outstanding-transaction limit. Hosts MAY
 pipeline requests, but MUST treat response completion and `ERR_BUSY` as the available flow-control
@@ -326,7 +306,7 @@ following unencoded structure:
    `TxID = 0x0000`. Hosts using `TxID = 0x0000` accept that rejection and loss are silent; traffic
    requiring confirmation or error reporting MUST use a nonzero transaction ID. Identifier lifetime,
    timeout, reuse, and duplicate rules are defined in
-   [Transactions and results](#35-transactions-and-results).
+   [Transactions and results](#34-transactions-and-results).
 
  - **Identifier**: A single byte identifying the message. `0x00` and `0x80` are reserved and
    MUST NOT be used as message identifiers; `0x00` serves as the sentinel value for "unknown"
@@ -905,7 +885,7 @@ reset/latch interval complete if `TxID ≠ 0x0000`; no response if `TxID = 0x000
 `TxID ≠ 0x0000`. Hosts that use a non-zero `TxID` for `Show` and wait for `SHOW_ACK` before
 issuing the next `Show` are guaranteed never to receive `ERR_BUSY`. `SHOW_ACK` provides an observable
 completion boundary for pacing under
-[Output pipeline and barriers](#36-output-pipeline-and-barriers); a Show with `TxID = 0x0000`
+[Output pipeline and barriers](#35-output-pipeline-and-barriers); a Show with `TxID = 0x0000`
 provides no completion or rejection feedback.
 
 ### 10.9. Reset (`0x51`)
@@ -1282,8 +1262,8 @@ carried in the namespaced vendor response payload; vendors MUST NOT allocate pri
 `ERR_BUSY` governs transient admission failure, including requests that exceed the one-Show backlog
 or require mutable pixel/configuration state that is not currently available. Its atomic rejection,
 retry, and backpressure rules are defined in
-[Flow control and resource limits](#38-flow-control-and-resource-limits); the state-based cases are
-defined by the [pipeline admission table](#36-output-pipeline-and-barriers).
+[Flow control and resource limits](#37-flow-control-and-resource-limits); the state-based cases are
+defined by the [pipeline admission table](#35-output-pipeline-and-barriers).
 
 Framing and checksum failures do not produce error responses because they provide no trustworthy
 nonzero correlation key. Implementations MAY count or expose these failures through local diagnostics.
@@ -1351,7 +1331,7 @@ For installations where all channels display the same content (mirror mode), ste
 into a single `Set Pixels` with channel `255`.
 
 This example uses lock-step operation for clarity. A host may prepare and queue the next frame while
-a Show is active by following [Output pipeline and barriers](#36-output-pipeline-and-barriers).
+a Show is active by following [Output pipeline and barriers](#35-output-pipeline-and-barriers).
 
 
 ## 14. Security Considerations
