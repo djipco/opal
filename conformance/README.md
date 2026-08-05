@@ -33,6 +33,11 @@ or output assertion means that the step does not observe that category. The harn
 establish the declared initial state and detect completed physical output; neither mechanism is part
 of the protocol.
 
+A device case with `applicability: "evaluates_requests_during_active_show"` applies only when the
+device evaluates another request before its active Show completes. A synchronous device that defers
+request evaluation until Show completes skips those cases, as permitted by the specification. Cases
+without an `applicability` field apply to every device.
+
 Changes to existing vectors are protocol changes. Additive vectors may clarify
 already-specified behavior, but they must be reviewed against every maintained
 implementation. CI consumers should pin an exact `opalinx-spec` commit.
