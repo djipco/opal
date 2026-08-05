@@ -968,19 +968,8 @@ used as private extension points.
 
 ## 11. Response Messages
 
-| Identifier | Response | Request or condition |
-|------------|----------|----------------------|
-| `0x81` | [`INFO`](#111-info-0x81) | [Request Device Information](#101-request-device-information-0x01) |
-| `0x82` | [`CONFIG`](#112-config-0x82-0xa0) | [Request Device Configuration](#102-request-device-configuration-0x02) |
-| `0x83` | [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) | [Request Network Configuration](#103-request-network-configuration-0x03) |
-| `0xA0` | [`CONFIG`](#112-config-0x82-0xa0) | [Configure Device](#104-configure-device-0x20) |
-| `0xA1` | [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) | [Configure Network](#105-configure-network-0x21) |
-| `0xC0` | [`SET_PIXELS_ACK`](#114-set_pixels_ack-0xc0) | [Set Pixels](#106-set-pixels-0x40) |
-| `0xC1` | [`FILL_CHANNEL_ACK`](#115-fill_channel_ack-0xc1) | [Fill Channel](#107-fill-channel-0x41) |
-| `0xD0` | [`SHOW_ACK`](#116-show_ack-0xd0) | [Show](#108-show-0x50) |
-| `0xD1` | [`RESET_ACK`](#117-reset_ack-0xd1) | [Reset](#109-reset-0x51) |
-| `0xE0` | [`ERROR`](#119-error-0xe0) | Rejected request with a nonzero transaction ID |
-| `0xFF` | [Namespaced Vendor Response](#118-namespaced-vendor-response-0xff) | [Namespaced Vendor Request](#1010-namespaced-vendor-request-0x7f) |
+Success responses are paired with requests in the [Request Messages](#10-request-messages) index.
+[`ERROR`](#119-error-0xe0) (`0xE0`) reports a rejected request with a nonzero transaction ID.
 
 ### 11.1. INFO (`0x81`)
 
