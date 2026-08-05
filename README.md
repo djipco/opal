@@ -295,6 +295,8 @@ specification:
 
 ## 5. Versioning and wire compatibility
 
+### 5.1. Version contract
+
 Specification releases follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html). The
 three protocol-version bytes at the start of `INFO` carry only the SemVer core `major.minor.patch`;
 they do not encode prerelease or build metadata. These bytes identify the wire contract, not the
@@ -308,6 +310,46 @@ A host MUST inspect the three-byte version preamble before parsing the version-s
 the host MUST stop parsing, reject the device, and send no state-changing requests. Within a supported
 major version, feature support is determined by the messages, capability bits, and information records
 defined for those features—not by comparing minor or patch numbers alone.
+
+During prerelease development, an implementation or deployment claiming interoperability MUST
+identify the exact specification prerelease or pinned specification commit out of band. It MUST NOT
+infer prerelease compatibility from the three wire-version bytes alone. Implementations SHOULD
+refuse a knowingly different prerelease revision unless their compatibility has been established by
+another explicit contract.
+
+### 5.2. Host compatibility decision
+
+After receiving `INFO`, a host applies the following decisions in order:
+
+| Condition | Required host behavior | Result |
+|-----------|------------------------|--------|
+| Payload is shorter than the three-byte version preamble | Reject the malformed response. | No session compatibility established. |
+| Major version is unsupported | Stop parsing after the preamble and send no state-changing requests. | Incompatible. |
+| Exact prerelease revision is unknown or differs | Use the required out-of-band revision contract; do not rely on the wire core alone. | Not established by wire negotiation. |
+| Major version is supported | Validate the complete fixed prefix and all known required records. | Continue feature discovery. |
+| Unknown well-formed INFO record is present | Skip it by its declared length and continue parsing. | Does not by itself make the device incompatible. |
+| Known required record is absent, duplicated, or malformed | Reject `INFO`. | Incompatible or malformed implementation. |
+| Unknown output profile appears in `CONFIG` | Preserve and expose its numeric value; do not reject `CONFIG` solely for that value. | Host may reconfigure to a profile it understands and the device advertises. |
+| Optional feature is not advertised | Do not use that feature. | Baseline operation may remain compatible. |
+
+Minor and patch values are descriptive inputs to this procedure, not shortcuts around capability
+and record validation. A numerically newer minor version is not automatically incompatible, and a
+matching patch version does not make malformed or unsupported features compatible.
+
+### 5.3. Examples
+
+- An `alpha.0` implementation and an `alpha.1` implementation both report bytes `01 00 00`. Those
+  bytes establish only the `1.0.0` core value; they do not establish compatibility between the two
+  prereleases. Their exact revision or pinned commit must be agreed out of band.
+- A host supporting major version 1 receives a valid INFO response with an unknown, well-formed TLV.
+  It skips that record, validates the known required records, and continues using only understood
+  advertised features.
+- A host supporting only major version 1 receives version bytes `02 00 00`. It stops after the
+  preamble, rejects the device for that session, and sends no configuration, pixel, Show, Reset, or
+  vendor request.
+- A host reads a valid CONFIG response containing an unknown profile number. It retains the number
+  for diagnostics and may configure a known advertised profile; it does not reinterpret the unknown
+  number as the nearest known profile.
 
 
 ## 6. General Message Format
