@@ -30,6 +30,7 @@ function addHeadingIds(html) {
 function navigation(prefix, active) {
   const items = [
     ['spec', 'Specification', `${prefix}spec/`],
+    ['usb-binding', 'USB binding', `${prefix}bindings/usb-cdc/`],
     ['conformance', 'Conformance', `${prefix}conformance/`],
     ['compatibility', 'LED compatibility', `${prefix}compatibility/`],
     ['libraries', 'Libraries', `${prefix}libraries/`],
@@ -71,7 +72,11 @@ async function renderPage(source, destination, options) {
     markdown = markdown
       .replaceAll('(conformance/README.md)', '(../conformance/)')
       .replaceAll('(LED-COMPATIBILITY.md)', '(../compatibility/)')
+      .replaceAll('(bindings/USB-CDC.md)', '(../bindings/usb-cdc/)')
       .replaceAll('(LICENSE.md', '(../license/');
+  }
+  if (source === 'bindings/USB-CDC.md') {
+    markdown = markdown.replaceAll('(../README.md)', '(../../spec/)');
   }
   if (source === 'LED-COMPATIBILITY.md') {
     markdown = markdown.replaceAll('(README.md)', '(../spec/)');
@@ -106,6 +111,12 @@ async function build() {
     title: 'Conformance corpus',
     description: 'Canonical Opalinx wire vectors and observable behavior cases.',
     active: 'conformance',
+  });
+  await renderPage('bindings/USB-CDC.md', 'bindings/usb-cdc', {
+    title: 'USB CDC binding',
+    description: 'The standard Opalinx binding for native USB CDC ACM connections.',
+    active: 'usb-binding',
+    prefix: '../../',
   });
   await renderPage('LED-COMPATIBILITY.md', 'compatibility', {
     title: 'LED compatibility addendum',

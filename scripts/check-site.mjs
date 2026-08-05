@@ -48,6 +48,7 @@ for (const file of htmlFiles) {
 for (const required of [
   'index.html',
   'spec/index.html',
+  'bindings/usb-cdc/index.html',
   'conformance/index.html',
   'compatibility/index.html',
   'libraries/index.html',

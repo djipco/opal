@@ -475,9 +475,10 @@ with the encoded `0x00` delimiter.
 
 The identifiers `uart`, `usb-cdc`, `tcp`, and `bluetooth-spp` name carrier classes and establish the
 session-boundary rules above. They do not by themselves select baud rate, USB device/interface, TCP
-port, Bluetooth service, or other connection parameters. Until a complete standard binding is
-published, interoperating implementations MUST share those parameters through a vendor binding,
-product documentation, configuration, or another out-of-band agreement.
+port, Bluetooth service, or other connection parameters. The
+[Opalinx USB CDC Binding](bindings/USB-CDC.md) defines the standard `opalinx-usb-cdc` connection.
+Other carriers require a standard or vendor binding, product documentation, configuration, or
+another out-of-band agreement.
 
 Core-protocol conformance and transport-binding conformance are separate claims. A product claiming
 binding conformance MUST identify the binding name and version it implements. Supporting the carrier
