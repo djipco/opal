@@ -147,6 +147,34 @@ A response reports the result of one request; it does not create a new transacti
 emitted out of request order unless a message defines a stronger ordering or barrier rule. The host
 uses transaction identifiers, rather than response position, to associate results with requests.
 
+A nonzero transaction identifier is outstanding from the time its request is sent until one of the
+following events retires it in the same session:
+
+- the corresponding success or `ERROR` response is received;
+- `RESET_ACK` is received for a Reset sent after that request; or
+- the session ends.
+
+A host MUST NOT reuse an outstanding identifier. Hosts that increment identifiers sequentially MUST
+skip `0x0000` when wrapping and select an available nonzero value. A request that repeats an
+outstanding identifier is a host protocol violation, not a retransmission signal. The device treats
+it as a distinct request and MUST NOT deduplicate, replay a cached response, or suppress execution
+solely because the identifier matches an earlier request. Results carrying that duplicated value are
+not reliably correlatable by the violating host.
+
+A response timeout is local host policy. Expiration does not cancel the request, prove that it
+failed, or retire its identifier; the operation may still execute and its response may still arrive.
+The host MUST NOT retransmit a timed-out state-changing request as recovery because doing so can
+apply the operation twice. It may continue waiting, use other available identifiers, send a later
+Reset with a new identifier and wait for `RESET_ACK`, or end the session. Ending a session retires
+its identifiers but does not reset persistent device or LED-control state, so a host reconnecting in
+a new session MUST rediscover device information and configuration.
+
+Hosts choose response timeouts appropriate to the transport and operation. In particular,
+`SHOW_ACK` and `RESET_ACK` are delayed until physical LED output and its required reset or latch
+interval complete. A host sending sustained fire-and-forget traffic can periodically send a request
+with a nonzero identifier and require its response to confirm that the session remains responsive;
+this does not confirm delivery of earlier fire-and-forget requests.
+
 ### 3.6. Output pipeline and barriers
 
 Physical LED transmission can take substantially longer than parsing a request. A device may have
@@ -271,18 +299,10 @@ following unencoded structure:
    request. The device MUST echo the same value in the corresponding response. `0x0000` is a
    reserved sentinel meaning "no correlation required"; hosts MAY use it for fire-and-forget
    requests. A device MUST NOT send any success or `ERROR` response to a request carrying
-   `TxID = 0x0000`. A host MUST NOT reuse a nonzero transaction ID while a response to its earlier
-   request could still arrive in the same session. Receipt of the response retires that transaction
-   ID. Receipt of `RESET_ACK` also retires every nonzero transaction ID carried by a request that
-   preceded the acknowledged Reset in the same session. A local timeout alone does not retire an ID.
-   Before reusing an ID whose response may have been lost, the host MUST either receive `RESET_ACK`
-   for a later Reset or end the session. Hosts that increment `TxID` sequentially MUST skip `0x0000`
-   when wrapping, advancing from `0xFFFF` to an available nonzero value. Hosts using
-   `TxID = 0x0000` accept that rejection and loss are silent; traffic requiring confirmation or error
-   reporting MUST use a nonzero transaction ID. As an operational practice, a host sending sustained
-   traffic with `TxID = 0x0000` can periodically send a request with a nonzero transaction ID and
-   require its response to confirm that the session remains responsive. This does not confirm
-   delivery of earlier fire-and-forget requests.
+   `TxID = 0x0000`. Hosts using `TxID = 0x0000` accept that rejection and loss are silent; traffic
+   requiring confirmation or error reporting MUST use a nonzero transaction ID. Identifier lifetime,
+   timeout, reuse, and duplicate rules are defined in
+   [Transactions and results](#35-transactions-and-results).
 
  - **Identifier**: A single byte identifying the message. `0x00` and `0x80` are reserved and
    MUST NOT be used as message identifiers; `0x00` serves as the sentinel value for "unknown"
