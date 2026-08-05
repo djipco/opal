@@ -212,14 +212,32 @@ A transport session ending does not imply a device reset. A new host must discov
 information and current configuration and must not assume that staging buffers or displayed output
 contain startup values.
 
-## 4. Conventions
+## 4. Conventions and References
+
+### 4.1. Conventions
 
 - **Key words**: **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are used as
-  defined in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+  defined in RFC 2119.
 
 - **Byte order**: All multi-byte integer fields are little-endian.
 
 - **Strings**: UTF-8 encoded with a length prefix, not null-terminated.
+
+### 4.2. Normative references
+
+The following documents are required to interpret or implement normative parts of this
+specification:
+
+- [RFC 2119 — Key words for use in RFCs to Indicate Requirement Levels](https://www.rfc-editor.org/rfc/rfc2119)
+- [RFC 3629 — UTF-8, a transformation format of ISO 10646](https://www.rfc-editor.org/rfc/rfc3629)
+- [RFC 791 — Internet Protocol](https://www.rfc-editor.org/rfc/rfc791)
+- [RFC 2131 — Dynamic Host Configuration Protocol](https://www.rfc-editor.org/rfc/rfc2131)
+- [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
+
+### 4.3. Informative references
+
+- [Opalinx LED Compatibility Addendum](LED-COMPATIBILITY.md) — product mappings and selection
+  guidance that do not define protocol behavior.
 
 ## 5. Versioning and wire compatibility
 

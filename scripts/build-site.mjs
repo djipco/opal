@@ -69,12 +69,12 @@ async function renderPage(source, destination, options) {
   let markdown = await readFile(path.join(root, source), 'utf8');
   if (source === 'README.md') {
     markdown = markdown
-      .replace('(conformance/README.md)', '(../conformance/)')
-      .replace('(LED-COMPATIBILITY.md)', '(../compatibility/)')
+      .replaceAll('(conformance/README.md)', '(../conformance/)')
+      .replaceAll('(LED-COMPATIBILITY.md)', '(../compatibility/)')
       .replaceAll('(LICENSE.md', '(../license/');
   }
   if (source === 'LED-COMPATIBILITY.md') {
-    markdown = markdown.replace('(README.md)', '(../spec/)');
+    markdown = markdown.replaceAll('(README.md)', '(../spec/)');
   }
   if (source === 'conformance/README.md') {
     markdown = markdown.replaceAll('../site/assets/', '../assets/');
