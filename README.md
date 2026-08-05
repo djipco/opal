@@ -494,6 +494,39 @@ The standard transport identifiers define observable session boundaries as follo
   signal. Merely reopening a host serial handle does not create a device-observable new session. A
   UART overrun is a transport failure even if frame parsing later resynchronizes.
 
+### 7.3. Transport binding requirements
+
+The core protocol defines a byte stream and session semantics, but not the connection parameters
+needed to make every carrier interoperable. A **transport binding** is a separate standard or vendor
+contract that supplies those parameters. Every binding MUST satisfy the core transport contract and
+MUST specify:
+
+- a stable binding name and version;
+- how host and device roles map to carrier endpoints;
+- discovery or the out-of-band information needed to locate and select an endpoint;
+- all connection parameters needed before Opalinx bytes can be exchanged, such as baud and line
+  settings, USB interface selection, TCP port, or Bluetooth service and channel selection;
+- the exact events that begin and end an Opalinx session, consistent with Section 7.2;
+- how connection loss, overrun, reset, and other carrier failures are exposed;
+- any carrier limits that constrain write size or latency without changing Opalinx frame boundaries;
+- the deployment and security assumptions needed to protect the connection; and
+- binding-specific conformance conditions and test setup.
+
+A binding MUST carry the COBS-encoded Opalinx stream unchanged and MUST NOT redefine message fields,
+identifiers, error behavior, or transaction semantics. Carrier packets, writes, reads, USB transfers,
+or radio frames are not Opalinx frame boundaries; receivers continue to delimit Opalinx frames only
+with the encoded `0x00` delimiter.
+
+The identifiers `uart`, `usb-cdc`, `tcp`, and `bluetooth-spp` name carrier classes and establish the
+session-boundary rules above. They do not by themselves select baud rate, USB device/interface, TCP
+port, Bluetooth service, or other connection parameters. Until a complete standard binding is
+published, interoperating implementations MUST share those parameters through a vendor binding,
+product documentation, configuration, or another out-of-band agreement.
+
+Core-protocol conformance and transport-binding conformance are separate claims. A product claiming
+binding conformance MUST identify the binding name and version it implements. Supporting the carrier
+class named by an INFO transport identifier alone is not a binding-conformance claim.
+
 
 ## 8. Message Ranges
 
@@ -1065,8 +1098,9 @@ identifiers are lowercase ASCII:
 Future specifications may define additional identifiers. Vendor-defined transports SHOULD use a
 namespaced identifier such as `vendor.example/custom-link`. Clients MUST accept and expose unknown
 transport identifiers and MUST NOT reject a device because its transport is unrecognized. The
-transport string identifies the binding only; it MUST NOT contain link speed, driver, adapter, or
-other diagnostic details.
+transport string identifies the carrier class or a separately defined binding; it MUST NOT contain
+link speed, driver, adapter, or other diagnostic details. Standard identifiers do not supply the
+connection parameters required by [Section 7.3](#73-transport-binding-requirements).
 
 Every device supports baseline output profile `0x00`. Absence of record `0x06` means that `0x00` is
 the device's complete supported set. A device that accepts any other output-profile value in
