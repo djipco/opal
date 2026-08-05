@@ -1049,12 +1049,12 @@ transport string identifies the carrier class or a separately defined binding; i
 link speed, driver, adapter, or other diagnostic details. Standard identifiers do not supply the
 connection parameters required by [Section 7.3](#73-transport-binding-requirements).
 
-Every device supports baseline output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`). Absence of record `0x06` means that `0x00` (`SINGLE_WIRE_PULSE_800K_T1`) is
-the device's complete supported set. A device that accepts any other output-profile value in
-`Configure Device` MUST include record `0x06`; when present, the record MUST list the complete
-supported set, including `0x00`, in ascending numeric order. Values are one byte each, the record
-MUST be non-empty, and no value may repeat. Unknown values are retained as numbers; their presence
-does not make INFO incompatible.
+Every device supports baseline output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`). Absence of
+record `0x06` means that `0x00` (`SINGLE_WIRE_PULSE_800K_T1`) is the device's complete supported
+set. A device that accepts any other output-profile value in `Configure Device` MUST include record
+`0x06`; when present, the record MUST list the complete supported set, including `0x00`, in
+ascending numeric order. Values are one byte each, the record MUST be non-empty, and no value may
+repeat. Unknown values are retained as numbers; their presence does not make INFO incompatible.
 
 The pixel-format-capacities record advertises both format support and the largest LED count accepted
 by `Configure Device` for each format. Its length MUST be a nonzero multiple of 3. Entries MUST be
@@ -1299,8 +1299,9 @@ A typical client session driving 300 RGB LEDs per channel on an 8-channel device
 2. Client sends `Request Device Information` (`0x01`) with a nonzero transaction ID and waits for
    the corresponding `INFO` (`0x81`).
 3. Client sends `Configure Device` (`0x20`) with a new nonzero transaction ID, channel `255`,
-   `RGB8`, GRB component order (`0x7E81`), output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`), and 300 LEDs per channel. It waits for the corresponding
-   `CONFIG` (`0xA0`).
+   `RGB8`, GRB component order (`0x7E81`), output profile `0x00`
+   (`SINGLE_WIRE_PULSE_800K_T1`), and 300 LEDs per channel. It waits for the corresponding `CONFIG`
+   (`0xA0`).
 4. Client sends `Set Pixels` (`0x40`) with transaction ID zero for channel 0 and 900 bytes
    (300 × 3) of pixel data.
 5. Client sends `Set Pixels` with transaction ID zero for channels 1 through 7 in the same manner.

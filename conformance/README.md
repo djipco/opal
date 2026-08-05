@@ -4,7 +4,7 @@ The [`vectors.json`](vectors.json) file is the canonical, machine-readable set o
 examples. Implementations consume this file in their automated tests; examples
 must not be copied into implementation repositories.
 
-`protocol_version` identifies the full Semantic Version of the specification release. The INFO
+`protocol_version` identifies the full Semantic Version of the specification version. The INFO
 vectors carry only its three-byte `major.minor.patch` core because prerelease and build metadata are
 not encoded on the wire.
 
