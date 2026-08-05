@@ -25,11 +25,9 @@ The connection is typically serial over USB, but the core protocol is transport-
 also operate over a reliable, ordered IP byte stream such as TCP. It is suitable when the host owns
 rendering and pacing while the controller owns validation, buffering, and physical LED signaling.
 
-Opalinx 1.0 does not itself define multi-controller distribution, routing, or IP discovery. This does
-not preclude standard Opalinx bindings for IP transports or future protocol extensions for networked
-operation. Opalinx does not replace DMX512, Art-Net, or sACN where console interoperability, lighting
-universes, or network-wide distribution are required. Those protocols may coexist with Opalinx in a
-controller or installation.
+Opalinx complements rather than replaces DMX512, Art-Net, or sACN. Those protocols serve console
+interoperability, lighting universes, and network-wide distribution, and may coexist with Opalinx in
+the same controller or installation.
 
 ### 1.3. Protocol overview
 
