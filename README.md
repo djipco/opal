@@ -138,12 +138,6 @@ Reset with a new identifier and wait for `RESET_ACK`, or end the session. Ending
 its identifiers but does not reset persistent device or LED-control state, so a host reconnecting in
 a new session MUST rediscover device information and configuration.
 
-Hosts choose response timeouts appropriate to the transport and operation. In particular,
-`SHOW_ACK` and `RESET_ACK` are delayed until physical LED output and its required reset or latch
-interval complete. A host sending sustained fire-and-forget traffic can periodically send a request
-with a nonzero identifier and require its response to confirm that the session remains responsive;
-this does not confirm delivery of earlier fire-and-forget requests.
-
 ### 3.5. Output pipeline and barriers
 
 Physical LED transmission can take substantially longer than parsing a request. A device may have
