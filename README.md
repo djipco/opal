@@ -664,15 +664,15 @@ transaction ID zero, no response.
 
 ### 10.3. Request Network Configuration (`0x03`)
 
-Queries the device's primary IPv4 interface. The request has no payload and requires a nonzero
-transaction ID. A device that does not advertise `CAP_NETWORK_CONFIG` recognizes this request and
-responds with `ERR_UNSUPPORTED`.
+Queries the device's primary IPv4 interface. A device that does not advertise
+`CAP_NETWORK_CONFIG` recognizes this request and rejects it with `ERR_UNSUPPORTED`.
 
 | TRANSACTION ID | IDENTIFIER | PAYLOAD LENGTH | CHECKSUM |
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x03`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0x83`).
+**Response**: With a nonzero transaction ID, [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1)
+(`0x83`). With transaction ID zero, no response.
 
 ### 10.4. Configure Device (`0x20`)
 
