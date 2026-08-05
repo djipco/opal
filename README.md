@@ -1419,25 +1419,12 @@ protection. An attacker with the ability to modify frames in transit can recompu
 over altered data. **Opalinx** offers no mechanism to detect or prevent deliberate tampering.
 
 
-## 15. Specification Governance
+## Specification authority
 
-**Opalinx** is a centrally governed protocol. The author and maintainer of this repository is the sole
-authority for publishing official versions of the **Opalinx** specification.
-
-Proposed changes, clarifications, and extensions may be debated in
-[GitHub Discussions](https://github.com/djipco/opalinx-spec/discussions), but only versions published
-by the official **Opalinx** repository are considered authoritative.
-
-All standard message identifiers, record types, capability bits, error codes, pixel formats,
-component codes, and output profiles are Opalinx registries controlled by this specification. A
-proposal, discussion, implementation, or vendor use does not assign a standard value. An assignment
-exists only when it appears in an official published specification.
-
-Assignments in prerelease specifications are provisional and may change before `1.0.0`. Beginning
-with the official `1.0.0` release, a value published within a major version will not be reassigned a
-different meaning in that major version. A retired value remains reserved unless a later major
-version explicitly defines otherwise. Vendor extensions use the namespaced envelopes and do not
-create claims on unassigned standard values.
+The author and maintainer of this repository is the sole authority for the Opalinx specification and
+its registries. Prerelease assignments may change before `1.0.0`. From `1.0.0` onward, an assigned or
+retired value will not be given a different meaning within the same major version. Vendor extensions
+use the namespaced envelopes and do not assign standard values.
 
 
 ## Licence
