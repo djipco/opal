@@ -11,12 +11,7 @@
 
 **Opalinx** defines an implementation-independent protocol for communication between host software
 and an addressable-LED controller. It carries device information, configuration, pixel data, output
-control, and explicit operation results over a reliable, ordered, bidirectional byte stream.
-
-The protocol is designed for applications that need more than an unacknowledged pixel stream. A host
-can discover the controller's capabilities and current configuration, correlate requests with typed
-responses, detect rejected operations, and confirm when staged pixel data has been physically
-transmitted to the LEDs.
+control, and optional operation results over a reliable, ordered, bidirectional byte stream.
 
 ### 1.2. Applicability
 
