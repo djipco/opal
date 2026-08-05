@@ -1324,9 +1324,9 @@ transport is trusted.
 
 Transport trust is a property of the deployment, not of the transport type. USB, UART, TCP, and
 Bluetooth do not inherently prevent unauthorized software or users from sending **Opalinx**
-commands. Where unauthorized access is possible, deployments MUST protect the transport externally,
-using controls appropriate to the environment, such as physical access control, operating-system
-device permissions, network isolation, or an authenticated and encrypted transport binding.
+commands. Where unauthorized access is possible, the transport requires external protection
+appropriate to the environment, such as physical access control, operating-system device
+permissions, network isolation, or an authenticated and encrypted transport binding.
 
 The CRC-16 checksum detects accidental bit errors in transit; it does not provide tamper
 protection. An attacker with the ability to modify frames in transit can recompute a valid CRC
