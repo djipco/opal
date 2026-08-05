@@ -240,6 +240,32 @@ A transport session ending does not imply a device reset. A new host must discov
 information and current configuration and must not assume that staging buffers or displayed output
 contain startup values.
 
+### 3.8. Flow control and resource limits
+
+Opalinx 1.0 does not advertise a generic request-rate or outstanding-transaction limit. Hosts MAY
+pipeline requests, but MUST treat response completion and `ERR_BUSY` as the available flow-control
+signals. A host can bound outstanding work and observe every rejection by operating lock-step and
+waiting for each response before sending the next correlated request. Fire-and-forget traffic
+provides no admission feedback and therefore requires conservative host pacing.
+
+`ERR_BUSY` is a transient admission rejection. A request rejected with `ERR_BUSY` MUST NOT be queued,
+executed, or partially applied, and MUST leave configuration, staging, displayed-output, and pipeline
+state unchanged. Because the error response retires the request's transaction identifier, the host
+MAY retry the operation later with a new identifier. It SHOULD wait for relevant progress—such as a
+Show acknowledgement—or apply transport-appropriate backoff rather than retrying continuously.
+
+The pipeline admission table defines state-based `ERR_BUSY` cases. A device MAY also return
+`ERR_BUSY` when a temporary implementation resource needed to admit an otherwise-valid request is
+unavailable. Such temporary backpressure MUST NOT be used to avoid the mandatory baseline or an
+advertised capability indefinitely. When the device is idle and free of faults, every mandatory
+baseline operation within its advertised limits MUST be capable of succeeding.
+
+`ERR_DEVICE_FAULT` is not a flow-control response. It reports that an otherwise-valid operation
+could not complete because of a device, persistence, or physical-output failure. A device MUST NOT
+use `ERR_DEVICE_FAULT` for ordinary queue pressure, pipeline occupancy, or payloads exceeding an
+advertised limit. Message-specific atomicity and recovery rules determine the state remaining after
+a device fault.
+
 ## 4. Conventions and References
 
 ### 4.1. Conventions
@@ -1234,9 +1260,11 @@ Vendor commands use standard `ERROR` codes for envelope, parameter, support, bus
 conditions defined by the core protocol. Any additional command-specific status or error detail is
 carried in the namespaced vendor response payload; vendors MUST NOT allocate private `ERROR` codes.
 
-`ERR_BUSY` governs requests that exceed the one-Show backlog or require mutable pixel/configuration
-state that is not currently available. The normative cases are defined by the
-[pipeline admission table](#36-output-pipeline-and-barriers).
+`ERR_BUSY` governs transient admission failure, including requests that exceed the one-Show backlog
+or require mutable pixel/configuration state that is not currently available. Its atomic rejection,
+retry, and backpressure rules are defined in
+[Flow control and resource limits](#38-flow-control-and-resource-limits); the state-based cases are
+defined by the [pipeline admission table](#36-output-pipeline-and-barriers).
 
 Framing and checksum failures do not produce error responses because they provide no trustworthy
 nonzero correlation key. Implementations MAY count or expose these failures through local diagnostics.
@@ -1288,6 +1316,9 @@ A device is considered **Opalinx** 1.0 conformant if it:
   [Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
 - Implements the session-boundary cleanup and persistent device state defined in
   [Connection and session boundaries](#72-connection-and-session-boundaries).
+- Rejects `ERR_BUSY` atomically without queuing, executing, or partially applying the request, and
+  does not use transient backpressure to avoid mandatory operations indefinitely.
+- Uses `ERR_DEVICE_FAULT` for device or operation failure rather than ordinary backpressure.
 - Silently discards oversized, undecodable, short, and checksum-invalid candidates without affecting
   the state of prior valid messages; sends exactly one appropriate `ERROR` for other rejected requests
   with a nonzero transaction ID.
