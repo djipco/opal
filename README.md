@@ -340,7 +340,7 @@ in [Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
 For an endpoint required to accept payloads of at most `P` bytes, the maximum decoded frame length is
 `D = P + 7`. The applicable encoded-frame limit, excluding the terminating delimiter, is:
 
-`E = D + floor(D / 254) + 1`
+`E = D + ceil(D / 254)`
 
 This is the maximum COBS-encoded length of a `D`-byte frame. The complete transmitted frame may
 therefore occupy `E + 1` bytes including its `0x00` delimiter. A device uses its advertised
@@ -946,7 +946,7 @@ Sent in response to [`Request Device Information`](#101-request-device-informati
 | Protocol version patch  | 1 byte   | Patch version of the **Opalinx** protocol                      |
 | Channel count           | 1 byte   | Number of 1.0-addressable channels (`N`), `1`–`255`          |
 | Capability flags        | 1 byte   | Standard capability bitfield; see below                     |
-| Max payload length      | 2 bytes  | Largest accepted request payload, little-endian; MUST be ≥ 9 |
+| Max payload length      | 2 bytes  | Largest accepted request payload, little-endian; MUST be ≥ 10 |
 | Information records     | variable | TLV records containing identity and extension information   |
 
 The fixed prefix is exactly 7 bytes. Firmware identity and descriptive strings are information records
@@ -961,7 +961,9 @@ rather than part of that prefix.
 
 A device with `CAP_NETWORK_CONFIG` clear recognizes Request Network Configuration and Configure
 Network but rejects them with `ERR_UNSUPPORTED`. Capability bits describe optional standard
-operations; structured capability data uses an information record.
+operations; structured capability data uses an information record. When `CAP_NETWORK_CONFIG` is
+set, `max_payload_length` MUST be at least 74 bytes so every valid Configure Network request can be
+accepted.
 
 #### 11.1.1. INFO extensions
 
