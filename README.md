@@ -1428,6 +1428,17 @@ Proposed changes, clarifications, and extensions may be debated in
 [GitHub Discussions](https://github.com/djipco/opalinx-spec/discussions), but only versions published
 by the official **Opalinx** repository are considered authoritative.
 
+All standard message identifiers, record types, capability bits, error codes, pixel formats,
+component codes, and output profiles are Opalinx registries controlled by this specification. A
+proposal, discussion, implementation, or vendor use does not assign a standard value. An assignment
+exists only when it appears in an official published specification.
+
+Assignments in prerelease specifications are provisional and may change before `1.0.0`. Beginning
+with the official `1.0.0` release, a value published within a major version will not be reassigned a
+different meaning in that major version. A retired value remains reserved unless a later major
+version explicitly defines otherwise. Vendor extensions use the namespaced envelopes and do not
+create claims on unassigned standard values.
+
 
 ## Licence
 
