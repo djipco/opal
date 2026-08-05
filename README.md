@@ -494,7 +494,25 @@ originating request.
 This section defines the shared values used by configuration, capability reporting, and pixel-data
 operations. Message definitions reference these registries rather than redefining their values.
 
-### 9.1. Pixel formats
+### 9.1. Registry index
+
+This index collects every protocol registry and reserved identifier space. The linked section is the
+normative definition when this summary and a detailed registry differ.
+
+| Registry | Width or range | Normative definition | Allocation rule |
+|----------|----------------|----------------------|-----------------|
+| Message identifier ranges | 1 byte | [Message Ranges](#8-message-ranges) | Standard ranges are centrally governed; reserved values MUST NOT be emitted. |
+| Request identifiers | `0x01`–`0x7F` | [Request Messages](#10-request-messages) | Core requests use assigned standard values; `0x7F` carries namespaced vendor commands. |
+| Response identifiers | `0x81`–`0xFF` | [Response Messages](#11-response-messages) | Success responses normally pair by setting the request high bit; `0xFF` is vendor-namespaced. |
+| Error codes | 1 byte | [`ERROR`](#119-error-0xe0) | `0x00`–`0x06` are assigned; `0x07`–`0xFF` are reserved. |
+| Capability flags | 8-bit field | [`INFO`](#111-info-0x81) | Bit 0 is assigned; bits 1–7 are unassigned and emitted as zero. |
+| INFO record types | 1 byte | [`INFO`](#111-info-0x81) | `0x01`–`0x07` are standard, `0x08`–`0xFE` are reserved, and `0xFF` is vendor-namespaced. |
+| Pixel formats | 1 byte | [Pixel formats](#92-pixel-formats) | Unassigned values produce `ERR_INVALID_PARAMETER`; assigned but unsupported values produce `ERR_UNSUPPORTED`. |
+| Component codes | 3-bit slots | [Component order](#93-component-order) | Codes 0–5 and 7 are assigned; code 6 is reserved. |
+| Output profiles | 1 byte | [Output profiles](#94-output-profiles) | Unassigned values produce `ERR_INVALID_PARAMETER`; assigned but unsupported values produce `ERR_UNSUPPORTED`. |
+| Channel identifiers | 1 byte | [Channel addressing](#95-channel-addressing) | Values `0`–`N-1` address channels, `255` is broadcast, and the intervening values are invalid. |
+
+### 9.2. Pixel formats
 
 | Value | Name | Components | Bytes per pixel |
 |-------|------|------------|-----------------|
@@ -508,7 +526,7 @@ independently addressable components have these semantics. A device MUST support
 for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
 `ERR_INVALID_PARAMETER`; an assigned but unadvertised format is rejected with `ERR_UNSUPPORTED`.
 
-### 9.2. Component order
+### 9.3. Component order
 
 Component order is an unsigned 16-bit little-endian value containing five 3-bit slots. Slot 0
 occupies bits 0–2 and names the first component transmitted to each LED; slot 4 occupies bits 12–14
@@ -528,7 +546,7 @@ rejected with `ERR_INVALID_PARAMETER`. For example, GRB is `0x7E81`, GRBW is `0x
 RGB-CW-WW is `0x5888`. This representation supports every meaningful permutation without assigning
 a separate protocol value to each one.
 
-### 9.3. Output profiles
+### 9.4. Output profiles
 
 Output profiles select the waveform generated between the controller and its LEDs.
 
@@ -557,7 +575,7 @@ CONFIG readers MUST preserve and expose unknown numeric output-profile values ra
 the response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
 unsupported value with `ERR_UNSUPPORTED`.
 
-### 9.4. Channel addressing
+### 9.5. Channel addressing
 
 Messages that operate on a single LED channel use a one-byte channel identifier with the following
 convention:
