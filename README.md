@@ -426,6 +426,11 @@ scoped to that session and have no meaning after its connection ends. An incompl
 connection boundary is discarded. A device MUST NOT deliver a response from an ended session to a
 later session.
 
+When a session ends, the device MUST discard every request from that session that has not yet been
+evaluated. An operation is accepted only after it has passed validation and admission. An accepted
+operation continues according to its message rules, but any response belonging to the ended session
+is discarded.
+
 A connection boundary is not a device reset. Device configuration, staging pixel buffers, currently
 displayed LED values, and diagnostic counters persist. If physical LED transmission has already
 started, it MUST be allowed to finish, but its old-session acknowledgement is discarded. A pending
