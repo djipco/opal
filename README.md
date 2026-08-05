@@ -251,11 +251,6 @@ specification:
 - [RFC 2131 — Dynamic Host Configuration Protocol](https://www.rfc-editor.org/rfc/rfc2131)
 - [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
 
-### 4.3. Informative references
-
-- [Opalinx LED Compatibility Addendum](LED-COMPATIBILITY.md) — product mappings and selection
-  guidance that do not define protocol behavior.
-
 ## 5. Versioning and wire compatibility
 
 Specification releases follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html). The
