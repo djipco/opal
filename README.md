@@ -705,9 +705,8 @@ no response.
 
 ### 10.5. Configure Network (`0x21`)
 
-Configures the device's primary IPv4 interface. This operation requires a nonzero transaction ID
-and is available when INFO advertises `CAP_NETWORK_CONFIG`. It is independent of the transport
-carrying the current Opalinx session.
+Configures the device's primary IPv4 interface when INFO advertises `CAP_NETWORK_CONFIG`. It is
+independent of the transport carrying the current Opalinx session.
 
 | Field              | Size     | Description |
 |--------------------|----------|-------------|
@@ -724,16 +723,17 @@ prefix length MUST be `1`–`32`. A nonzero gateway MUST be a valid unicast IPv4
 hostname contains only ASCII letters, digits, and hyphens, begins and ends with a letter or digit,
 and is at most 63 bytes. Invalid fields produce `ERR_INVALID_PARAMETER`.
 
-A Configure Network request with transaction ID zero MUST NOT be applied and produces no response.
 The device validates and persists the complete configuration atomically. A persistence failure
 produces `ERR_DEVICE_FAULT` and leaves the previous stored configuration intact.
 
-A successful request returns [`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0xA1`), confirming
-that the configuration was accepted and stored, not that connectivity has been established. The
-device sends that response using the previous interface configuration before applying any change
-that could disrupt the current Opalinx transport. It then applies the new configuration and MAY end
-the session. A host using that interface rediscovers or reconnects; a host using another transport
-can poll Request Network Configuration until the active state changes.
+With a nonzero transaction ID, a successful request returns
+[`NETWORK_CONFIG`](#113-network_config-0x83-0xa1) (`0xA1`), confirming that the configuration was
+accepted and stored, not that connectivity has been established. The device sends that response
+using the previous interface configuration before applying any change that could disrupt the current
+Opalinx transport. With transaction ID zero, no response is sent. The device then applies the new
+configuration and MAY end the session. A host requiring confirmation uses a nonzero transaction ID
+and waits for `NETWORK_CONFIG`. A host using the configured interface then rediscovers or reconnects;
+a host using another transport can poll Request Network Configuration until the active state changes.
 
 ### 10.6. Set Pixels (`0x40`)
 

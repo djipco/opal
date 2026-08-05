@@ -1,6 +1,6 @@
 {
   "$schema": "./schema.json",
-  "corpus_version": 9,
+  "corpus_version": 10,
   "protocol_version": "1.0.0-alpha.1",
   "valid_frames": [
     {
@@ -106,6 +106,14 @@
       "payload_hex": "00000000000000000000076c6c782d313670",
       "decoded_hex": "014121120000000000000000000000076c6c782d3136706783",
       "wire_hex": "0501412112010101010101010101010b076c6c782d313670678300"
+    },
+    {
+      "name": "configure_network_dhcp_tx_zero",
+      "tx_id": 0,
+      "identifier": 33,
+      "payload_hex": "00000000000000000000076c6c782d313670",
+      "decoded_hex": "000021120000000000000000000000076c6c782d313670ee5e",
+      "wire_hex": "0101032112010101010101010101010b076c6c782d313670ee5e00"
     },
     {
       "name": "network_config_response",
@@ -502,6 +510,16 @@
             "tx_id": 0,
             "identifier": 3,
             "payload_hex": ""
+          },
+          "expect": {
+            "responses": []
+          }
+        },
+        {
+          "input": {
+            "tx_id": 0,
+            "identifier": 33,
+            "payload_hex": "00000000000000000000076c6c782d313670"
           },
           "expect": {
             "responses": []

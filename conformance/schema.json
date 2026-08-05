@@ -5,7 +5,7 @@
   "type": "object",
   "required": ["corpus_version", "protocol_version", "valid_frames", "invalid_decoded_frames", "streams", "host_cases", "device_cases"],
   "properties": {
-    "corpus_version": { "type": "integer", "enum": [9] },
+    "corpus_version": { "type": "integer", "enum": [10] },
     "protocol_version": {
       "type": "string",
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
