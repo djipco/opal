@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Opalinx is an acknowledged binary protocol for direct control and configuration of addressable LED controllers over reliable byte streams." />
+  <meta name="description" content="Opalinx is a binary protocol for direct control and configuration of addressable LED controllers over reliable byte streams." />
   <title>Opalinx — Protocol specification</title>
   <link rel="icon" href="./assets/opalinx-mark.svg" />
   <script>try{const t=localStorage.getItem('opalinx-theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.dataset.theme='dark'}catch{}</script>
@@ -29,31 +29,12 @@
 
   <main>
     <section class="hero">
-      <p class="eyebrow">Protocol specification · Draft 1.0</p>
+      <p class="eyebrow">Protocol specification · 1.0.0-alpha.1 prerelease</p>
       <h1>A protocol for direct LED control</h1>
-      <p class="hero-copy">Opalinx is an acknowledged binary protocol between host software and addressable LED controllers. It carries pixel data, device queries, configuration, and explicit display commits over a reliable byte stream such as USB or serial.</p>
+      <p class="hero-copy">Opalinx is a binary protocol between host software and addressable LED controllers. It carries device information, configuration, pixel data, output control, and optional operation results over a reliable byte stream.</p>
       <div class="actions">
         <a class="button primary" href="./spec/">Read the specification</a>
       </div>
-    </section>
-
-    <section class="section" aria-labelledby="comparison-title">
-      <div class="section-heading">
-        <h2 id="comparison-title">Where it fits</h2>
-        <p class="section-lede">These protocols solve related but different problems. Opalinx is intended for a direct, point-to-point controller link where the host needs acknowledgement and device state; it does not replace stage-lighting or network-distribution protocols.</p>
-      </div>
-      <div class="comparison" role="region" aria-label="Protocol comparison" tabindex="0">
-        <table>
-          <thead><tr><th>Protocol</th><th>Typical link</th><th>Feedback</th><th>Best suited to</th></tr></thead>
-          <tbody>
-            <tr><th>Opalinx</th><td>USB or serial byte stream</td><td>Responses, errors, and display acknowledgements</td><td>Direct control of one addressable-LED controller</td></tr>
-            <tr><th>DMX512</th><td>RS-485</td><td>One-way by default</td><td>Stage-lighting fixtures, consoles, and established DMX infrastructure</td></tr>
-            <tr><th>Art-Net / sACN</th><td>UDP over Ethernet</td><td>Open-loop output</td><td>Networked distribution to many lighting nodes</td></tr>
-            <tr><th>Open Pixel Control</th><td>TCP</td><td>Transport-level delivery</td><td>Simple pixel streaming in OPC-compatible systems</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="section-note">Opalinx does not make the LEDs themselves refresh faster. Its distinction is a closed control loop: framing is checked, operations return typed results, and each displayed frame can be confirmed.</p>
     </section>
 
     <section class="section" aria-labelledby="foundation-title">
@@ -63,7 +44,7 @@
       </div>
       <div class="grid">
         <article class="card"><span class="card-number">01</span><h3>Framing and validation</h3><p>COBS framing, CRC protection, defined errors, and transaction correlation over reliable byte streams.</p></article>
-        <article class="card"><span class="card-number">02</span><h3>LED data and output</h3><p>RGB and RGBW pixel data, channel configuration, and coordinated multi-channel Show operations.</p></article>
+        <article class="card"><span class="card-number">02</span><h3>LED data and output</h3><p>RGB, RGBW, and RGBCCT pixel data, channel configuration, and coordinated multi-channel Show operations.</p></article>
         <article class="card"><span class="card-number">03</span><h3>Extension points</h3><p>Information records and namespaced vendor messages allow additive extensions to the core protocol.</p></article>
       </div>
     </section>

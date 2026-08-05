@@ -648,7 +648,8 @@ otherwise be sent in either order.
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x01`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: [`INFO`](#111-info-0x81).
+**Response**: With a nonzero transaction ID, [`INFO`](#111-info-0x81). With transaction ID zero,
+no response.
 
 ### 10.2. Request Device Configuration (`0x02`)
 
@@ -658,7 +659,8 @@ Queries the device for its current configuration.
 |----------------|------------|----------------|----------|
 | 2 bytes        | `0x02`     | `0x00` `0x00`  | 2 bytes  |
 
-**Response**: [`CONFIG`](#112-config-0x82-0xa0) (`0x82`).
+**Response**: With a nonzero transaction ID, [`CONFIG`](#112-config-0x82-0xa0) (`0x82`). With
+transaction ID zero, no response.
 
 ### 10.3. Request Network Configuration (`0x03`)
 
@@ -697,8 +699,9 @@ On success, `Configure Device` MUST clear the pixel buffer of every affected cha
 broadcast `Configure Device` MUST be applied atomically: either all channels are reconfigured and
 their buffers cleared, or no channel is modified.
 
-**Response**: [`CONFIG`](#112-config-0x82-0xa0) (`0xA0`, confirming the applied configuration) or
-[`ERROR`](#119-error-0xe0) if the requested configuration is not supported.
+**Response**: With a nonzero transaction ID, [`CONFIG`](#112-config-0x82-0xa0) (`0xA0`) confirms the
+applied configuration, or [`ERROR`](#119-error-0xe0) reports rejection. With transaction ID zero,
+no response.
 
 ### 10.5. Configure Network (`0x21`)
 
