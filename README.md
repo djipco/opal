@@ -26,7 +26,7 @@ The host initiates every operation. Requests and responses share one framed bina
 Every request carries a 16-bit transaction identifier: a nonzero value requests a correlated result,
 while zero suppresses the response. The host queries device information and configuration, writes
 pixel data into per-channel staging buffers, and uses **Show** to commit staged data to one or more
-physical outputs. The device validates every retained request and, when a response was requested,
+physical outputs. The device validates each request and, when a response was requested,
 returns either the operation's defined success response or a typed error.
 
 Opalinx separates pixel preparation from display. This permits several channel buffers to be updated
@@ -369,7 +369,7 @@ result, and a request MUST NOT be dispatched until all structural checks pass:
    `ERR_UNKNOWN_IDENTIFIER`.
 4. **Declared length**: The decoded size MUST equal `7 + payload_length`; otherwise reject the request
    with `ERR_INVALID_PAYLOAD_LENGTH`.
-5. **Advertised request limit**: Reject a retained request whose payload exceeds
+5. **Advertised request limit**: Reject a request whose payload exceeds
    `max_payload_length` with `ERR_INVALID_PAYLOAD_LENGTH`.
 6. **Message structure**: Reject a recognized request whose payload cannot have any structurally
    valid length for that message with `ERR_INVALID_PAYLOAD_LENGTH`.
@@ -1196,8 +1196,8 @@ vendor contract.
 
 ### 11.9. ERROR (`0xE0`)
 
-Sent by the device to report a protocol or operational error. Every retained request that passes
-COBS decoding, minimum-size validation, and CRC validation, but is then rejected, MUST trigger
+Sent by the device to report a protocol or operational error. Every candidate that passes COBS
+decoding, minimum-size validation, and CRC validation, but is then rejected, MUST trigger
 exactly one `ERROR` response when its transaction ID is nonzero. A device MUST NOT respond to a
 request with transaction ID zero, and MUST silently discard oversized runs and uncorrelatable
 framing or checksum failures. Thus a received candidate produces at most one response and device
