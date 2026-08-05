@@ -27,12 +27,12 @@ rendering and pacing while the controller owns validation, buffering, and physic
 
 ### 1.3. Protocol overview
 
-The host initiates every operation. Requests and responses share one framed binary representation and
-are normally correlated by a 16-bit transaction identifier. The host queries device information and
-configuration, writes pixel data into per-channel staging buffers, and uses **Show** to commit staged
-data to one or more physical outputs. The device validates every retained request and returns either
-the operation's defined success response or a typed error when a nonzero transaction identifier was
-provided.
+The host initiates every operation. Requests and responses share one framed binary representation.
+Every request carries a 16-bit transaction identifier: a nonzero value requests a correlated result,
+while zero suppresses the response. The host queries device information and configuration, writes
+pixel data into per-channel staging buffers, and uses **Show** to commit staged data to one or more
+physical outputs. The device validates every retained request and, when a response was requested,
+returns either the operation's defined success response or a typed error.
 
 Opalinx separates pixel preparation from display. This permits several channel buffers to be updated
 before one coordinated Show operation and gives the host an explicit completion point for pacing.
