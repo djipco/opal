@@ -575,21 +575,19 @@ operations. Message definitions reference these registries rather than redefinin
 
 ### 9.1. Registry index
 
-This index collects every protocol registry and reserved identifier space. The linked section is the
-normative definition when this summary and a detailed registry differ.
+Each registry has one normative definition:
 
-| Registry | Width or range | Normative definition | Allocation rule |
-|----------|----------------|----------------------|-----------------|
-| Message identifier ranges | 1 byte | [Message Ranges](#8-message-ranges) | Standard ranges are centrally governed; reserved values MUST NOT be emitted. |
-| Request identifiers | `0x01`–`0x7F` | [Request Messages](#10-request-messages) | Core requests use assigned standard values; `0x7F` carries namespaced vendor commands. |
-| Response identifiers | `0x81`–`0xFF` | [Response Messages](#11-response-messages) | Success responses normally pair by setting the request high bit; `0xFF` is vendor-namespaced. |
-| Error codes | 1 byte | [`ERROR`](#119-error-0xe0) | `0x00`–`0x06` are assigned; `0x07`–`0xFF` are reserved. |
-| Capability flags | 8-bit field | [`INFO`](#111-info-0x81) | Bit 0 is assigned; bits 1–7 are unassigned and emitted as zero. |
-| INFO record types | 1 byte | [`INFO`](#111-info-0x81) | `0x01`–`0x07` are standard, `0x08`–`0xFE` are reserved, and `0xFF` is vendor-namespaced. |
-| Pixel formats | 1 byte | [Pixel formats](#92-pixel-formats) | Unassigned values produce `ERR_INVALID_PARAMETER`; assigned but unsupported values produce `ERR_UNSUPPORTED`. |
-| Component codes | 3-bit slots | [Component order](#93-component-order) | Codes 0–5 and 7 are assigned; code 6 is reserved. |
-| Output profiles | 1 byte | [Output profiles](#94-output-profiles) | Unassigned values produce `ERR_INVALID_PARAMETER`; assigned but unsupported values produce `ERR_UNSUPPORTED`. |
-| Channel identifiers | 1 byte | [Channel addressing](#95-channel-addressing) | Values `0`–`N-1` address channels, `255` is broadcast, and the intervening values are invalid. |
+| Registry | Definition |
+|----------|------------|
+| Message identifier ranges | [Message Ranges](#8-message-ranges) |
+| Request identifiers | [Request Messages](#10-request-messages) |
+| Response identifiers | [Response Messages](#11-response-messages) |
+| Error codes | [`ERROR`](#119-error-0xe0) |
+| Capability flags and INFO record types | [`INFO`](#111-info-0x81) |
+| Pixel formats | [Pixel formats](#92-pixel-formats) |
+| Component codes | [Component order](#93-component-order) |
+| Output profiles | [Output profiles](#94-output-profiles) |
+| Channel identifiers | [Channel addressing](#95-channel-addressing) |
 
 ### 9.2. Pixel formats
 
