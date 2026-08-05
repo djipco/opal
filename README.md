@@ -25,10 +25,6 @@ The connection is typically serial over USB, but the core protocol is transport-
 also operate over a reliable, ordered IP byte stream such as TCP. It is suitable when the host owns
 rendering and pacing while the controller owns validation, buffering, and physical LED signaling.
 
-Opalinx complements rather than replaces DMX512, Art-Net, or sACN. Those protocols serve console
-interoperability, lighting universes, and network-wide distribution, and may coexist with Opalinx in
-the same controller or installation.
-
 ### 1.3. Protocol overview
 
 The host initiates every operation. Requests and responses share one framed binary representation and
