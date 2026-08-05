@@ -71,7 +71,6 @@ async function renderPage(source, destination, options) {
     markdown = markdown
       .replaceAll('(conformance/README.md)', '(../conformance/)')
       .replaceAll('(LED-COMPATIBILITY.md)', '(../compatibility/)')
-      .replaceAll('(REVISION-HISTORY.md)', '(../history/)')
       .replaceAll('(LICENSE.md', '(../license/');
   }
   if (source === 'LED-COMPATIBILITY.md') {
@@ -116,10 +115,6 @@ async function build() {
   await renderPage('LICENSE.md', 'license', {
     title: 'Licence',
     description: 'Licence terms for the Opalinx specification.',
-  });
-  await renderPage('REVISION-HISTORY.md', 'history', {
-    title: 'Revision history',
-    description: 'Named revisions of the Opalinx protocol specification.',
   });
   await cp(path.join(root, 'conformance', 'vectors.json'), path.join(output, 'conformance', 'vectors.json'));
   await cp(path.join(root, 'conformance', 'schema.json'), path.join(output, 'conformance', 'schema.json'));
