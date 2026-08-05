@@ -642,7 +642,7 @@ bit cell, `T0H`, and `T1H` MUST fall within its inclusive range. The output inte
 the profile defines no clock or redundant-data conductor. Voltage levels, drive strength, connectors,
 and any additional product-specific conductors remain outside Opalinx.
 
-Every conformant device MUST support profile `0x00`. Support for other assigned profiles is
+Every conformant device MUST support profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`). Support for other assigned profiles is
 advertised by the `Supported output profiles` INFO record. In Opalinx 1.0, every advertised profile
 MUST be supported on every channel and for every advertised pixel format. A host MUST only request a
 profile value that it understands and that the device advertises. If the record is absent, the
@@ -1100,7 +1100,7 @@ transport string identifies the carrier class or a separately defined binding; i
 link speed, driver, adapter, or other diagnostic details. Standard identifiers do not supply the
 connection parameters required by [Section 7.3](#73-transport-binding-requirements).
 
-Every device supports baseline output profile `0x00`. Absence of record `0x06` means that `0x00` is
+Every device supports baseline output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`). Absence of record `0x06` means that `0x00` (`SINGLE_WIRE_PULSE_800K_T1`) is
 the device's complete supported set. A device that accepts any other output-profile value in
 `Configure Device` MUST include record `0x06`; when present, the record MUST list the complete
 supported set, including `0x00`, in ascending numeric order. Values are one byte each, the record
@@ -1326,7 +1326,7 @@ baseline is:
 |-----------------|-------------------------|
 | Device information and configuration query | Mandatory |
 | Network query and configuration | Mandatory when `CAP_NETWORK_CONFIG` is advertised; otherwise `ERR_UNSUPPORTED` |
-| Broadcast Configure using `RGB8`, any valid component order, and output profile `0x00` | Mandatory |
+| Broadcast Configure using `RGB8`, any valid component order, and output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`) | Mandatory |
 | Set Pixels and Fill Channel for valid configured channels | Mandatory |
 | Broadcast Show | Mandatory |
 | Reset | Mandatory |
@@ -1350,7 +1350,7 @@ A typical client session driving 300 RGB LEDs per channel on an 8-channel device
 2. Client sends `Request Device Information` (`0x01`) with a nonzero transaction ID and waits for
    the corresponding `INFO` (`0x81`).
 3. Client sends `Configure Device` (`0x20`) with a new nonzero transaction ID, channel `255`,
-   `RGB8`, GRB component order (`0x7E81`), output profile `SINGLE_WIRE_PULSE_800K_T1`, and 300 LEDs per channel. It waits for the corresponding
+   `RGB8`, GRB component order (`0x7E81`), output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`), and 300 LEDs per channel. It waits for the corresponding
    `CONFIG` (`0xA0`).
 4. Client sends `Set Pixels` (`0x40`) with transaction ID zero for channel 0 and 900 bytes
    (300 × 3) of pixel data.

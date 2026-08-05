@@ -38,7 +38,7 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 | [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
 | [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |
 | SM16703 / SM16704 | Data only | RGB8 / RGBW8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | SM16703 timing evidence gives 0.30 µs `T0H`, 0.90 µs `T1H`, and >80 µs reset; SM16704 is documented as its RGBW counterpart. Confirm the exact revision. |
-| [WS2805 V0.3](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2805-datasheet.pdf) | Data + backup | RGBCCT8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | 40-bit RGBW1W2 frames, approximately 1.25 µs cells, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and ≥280 µs reset; profile `0x02` supplies ≥300 µs reset. |
+| [WS2805 V0.3](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2805-datasheet.pdf) | Data + backup | RGBCCT8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | 40-bit RGBW1W2 frames, approximately 1.25 µs cells, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and ≥280 µs reset; profile `0x02` (`SINGLE_WIRE_PULSE_800K_T2`) supplies ≥300 µs reset. |
 
 ## Future profiles, formats, or mappings
 
