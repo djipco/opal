@@ -1343,40 +1343,6 @@ A host implementation is conformant when it satisfies every applicable host requ
 specification, including the safe-acceptance requirements in
 [Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
 
-A device is considered **Opalinx** 1.0 conformant if it:
-
-- Recognizes all standard request messages and supports the mandatory baseline above.
-- Uses the exact rejection precedence defined in
-  [Receiver Framing and Recovery](#65-receiver-framing-and-recovery).
-- Implements the session-boundary cleanup and persistent device state defined in
-  [Connection and session boundaries](#72-connection-and-session-boundaries).
-- Rejects `ERR_BUSY` atomically without queuing, executing, or partially applying the request, and
-  does not use transient backpressure to avoid mandatory operations indefinitely.
-- Uses `ERR_DEVICE_FAULT` for device or operation failure rather than ordinary backpressure.
-- Silently discards oversized, undecodable, short, and checksum-invalid candidates without affecting
-  the state of prior valid messages; sends exactly one appropriate `ERROR` for other rejected requests
-  with a nonzero transaction ID.
-- Responds to `Request Device Information` with a properly formatted `INFO` response containing
-  all required fields.
-- Responds to `Request Device Configuration` with a properly formatted `CONFIG` response.
-- Responds to the network messages with `NETWORK_CONFIG` when `CAP_NETWORK_CONFIG` is advertised,
-  or with `ERR_UNSUPPORTED` when it is not.
-- Responds to `Configure Device` with a `CONFIG` response on success or an appropriate `ERROR`
-  response on failure; on success, clears the pixel buffer of every affected channel to all-zeros
-  atomically (for broadcast, either all channels are updated or none).
-- Accepts `Reset` during active Show transmission, allows the active Show to complete, cancels any
-  pending Show, and transmits the reset all-zero output; an accepted Reset completes before any
-  subsequent request is processed, and `RESET_ACK` is emitted only after every response still
-  required for an earlier request has been emitted and the reset transmission has completed.
-- Implements the one-Show backlog, admission, frame-protection, completion, and acknowledgement
-  guarantees defined in [Output pipeline and barriers](#36-output-pipeline-and-barriers).
-- Sends `SET_PIXELS_ACK`, `FILL_CHANNEL_ACK`, and `SHOW_ACK` responses for pixel and show
-  operations received with `TxID ≠ 0x0000`.
-- Applies all field-specific reserved and unknown-value rules.
-- Recognizes the namespaced vendor envelope and returns `ERR_UNSUPPORTED` for an unimplemented
-  namespace or command.
-- Rejects identifiers in reserved request ranges with `ERR_UNKNOWN_IDENTIFIER`.
-
 
 ## 13. Example Session
 
