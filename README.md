@@ -1308,7 +1308,7 @@ Proposed changes, clarifications, and extensions may be debated in
 by the official **Opalinx** repository are considered authoritative.
 
 
-## 16. Licence
+## Licence
 
 The specification, conformance materials, software, and Opalinx marks are governed by the
 [Opalinx Noncommercial Licence 1.0](LICENSE.md). Noncommercial use is free. Commercial products and
@@ -1317,7 +1317,7 @@ The same document defines permitted factual references to Opalinx and reserves o
 certification marks.
 
 
-## 17. Contributing
+## Contributing
 
 Feedback and questions are welcome. Please use
 [GitHub Discussions](https://github.com/djipco/opalinx-spec/discussions) to debate ideas, proposed
@@ -1326,6 +1326,6 @@ text. Intentional submissions are subject to the contribution terms in
 [section 4 of the licence](LICENSE.md#4-distribution-and-modifications).
 
 
-## 18. Author
+## Author
 
 Opalinx was designed and authored by [Jean-Philippe Cô](https://djip.co), 2026.
