@@ -682,7 +682,7 @@ Sets the pixel format, component order, output profile, and LED count for all ch
 
 **Channel number**:
 
-- `0` through `N-1`: reserved for future per-channel configuration; devices MUST reject with
+- `0` through `N-1`: per-channel configuration is unsupported in 1.0; devices MUST reject with
   `ERR_UNSUPPORTED`.
 - `255`: broadcast. Applies the same configuration to all channels simultaneously.
 
@@ -704,8 +704,7 @@ their buffers cleared, or no channel is modified.
 
 Configures the device's primary IPv4 interface. This operation requires a nonzero transaction ID
 and is available when INFO advertises `CAP_NETWORK_CONFIG`. It is independent of the transport
-carrying the current Opalinx session and can configure an interface used by another protocol or by
-a future Opalinx IP binding.
+carrying the current Opalinx session.
 
 | Field              | Size     | Description |
 |--------------------|----------|-------------|
@@ -847,7 +846,7 @@ one coordinated output operation.
 
 **Channel number**:
 
-- `0` through `N-1`: reserved for future per-channel transmission; devices MUST reject with
+- `0` through `N-1`: per-channel transmission is unsupported in 1.0; devices MUST reject with
   `ERR_UNSUPPORTED`.
 - `255`: broadcast. Captures and commits all channels as one coordinated output operation. Every
   channel MUST transmit the data captured for that Show; no channel may transmit data captured by a
@@ -948,7 +947,7 @@ Sent in response to [`Request Device Information`](#101-request-device-informati
 | Information records     | variable | TLV records containing identity and extension information   |
 
 The fixed prefix is exactly 7 bytes. Firmware identity and descriptive strings are information records
-so future metadata does not enlarge or reorder the compatibility prefix.
+rather than part of that prefix.
 
 **Capability flags**:
 
@@ -979,7 +978,7 @@ Type assignments are divided into these ranges:
 |-----------------|-------------------------------------------------------------|
 | `0x00`          | Reserved; senders MUST NOT emit                              |
 | `0x01`–`0x07`   | Standard Opalinx 1.0 information records                      |
-| `0x08`–`0xFE`   | Reserved for future standard Opalinx information records      |
+| `0x08`–`0xFE`   | Reserved                                                       |
 | `0xFF`          | Standard namespaced vendor-information envelope               |
 
 The outer INFO payload length terminates the extension area; no end marker or padding is permitted.
@@ -1038,8 +1037,8 @@ identifiers are lowercase ASCII:
 | `tcp`           | Transmission Control Protocol                  |
 | `bluetooth-spp` | Bluetooth Serial Port Profile / RFCOMM         |
 
-Future specifications may define additional identifiers. Vendor-defined transports SHOULD use a
-namespaced identifier such as `vendor.example/custom-link`. Clients MUST accept and expose unknown
+Vendor-defined transports SHOULD use a namespaced identifier such as `vendor.example/custom-link`.
+Clients MUST accept and expose unknown
 transport identifiers and MUST NOT reject a device because its transport is unrecognized. The
 transport string identifies the carrier class or a separately defined binding; it MUST NOT contain
 link speed, driver, adapter, or other diagnostic details. Standard identifiers do not supply the
@@ -1140,13 +1139,13 @@ active fields are zero. The effective hostname satisfies the same syntax as a no
 Network hostname. Opalinx does not prescribe a fallback address when DHCP fails.
 
 Stored network configuration survives power cycles, firmware restarts, connection boundaries, and
-ordinary Opalinx Reset. Restoring factory network defaults is a separate product or future-protocol
-operation. Devices send network status only in response to a request; hosts poll when they need to
+ordinary Opalinx Reset. Restoring factory network defaults is outside this protocol. Devices send
+network status only in response to a request; hosts poll when they need to
 observe link or address changes.
 
 Opalinx 1.0 defines one configurable primary IPv4 interface. Multiple interfaces, IPv6, DNS, service
 discovery, connection establishment, and transport-specific network behaviour are outside these
-messages and may use separate additive messages in a future specification.
+messages.
 
 ### 11.4. SET_PIXELS_ACK (`0xC0`)
 
@@ -1226,7 +1225,7 @@ output can never cause an error-response loop.
 | `0x04`        | `ERR_BUSY`                   | Device cannot accept the message at this time     |
 | `0x05`        | `ERR_UNSUPPORTED`            | Message valid but unsupported by this device      |
 | `0x06`        | `ERR_DEVICE_FAULT`           | Device failed to complete an otherwise-valid operation |
-| `0x07`–`0xFF` | Reserved                     | Reserved for future specification versions        |
+| `0x07`–`0xFF` | Reserved                     | Reserved                                           |
 
 Devices SHOULD emit the most specific applicable error code. `ERR_UNSPECIFIED` is reserved for
 conditions not covered by any other code and SHOULD NOT be used when a more specific code applies.
