@@ -1,5 +1,5 @@
 # Opalinx Protocol Specification
-### Version: 1.0.0-alpha.1
+### Version: 1.0.0-alpha.1 · [Revision history](REVISION-HISTORY.md)
 
 > [!WARNING]
 > **This is a prerelease specification and is not production-ready.** Breaking changes may occur
