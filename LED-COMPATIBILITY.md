@@ -38,7 +38,6 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 | [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | 1.25 µs nominal cell, 0.30 µs `T0H`, 0.60 µs `T1H`, and ≥80 µs reset. Other SK6805 packages/revisions need separate checks. |
 | [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
 | [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |
-| [WS2805 V0.3](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2805-datasheet.pdf) | Data + backup | RGBCCT8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | 40-bit RGBW1W2 frames, approximately 1.25 µs cells, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and ≥280 µs reset; profile `0x02` (`SINGLE_WIRE_PULSE_800K_T2`) supplies ≥300 µs reset. |
 
 ## Future profiles, formats, or mappings
 
@@ -53,6 +52,7 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 | TM1804 / TM1809 / TM1812 | Obtain revision-specific manufacturer timing tables; these products are not assumed interchangeable. |
 | [TM1814 / TM1829](https://deskontroller.com/support/pixel-protocols/) | Confirm each variant's RGB or RGBW mapping, additional current or brightness behavior, framing, timing, and intended default before defining a mapping. |
 | [UCS1903 / UCS1904 / UCS2903 / UCS2904](https://deskontroller.com/support/pixel-protocols/) | Obtain revision-specific manufacturer timing tables and RGB/RGBW mappings; UCS1903 also needs separate treatment of its 400 and 800 kbit/s variants. |
+| [WS2805 V0.3](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2805-datasheet.pdf) | Defines a 40-bit `R G B W1 W2` frame, 0.22–0.38 µs `T0H`, 0.58–1.00 µs `T1H`, and at least 280 µs reset. Profile `0x02` meets the reset requirement but permits `T0H` beyond the documented maximum. Obtain a production-revision datasheet and confirm that W1/W2 represent `cW`/`wW` before assigning a mapping. |
 | APA102 / APA102C / DotStar, APA107, HD107S, LPD6803/8806, P9813, SK9822/9826, WS2801/2803 | Data-and-clock interface. |
 | HD108, SJ1221 (16-bit), SPXL-16bit, TLC5973 (16-bit), UCS7604 (16-bit), UCS8903/8904 (16-bit), 9PDOT (16-bit) | Component depth or framing is not one of the current 8-bit formats. |
 | LD1510 12-bit and other 12-bit products | A future component-depth format is required. |
