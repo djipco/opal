@@ -61,6 +61,9 @@ such as WS2812B, WS2813, or SK6812 are informative compatibility references rath
 of Opalinx behavior. Compatibility with a particular LED model depends on the selected output
 profile, pixel format, component order, controller implementation, wiring, and the exact LED revision.
 
+An **LED profile** is the combination of pixel format, component order, and output profile used for
+an LED product.
+
 The separate [LED compatibility addendum](LED-COMPATIBILITY.md) records informative product mappings
 without making them part of the normative protocol specification.
 
