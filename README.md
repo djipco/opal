@@ -46,14 +46,13 @@ Opalinx 1.0 does not define:
 ## 2. Scope
 
 **Opalinx** 1.0 controls devices with one or more `DATA_ONLY` outputs for clockless,
-single-data-wire addressable LEDs. Each output uses the `RGB8`, `RGBW8`, or `RGBCCT8` pixel format.
+single-data-wire addressable LEDs. Each output uses a registered pixel format.
 The protocol carries pixel values and selects a registered **output profile**; each device reports
 the pixel formats and output profiles it supports.
 
-These identifiers describe independently controlled 8-bit components. `RGB8` provides red, green,
-and blue; `RGBW8` adds one white component; and `RGBCCT8` adds independently controlled cool-white
-(`cW`) and warm-white (`wW`) components, enabling correlated-color-temperature adjustment. Products
-using the last format are often marketed as RGBWW or RGB+CCT.
+`RGB8`, `RGBW8`, and `RGBCCT8` provide unsigned 8-bit components. `RGB16` and `RGBW16` provide
+unsigned 16-bit components. `RGBCCT8` has independently controlled cool-white (`cW`) and
+warm-white (`wW`) components and is often marketed as RGBWW or RGB+CCT.
 
 An output profile defines observable signaling behavior such as pulse encoding, nominal bit rate,
 symbol timing, and reset or latch timing. It does not identify one LED product. Product-family names
@@ -561,11 +560,14 @@ Each registry has one normative definition:
 | `0x00` | `RGB8` | R G B | 3 |
 | `0x01` | `RGBW8` | R G B W | 4 |
 | `0x02` | `RGBCCT8` | R G B cW wW | 5 |
+| `0x03` | `RGB16` | R G B | 6 |
+| `0x04` | `RGBW16` | R G B W | 8 |
 
-Every component is an unsigned 8-bit intensity. `cW` and `wW` identify the cool-white and
-warm-white components; products marketed as RGBWW or RGB+CCT use `RGBCCT8` when their five
-independently addressable components have these semantics. A device MUST support `RGB8`; support
-for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
+The numeric suffix is the number of bits in each unsigned component. Each 16-bit component is
+encoded most-significant byte first. `cW` and `wW` identify the cool-white and warm-white
+components; products marketed as RGBWW or RGB+CCT use `RGBCCT8` when their five independently
+addressable components have these semantics. A device MUST support `RGB8`; support for the other
+formats is advertised by INFO record `0x07`. An unassigned format is rejected with
 `ERR_INVALID_PARAMETER`; an assigned but unadvertised format is rejected with `ERR_UNSUPPORTED`.
 
 ### 9.3. Component Order
@@ -581,9 +583,9 @@ and names the last. Bit 15 is reserved and MUST be zero.
 | `2` | B | `5` | wW |
 | `6` | Reserved | `7` | UNUSED |
 
-For `RGB8`, slots 0–2 MUST contain R G B exactly once and slots 3–4 MUST be UNUSED. For `RGBW8`,
-slots 0–3 MUST contain R G B W exactly once and slot 4 MUST be UNUSED. For `RGBCCT8`, all five slots
-MUST contain R G B cW wW exactly once. Any other encoding is rejected with
+For `RGB8` and `RGB16`, slots 0–2 MUST contain R G B exactly once and slots 3–4 MUST be UNUSED. For
+`RGBW8` and `RGBW16`, slots 0–3 MUST contain R G B W exactly once and slot 4 MUST be UNUSED. For
+`RGBCCT8`, all five slots MUST contain R G B cW wW exactly once. Any other encoding is rejected with
 `ERR_INVALID_PARAMETER`. For example, G R B is `0x7E81`, G R B W is `0x7681`, and R G B cW wW is
 `0x5888`. This representation supports every meaningful permutation without assigning a separate
 protocol value to each one.
@@ -776,8 +778,9 @@ LEDs.
 - `255`: broadcast. Assigns the same color data to all channels simultaneously.
 
 **Component bytes per LED**: Determined by the configured pixel format: 3 bytes for `RGB8`, 4 for
-`RGBW8`, and 5 for `RGBCCT8`. Each LED's bytes represent component values in the channel's
-configured component order. The resulting LED output MUST
+`RGBW8`, 5 for `RGBCCT8`, 6 for `RGB16`, and 8 for `RGBW16`. Each LED's bytes represent component
+values in the channel's configured component order. Each 16-bit component is most-significant byte
+first. The resulting LED output MUST
 match those wire-order values. A host using a different logical color layout converts it before
 forming the request.
 
@@ -814,23 +817,20 @@ buffered; a [`Show`](#108-show-0x50) message is required to commit.
 
 **Payload structure**:
 
-| Field          | Size   | Description                                                            |
-|----------------|--------|------------------------------------------------------------------------|
-| Channel number | 1 byte | Target channel; see channel addressing convention                      |
-| Color byte 1   | 1 byte | First component in the channel's configured wire order                 |
-| Color byte 2   | 1 byte | Second component in the channel's configured wire order                |
-| Color byte 3   | 1 byte | Third component in the channel's configured wire order                 |
-| Color byte 4   | 1 byte | Fourth component; present for `RGBW8` and `RGBCCT8`                    |
-| Color byte 5   | 1 byte | Fifth component; present only for `RGBCCT8`                            |
+| Field          | Size     | Description                                              |
+|----------------|----------|----------------------------------------------------------|
+| Channel number | 1 byte   | Target channel; see channel addressing convention        |
+| Color data     | variable | One pixel in the configured format and component order   |
 
 The color is supplied in the channel's configured wire order — exactly as for
 [`Set Pixels`](#106-set-pixels-0x40) — and the resulting output applies those component values to every
 LED. A host using a different logical color layout converts it before forming the request. For
 example, on a G R B channel the three bytes represent G R B in that order.
 
-**Payload length**: The structurally permitted lengths are `4`, `5`, and `6`; any other length produces
-`ERR_INVALID_PAYLOAD_LENGTH`. After resolving the target channel configuration, the length MUST be
-`4` for `RGB8`, `5` for `RGBW8`, or `6` for `RGBCCT8`; a mismatch produces `ERR_INVALID_PARAMETER`.
+**Payload length**: The structurally permitted lengths are `4`, `5`, `6`, `7`, and `9`; any other
+length produces `ERR_INVALID_PAYLOAD_LENGTH`. After resolving the target channel configuration, the
+payload MUST contain the channel byte followed by exactly one pixel in the configured format; a
+mismatch produces `ERR_INVALID_PARAMETER`.
 
 **Channel number**:
 
@@ -1076,7 +1076,7 @@ repeat. Unknown values are retained as numbers; their presence does not make INF
 The pixel-format-capacities record advertises both format support and the largest LED count accepted
 by `Configure Device` for each format. Its length MUST be a nonzero multiple of 3. Entries MUST be
 unique and sorted by ascending pixel-format value. Each maximum MUST be in the range `1`–`65535`.
-The record MUST include `RGB8`; it includes `RGBW8` or `RGBCCT8` only when supported. Unknown formats
+The record MUST include `RGB8`; it includes other assigned formats only when supported. Unknown formats
 are preserved for diagnostics but are not selected by a host that does not understand them.
 
 The `0xFF` vendor-information value contains namespace length (1 byte), namespace, vendor record ID

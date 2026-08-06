@@ -1,6 +1,6 @@
 {
   "$schema": "./schema.json",
-  "corpus_version": 12,
+  "corpus_version": 13,
   "protocol_version": "1.0.0-alpha.1",
   "valid_frames": [
     {
@@ -10,6 +10,30 @@
       "payload_hex": "",
       "decoded_hex": "00000100003c26",
       "wire_hex": "0101020101033c2600"
+    },
+    {
+      "name": "configure_rgb16",
+      "tx_id": 5633,
+      "identifier": 32,
+      "payload_hex": "ff03817e000100",
+      "decoded_hex": "0116200700ff03817e000100ed9b",
+      "wire_hex": "050116200705ff03817e020103ed9b00"
+    },
+    {
+      "name": "set_pixels_rgb16_msb_first",
+      "tx_id": 5634,
+      "identifier": 64,
+      "payload_hex": "0000000100111221223132",
+      "decoded_hex": "0216400b000000000100111221223132058c",
+      "wire_hex": "050216400b010101020109111221223132058c00"
+    },
+    {
+      "name": "fill_channel_rgb16_msb_first",
+      "tx_id": 5635,
+      "identifier": 65,
+      "payload_hex": "00212211123132",
+      "decoded_hex": "03164107000021221112313261d5",
+      "wire_hex": "0503164107010921221112313261d500"
     },
     {
       "name": "configure_with_embedded_zeroes",

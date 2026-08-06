@@ -9,8 +9,8 @@
 
 An **LED configuration** combines three independent properties:
 
-1. **Pixel format**: `RGB8`, `RGBW8`, or `RGBCCT8` (also marketed as RGBWW or RGB+CCT). The `8` suffix
-   means that each component has an unsigned 8-bit intensity (0-255).
+1. **Pixel format**: `RGB8`, `RGBW8`, `RGBCCT8` (also marketed as RGBWW or RGB+CCT), `RGB16`, or
+   `RGBW16`. The suffix gives the number of bits per component.
 3. **Component order**: the actual wire order, such as G R B, G R B W, or G R B cW wW.
 4. **Output profile**: the data waveform and reset timing.
 
@@ -42,6 +42,8 @@ name. Products without an assigned Opalinx 1.0 output profile are listed separat
 | [SM16703P](https://www.ledyilighting.com/wp-content/uploads/2025/02/SM16703P-datasheet.pdf) | Data only | RGB8 | R G B | `SINGLE_WIRE_PULSE_800K_T3` |
 | [SM16704PB](https://gree-leds.com/web/userfiles/download/SM16704PBDatasheetEN.pdf) | Data only | RGBW8 | R G B W | `SINGLE_WIRE_PULSE_800K_T3` |
 | [WS2805 V0.3](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2805-datasheet.pdf) | Data + backup | RGBCCT8 | R G B cW wW | `SINGLE_WIRE_PULSE_800K_T3` |
+| [ENTTEC SPXL-16 RGB / UCS8903B](https://www.enttec.com/product/led-pixel-dot-lights/hi-res-smart-pxl60-rgb-rgbw-led-pixel-dot-strings/) | Data only | RGB16 | R G B | `SINGLE_WIRE_PULSE_800K_T1` |
+| [ENTTEC SPXL-16 RGBW / UCS8904B](https://www.gree-leds.com/web/userfiles/download/UCS8904BICEnglishdatasheet.pdf) | Data only | RGBW16 | R G B W | `SINGLE_WIRE_PULSE_800K_T1` |
 
 ## Unsupported Interfaces and Formats
 
@@ -49,11 +51,11 @@ Opalinx 1.0 does not support data-and-clock interfaces such as APA102, APA102C, 
 [HD108](https://www.rose-lighting.com/wp-content/uploads/sites/53/2019/09/HD108-LED-Specificaion-V1-Rose-Lighting-4.pdf),
 HD107S, LPD6803, LPD8806, P9813, SK9822, SK9826, WS2801, or WS2803.
 
-It also does not support 12-bit or 16-bit formats such as SJ1221, SPXL-16bit, TLC5973, UCS7604,
-UCS8903, UCS8904, 9PDOT, LD1510, or other products requiring component depths or framing outside
-RGB8, RGBW8, and RGBCCT8. Other specialized formats, including FW1906, are likewise not supported.
+It also does not support formats such as SJ1221, TLC5973, UCS7604, 9PDOT, LD1510, or other products
+requiring component depths or framing outside the registered pixel formats. Other specialized
+formats, including FW1906, are likewise not supported.
 
-Additional output profiles for data-only 8-bit products may be added when suitable timing evidence
+Additional output profiles for data-only products may be added when suitable timing evidence
 is available. Users may suggest profiles for consideration.
 
 ## Opalinx 1.0 Output Profiles
