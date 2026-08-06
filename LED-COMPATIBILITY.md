@@ -5,7 +5,7 @@
 > revisions, clones, assembled strips, voltage levels, backup-data wiring, and firmware can differ.
 > Perform your own tests.
 
-## How to select a configuration
+## Profile Selection
 
 Match three independent properties:
 
