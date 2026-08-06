@@ -28,19 +28,19 @@ name. Products without an assigned Opalinx 1.0 output profile are listed separat
 
 ## Opalinx 1.0 Mappings
 
-| LED product or family | Interface | Pixel format | Output profile | Notes |
+| LED product or family | Interface | Pixel format | Component order | Output profile |
 |---|---|---|---|---|
-| WS2811, 800 kbit/s | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Order varies by assembly. |
-| WS2811, 400 kbit/s | Data only | RGB8 | `0x01` `SINGLE_WIRE_PULSE_400K_T1` | |
-| WS2812 / WS2812B | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B; verify revision. |
-| WS2813 / WS2813B | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
-| WS2814 | Data + backup | RGBW8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
-| [WS2815](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2815-datasheet.pdf) / WS2818 | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
-| SK6812 RGB | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B. |
-| SK6812 RGBW | Data only | RGBW8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B W. |
-| [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | |
-| [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | |
-| [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
+| WS2811, 800 kbit/s | Data only | RGB8 | Varies by assembly | `0x00` `SINGLE_WIRE_PULSE_800K_T1` |
+| WS2811, 400 kbit/s | Data only | RGB8 | Varies by assembly | `0x01` `SINGLE_WIRE_PULSE_400K_T1` |
+| WS2812 / WS2812B | Data only | RGB8 | Typically G R B; verify revision | `0x00` `SINGLE_WIRE_PULSE_800K_T1` |
+| WS2813 / WS2813B | Data + backup | RGB8 | G R B | `0x02` `SINGLE_WIRE_PULSE_800K_T2` |
+| WS2814 | Data + backup | RGBW8 | R G B W | `0x02` `SINGLE_WIRE_PULSE_800K_T2` |
+| [WS2815](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2815-datasheet.pdf) / WS2818 | Data + backup | RGB8 | Verify product documentation | `0x02` `SINGLE_WIRE_PULSE_800K_T2` |
+| SK6812 RGB | Data only | RGB8 | Typically G R B | `0x00` `SINGLE_WIRE_PULSE_800K_T1` |
+| SK6812 RGBW | Data only | RGBW8 | Typically G R B W | `0x00` `SINGLE_WIRE_PULSE_800K_T1` |
+| [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | G R B | `0x00` `SINGLE_WIRE_PULSE_800K_T1` |
+| [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | G R B | `0x00` `SINGLE_WIRE_PULSE_800K_T1` |
+| [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | G R B | `0x02` `SINGLE_WIRE_PULSE_800K_T2` |
 
 ## Future Output Profiles, Formats, or Mappings
 
