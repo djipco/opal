@@ -46,7 +46,7 @@ licensor or under a valid commercial licence, including in the end user's commer
 This exception does not permit developing, manufacturing, distributing, or supplying a separate
 Opalinx implementation.
 
-This licence grants no permission for commercial use. To obtain a commercial licence, send a 
+This licence grants no permission for commercial use. To obtain a commercial licence, send a
 message to <licence@djip.co>.
 
 This licence governs only rights the licensor can grant. It does not restrict conduct for which
