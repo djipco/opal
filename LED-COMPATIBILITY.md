@@ -1,5 +1,6 @@
 # Opalinx LED Compatibility Addendum
 
+> [!NOTE]
 > **Informative only.** This catalog is a selection aid, not a compatibility guarantee. Product
 > revisions, clones, assembled strips, voltage levels, backup-data wiring, and firmware can differ.
 
