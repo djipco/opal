@@ -20,7 +20,7 @@ documentation.
 
 > [!NOTE]
 > LEDs requiring both data and clock are not supported. Likewise, 12-bit or 16-bit components and special 
-> framing are not representable by the three current 8-bit formats.
+> framing are not representable by the current 8-bit formats.
 
 Mappings rely on the cited datasheets and apply to the identified product or revision; they must not
 be generalized to undocumented revisions, clones, or assembled products sold under the same family
