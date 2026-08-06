@@ -47,8 +47,7 @@ name.
 ## Unsupported Interfaces and Formats
 
 Opalinx 1.0 does not support data-and-clock interfaces such as APA102, APA102C, DotStar, APA107,
-[HD108](https://www.rose-lighting.com/wp-content/uploads/sites/53/2019/09/HD108-LED-Specificaion-V1-Rose-Lighting-4.pdf),
-HD107S, LPD6803, LPD8806, P9813, SK9822, SK9826, WS2801, or WS2803.
+HD108, HD107S, LPD6803, LPD8806, P9813, SK9822, SK9826, WS2801, or WS2803.
 
 It also does not support formats such as SJ1221, TLC5973, UCS7604, 9PDOT, LD1510, or other products
 requiring component depths or framing outside the registered pixel formats. Other specialized
