@@ -46,12 +46,12 @@ name. Products without an assigned Opalinx 1.0 output profile are listed separat
 ## Unsupported Interfaces and Formats
 
 Opalinx 1.0 does not support data-and-clock interfaces such as APA102, APA102C, DotStar, APA107,
+[HD108](https://www.rose-lighting.com/wp-content/uploads/sites/53/2019/09/HD108-LED-Specificaion-V1-Rose-Lighting-4.pdf),
 HD107S, LPD6803, LPD8806, P9813, SK9822, SK9826, WS2801, or WS2803.
 
-It also does not support 12-bit or 16-bit formats such as HD108, SJ1221, SPXL-16bit, TLC5973,
-UCS7604, UCS8903, UCS8904, 9PDOT, LD1510, or other products requiring component depths or framing
-outside RGB8, RGBW8, and RGBCCT8. Other specialized formats, including FW1906, are likewise not
-supported.
+It also does not support 12-bit or 16-bit formats such as SJ1221, SPXL-16bit, TLC5973, UCS7604,
+UCS8903, UCS8904, 9PDOT, LD1510, or other products requiring component depths or framing outside
+RGB8, RGBW8, and RGBCCT8. Other specialized formats, including FW1906, are likewise not supported.
 
 Additional output profiles for data-only 8-bit products may be added when suitable timing evidence
 is available. Users may suggest profiles for consideration.
