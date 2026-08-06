@@ -35,9 +35,9 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 | [WS2815](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2815-datasheet.pdf) / WS2818 | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Backup-data topology is outside Opalinx; connect the first backup-data input according to the exact strip or module documentation. |
 | SK6812 RGB | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B. |
 | SK6812 RGBW | Data only | RGBW8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B W. |
-| [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | 1.25 µs nominal cell, 0.30 µs `T0H`, 0.60 µs `T1H`, and ≥80 µs reset. Other SK6805 packages/revisions need separate checks. |
-| [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
-| [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |
+| [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Applies only to this package and revision. |
+| [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Backup-data topology is outside Opalinx. |
+| [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Backup-data topology is outside Opalinx. |
 
 ## Future profiles, formats, or mappings
 
