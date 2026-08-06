@@ -7,13 +7,13 @@
 
 ## Profile Selection
 
-Match three independent properties:
+To select a suitable profile, you must match three independent properties:
 
-1. **Pixel format** — `RGB8` (R G B), `RGBW8` (R G B W), or `RGBCCT8` (R G B cW wW; also marketed
-   as RGBWW or RGB+CCT). The `8` suffix
-   means that each component has an unsigned 8-bit intensity.
-2. **Component order** — the actual wire order, such as G R B, G R B W, or G R B cW wW.
-3. **Output profile** — the data waveform and reset timing.
+1. **Pixel format**: `RGB8` (R G B), `RGBW8` (R G B W), or `RGBCCT8`, also marketed as RGBWW or
+   RGB+CCT (R G B cW wW). The `8` suffix means that each component has an unsigned 8-bit intensity
+   (0-255).
+3. **Component order**: the actual wire order, such as G R B, G R B W, or G R B cW wW.
+4. **Output profile**: the data waveform and reset timing.
 
 Opalinx 1.0 profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
 make it clocked. Connect the first backup-data input according to the exact strip or module
