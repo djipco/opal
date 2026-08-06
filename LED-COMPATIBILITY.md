@@ -7,10 +7,10 @@
 
 Match three independent properties:
 
-1. **Pixel format** — `RGB8` (red, green, blue), `RGBW8` (red, green, blue, white), or `RGBCCT8`
-   (red, green, blue, cool white, warm white; also marketed as RGBWW or RGB+CCT). The `8` suffix
+1. **Pixel format** — `RGB8` (R G B), `RGBW8` (R G B W), or `RGBCCT8` (R G B cW wW; also marketed
+   as RGBWW or RGB+CCT). The `8` suffix
    means that each component has an unsigned 8-bit intensity.
-2. **Component order** — the actual wire order, such as GRB, GRBW, or GRB-cW-wW.
+2. **Component order** — the actual wire order, such as G R B, G R B W, or G R B cW wW.
 3. **Output profile** — the data waveform and reset timing.
 
 Opalinx 1.0 profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
@@ -28,12 +28,12 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 |---|---|---|---|---|
 | WS2811, 800 kbit/s | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Order varies by assembly. |
 | WS2811, 400 kbit/s | Data only | RGB8 | `0x01` `SINGLE_WIRE_PULSE_400K_T1` | Select only for parts supporting the slower mode. |
-| WS2812 / WS2812B | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly GRB; verify revision. |
+| WS2812 / WS2812B | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B; verify revision. |
 | WS2813 / WS2813B | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Backup-data topology is outside the profile. |
 | WS2814 | Data + backup | RGBW8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Verify format, order, and exact revision. |
 | WS2815 / WS2818 | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Controller must provide suitable backup wiring if used. |
-| SK6812 RGB | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly GRB. |
-| SK6812 RGBW | Data only | RGBW8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly GRBW. |
+| SK6812 RGB | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B. |
+| SK6812 RGBW | Data only | RGBW8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B W. |
 | [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | 1.25 µs nominal cell, 0.30 µs `T0H`, 0.60 µs `T1H`, and ≥80 µs reset. Other SK6805 packages/revisions need separate checks. |
 | [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | ≥1.20 µs cell, 0.20–0.40 µs `T0H`, 0.62–1.00 µs `T1H`, and >80 µs reset. |
 | [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | The sheet defines a 1.25 µs nominal cell, 1:3/3:1 duty encoding, and >300 µs reset. Backup-data topology is outside Opalinx 1.0. |

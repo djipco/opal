@@ -45,15 +45,15 @@ Opalinx 1.0 does not define:
 
 ## 2. Scope
 
-**Opalinx** 1.0 controls devices that expose one or more `DATA_ONLY` outputs for clockless,
-single-data-wire addressable LEDs using the `RGB8`, `RGBW8`, or `RGBCCT8` pixel format. The protocol
-carries pixel values and selects a registered **output profile**; each device reports the pixel
-formats and profiles it implements.
+**Opalinx** 1.0 controls devices with one or more `DATA_ONLY` outputs for clockless,
+single-data-wire addressable LEDs. Each output uses the `RGB8`, `RGBW8`, or `RGBCCT8` pixel format.
+The protocol carries pixel values and selects a registered **output profile**; each device reports
+the pixel formats and output profiles it supports.
 
-These names identify independently controlled color components, with `8` meaning an unsigned 8-bit
-intensity per component: `RGB8` provides red, green, and blue; `RGBW8` adds one white component; and
-`RGBCCT8` adds cool-white and warm-white components for correlated color temperature (CCT) control.
-Products may market the last format as RGBWW or RGB+CCT.
+These identifiers describe independently controlled 8-bit components. `RGB8` provides red, green,
+and blue; `RGBW8` adds one white component; and `RGBCCT8` adds independently controlled cool-white
+(`cW`) and warm-white (`wW`) components, enabling correlated-color-temperature adjustment. Products
+using the last format are often marketed as RGBWW or RGB+CCT.
 
 An output profile defines observable signaling behavior such as pulse encoding, nominal bit rate,
 symbol timing, and reset or latch timing. It does not identify one LED product. Product-family names
@@ -555,11 +555,11 @@ Each registry has one normative definition:
 
 | Value | Name | Components | Bytes per pixel |
 |-------|------|------------|-----------------|
-| `0x00` | `RGB8` | R, G, B | 3 |
-| `0x01` | `RGBW8` | R, G, B, W | 4 |
-| `0x02` | `RGBCCT8` | R, G, B, CW, WW | 5 |
+| `0x00` | `RGB8` | R G B | 3 |
+| `0x01` | `RGBW8` | R G B W | 4 |
+| `0x02` | `RGBCCT8` | R G B cW wW | 5 |
 
-Every component is an unsigned 8-bit intensity. `CW` and `WW` identify the cool-white and
+Every component is an unsigned 8-bit intensity. `cW` and `wW` identify the cool-white and
 warm-white components; products marketed as RGBWW or RGB+CCT use `RGBCCT8` when their five
 independently addressable components have these semantics. A device MUST support `RGB8`; support
 for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
@@ -574,16 +574,16 @@ and names the last. Bit 15 is reserved and MUST be zero.
 | Code | Component | Code | Component |
 |------|-----------|------|-----------|
 | `0` | R | `3` | W |
-| `1` | G | `4` | CW |
-| `2` | B | `5` | WW |
+| `1` | G | `4` | cW |
+| `2` | B | `5` | wW |
 | `6` | Reserved | `7` | UNUSED |
 
-For `RGB8`, slots 0–2 MUST contain R, G, and B exactly once and slots 3–4 MUST be UNUSED. For
-`RGBW8`, slots 0–3 MUST contain R, G, B, and W exactly once and slot 4 MUST be UNUSED. For
-`RGBCCT8`, all five slots MUST contain R, G, B, CW, and WW exactly once. Any other encoding is
-rejected with `ERR_INVALID_PARAMETER`. For example, GRB is `0x7E81`, GRBW is `0x7681`, and
-RGB-CW-WW is `0x5888`. This representation supports every meaningful permutation without assigning
-a separate protocol value to each one.
+For `RGB8`, slots 0–2 MUST contain R G B exactly once and slots 3–4 MUST be UNUSED. For `RGBW8`,
+slots 0–3 MUST contain R G B W exactly once and slot 4 MUST be UNUSED. For `RGBCCT8`, all five slots
+MUST contain R G B cW wW exactly once. Any other encoding is rejected with
+`ERR_INVALID_PARAMETER`. For example, G R B is `0x7E81`, G R B W is `0x7681`, and R G B cW wW is
+`0x5888`. This representation supports every meaningful permutation without assigning a separate
+protocol value to each one.
 
 ### 9.4. Output profiles
 
@@ -820,7 +820,7 @@ buffered; a [`Show`](#108-show-0x50) message is required to commit.
 The color is supplied in the channel's configured wire order — exactly as for
 [`Set Pixels`](#106-set-pixels-0x40) — and the resulting output applies those component values to every
 LED. A host using a different logical color layout converts it before forming the request. For
-example, on a `GRB` channel the three bytes represent G, R, B in that order.
+example, on a G R B channel the three bytes represent G R B in that order.
 
 **Payload length**: The structurally permitted lengths are `4`, `5`, and `6`; any other length produces
 `ERR_INVALID_PAYLOAD_LENGTH`. After resolving the target channel configuration, the length MUST be
@@ -1310,7 +1310,7 @@ A typical client session driving 300 RGB LEDs per channel on an 8-channel device
 2. Client sends `Request Device Information` (`0x01`) with a nonzero transaction ID and waits for
    the corresponding `INFO` (`0x81`).
 3. Client sends `Configure Device` (`0x20`) with a new nonzero transaction ID, channel `255`,
-   `RGB8`, GRB component order (`0x7E81`), output profile `0x00`
+   `RGB8`, G R B component order (`0x7E81`), output profile `0x00`
    (`SINGLE_WIRE_PULSE_800K_T1`), and 300 LEDs per channel. It waits for the corresponding `CONFIG`
    (`0xA0`).
 4. Client sends `Set Pixels` (`0x40`) with transaction ID zero for channel 0 and 900 bytes
