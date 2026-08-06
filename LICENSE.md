@@ -22,41 +22,50 @@ noncommercial purposes. The licensor also permits you, solely for those purposes
 an independent implementation of the Opalinx protocol without modifying or incorporating the
 Materials.
 
-The licensor also grants, solely for those purposes, a licence under any patent claims the licensor
-can license that are necessarily infringed by using the Materials.
+The licensor also grants, solely for noncommercial purposes, a licence under any patent claims the
+licensor can license that are necessarily infringed by implementing or using the Opalinx protocol or
+exercising the permissions granted by this licence.
 
 Noncommercial purposes include personal projects, education, academic or public-interest research,
 evaluation, and testing without an intended commercial application. A business may evaluate and test
 Opalinx internally, but production use supporting commercial activity is not noncommercial use.
 
-Creating or publishing reviews, tutorials, commentary, news, or other editorial content about
-Opalinx is permitted even when that content is monetized. This permission does not allow distribution
-of the Materials beyond what this licence otherwise permits or imply certification or endorsement.
+You may publish reviews, tutorials, commentary, news, and other editorial content about Opalinx,
+including monetized editorial content, and may reproduce reasonable excerpts of the Materials for
+that purpose. The excerpts must not substitute for the Materials or imply certification,
+endorsement, or official status.
 
 ## 3. Commercial use
 
-Commercial use requires a separate written commercial licence. Commercial use includes using the
-Materials or an Opalinx implementation to develop, manufacture, market, provide, or support any
-product or service that is sold, licensed, rented, subscription-funded, advertising-funded, or
-otherwise intended for commercial advantage or monetary compensation. This includes hardware,
-firmware, software, plugins, integrations, and hosted services.
+This licence grants no permission to use the Materials, or any patent claims licensed under this
+licence, for commercial purposes. Commercial use includes using the Materials or an Opalinx
+implementation to develop, manufacture, market, provide, or support any product or service that is
+sold, licensed, rented, subscription-funded, advertising-funded, or otherwise intended for
+commercial advantage or monetary compensation. This includes hardware, firmware, software, plugins,
+integrations, and hosted services.
 
 An end user does not need a separate licence merely to use a product or service supplied by the
 licensor or under a valid commercial licence, including in the end user's commercial activities.
 This exception does not permit developing, manufacturing, distributing, or supplying a separate
 Opalinx implementation.
 
-This licence grants no permission for commercial use. To obtain a commercial licence, send a
-message to <licence@djip.co>.
+To the extent a commercial implementation requires permission under rights controlled by the
+licensor, it requires a separate written commercial licence. To obtain one, send a message to
+<licence@djip.co>.
 
 This licence governs only rights the licensor can grant. It does not restrict conduct for which
 applicable law requires no permission from the licensor.
 
 ## 4. Distribution and contributions
 
-Every copy of the Materials that you distribute must be unmodified and must include the Licence Text
-and the copyright notice above. This licence grants no permission to distribute modified versions of
-the Materials.
+Every complete or substantial copy of the Materials that you distribute must preserve their
+substantive content and include the Licence Text and the copyright notice above. This licence grants
+no permission to distribute versions of the Materials with altered substantive content.
+
+Technical changes necessary to store, transmit, package, build, or display the Materials are
+permitted if they do not alter their substantive content. Such changes do not create modified
+Materials for purposes of this licence. Compiling unmodified source code does not by itself create
+modified Materials.
 
 You may reproduce and distribute the Licence Text only verbatim and only with Materials to which the
 licensor has applied it. This licence grants no permission to modify the Licence Text or distribute a
@@ -65,10 +74,9 @@ modified version of it.
 Recipients receive permissions directly from the licensor under this licence. You may not impose
 terms that purport to replace or restrict those permissions for the Materials themselves.
 
-You may prepare a modification of the Materials solely to submit it as a proposed contribution
-through a contribution process designated by the licensor, such as a pull request. You may transmit
-and make technically necessary copies of that modification only as part of that process. This limited
-permission does not authorize any other distribution of modified Materials.
+You may create and publish a fork, branch, patch, or pull request containing proposed modifications
+solely for submission to and review by the licensor through a contribution process designated by the
+licensor. You may not distribute the modified Materials for any other purpose.
 
 By intentionally submitting such a contribution, you grant the licensor a perpetual, worldwide,
 irrevocable, royalty-free licence, with the right to sublicense and relicense, to use, reproduce,
@@ -93,8 +101,8 @@ Your rights under this licence terminate automatically if you violate its terms.
 first violation and you fully correct it within 30 days after receiving written notice, your rights
 are reinstated retroactively. Otherwise, reinstatement requires written permission from the licensor.
 
-Sections that by their nature should survive termination, including the commercial-use restriction,
-trademark restrictions, warranty disclaimer, and limitation of liability, continue to apply.
+Termination does not affect accrued claims. The provisions concerning contributions, marks,
+disclaimers, limitations of liability, and general interpretation survive termination.
 
 ## 7. No warranty; limitation of liability
 
