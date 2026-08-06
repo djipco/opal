@@ -1,4 +1,4 @@
-# Opalinx wire conformance corpus
+# Opalinx Wire Conformance Corpus
 
 The [`vectors.json`](vectors.json) file is the canonical, machine-readable set of Opalinx 1.x wire
 examples. Implementations consume this file in their automated tests; examples
@@ -44,7 +44,7 @@ implementation. CI consumers should pin an exact `opalinx-spec` commit.
 
 The [`schema.json`](schema.json) file defines the corpus format. It uses JSON Schema draft 2020-12.
 
-## Certification badges
+## Certification Badges
 
 Official badges distinguish device conformance from host conformance and identify the applicable
 protocol version. Passing the public conformance corpus does not by itself grant certification or

@@ -20,7 +20,7 @@ The connection is typically serial over USB, but the core protocol is transport-
 also operate over a reliable, ordered IP byte stream such as TCP. It is suitable when the host owns
 rendering and pacing while the controller owns validation, buffering, and physical LED signaling.
 
-### 1.3. Protocol overview
+### 1.3. Protocol Overview
 
 The host initiates every operation. Requests and responses share one framed binary representation.
 Every request carries a 16-bit transaction identifier: a nonzero value requests a correlated result,
@@ -32,7 +32,7 @@ returns either the operation's defined success response or a typed error.
 Opalinx separates pixel preparation from display. This permits several channel buffers to be updated
 before one coordinated Show operation and gives the host an explicit completion point for pacing.
 
-### 1.4. Non-goals
+### 1.4. Non-Goals
 
 Opalinx 1.0 does not define:
 
@@ -70,7 +70,7 @@ without making them part of the normative protocol specification.
 
 ## 3. Protocol Model
 
-### 3.1. Endpoint roles
+### 3.1. Endpoint Roles
 
 An Opalinx session connects exactly one **host** to exactly one **device**. The host initiates every
 protocol operation by sending a request. The device validates and executes requests and sends the
@@ -81,7 +81,7 @@ to update or display them, correlating responses, and pacing traffic within the 
 the device. The device is responsible for protocol validation, configuration and pixel state,
 request execution, physical LED signaling, and reporting observable results.
 
-### 3.2. Channels and addressing
+### 3.2. Channels and Addressing
 
 A device exposes one or more numbered LED **channels**. Each channel represents one independently
 configurable physical LED output with its own configuration and pixel staging buffer. Requests can
@@ -92,7 +92,7 @@ Channel count and device capabilities are discovered through **INFO**. Current c
 is discovered through **CONFIG**. A newly connected host therefore does not need prior knowledge of
 the controller's topology or configuration.
 
-### 3.3. Configuration, staging, and displayed output
+### 3.3. Configuration, Staging, and Displayed Output
 
 Opalinx distinguishes three kinds of LED-control state:
 
@@ -107,7 +107,7 @@ Pixel-data requests modify staging state but do not themselves update the physic
 Staging state remains available after Show, allowing the same values to be displayed again or
 partially overwritten before a later Show.
 
-### 3.4. Transactions and results
+### 3.4. Transactions and Results
 
 Every request carries a 16-bit transaction identifier. A nonzero identifier establishes a
 transaction whose result is reported in a correlated success or **ERROR** response. Identifier zero
@@ -141,7 +141,7 @@ Reset with a new identifier and wait for `RESET_ACK`, or end the session. Ending
 its identifiers but does not reset persistent device or LED-control state, so a host reconnecting in
 a new session MUST rediscover device information and configuration.
 
-### 3.5. Output pipeline and barriers
+### 3.5. Output Pipeline and Barriers
 
 Physical LED transmission can take substantially longer than parsing a request. A device may have
 one Show actively transmitting and one later Show pending. The active operation protects the pixel
@@ -188,7 +188,7 @@ the reset/latch interval required by its selected output profile. When it comple
 Only after that transition does the device emit `SHOW_ACK` for the completed Show, if its transaction
 ID is nonzero. Show acknowledgements are emitted in accepted order.
 
-### 3.6. State lifetime
+### 3.6. State Lifetime
 
 Protocol state does not all share the same lifetime:
 
@@ -206,7 +206,7 @@ A transport session ending does not imply a device reset. A new host must discov
 information and current configuration and must not assume that staging buffers or displayed output
 contain startup values.
 
-### 3.7. Flow control and resource limits
+### 3.7. Flow Control and Resource Limits
 
 Opalinx 1.0 does not advertise a generic request-rate or outstanding-transaction limit. Hosts MAY
 pipeline requests, but MUST treat response completion and `ERR_BUSY` as the available flow-control
@@ -243,7 +243,7 @@ a device fault.
 
 - **Strings**: UTF-8 encoded with a length prefix, not null-terminated.
 
-### 4.2. Normative references
+### 4.2. Normative References
 
 The following documents are required to interpret or implement normative parts of this
 specification:
@@ -254,7 +254,7 @@ specification:
 - [RFC 2131 — Dynamic Host Configuration Protocol](https://www.rfc-editor.org/rfc/rfc2131)
 - [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
 
-## 5. Versioning and wire compatibility
+## 5. Versioning and Wire Compatibility
 
 Specification releases follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html). The
 three protocol-version bytes at the start of `INFO` carry only the SemVer core `major.minor.patch`;
@@ -405,7 +405,7 @@ by those messages.
 
 ## 7. Transport and Sessions
 
-### 7.1. Core transport contract
+### 7.1. Core Transport Contract
 
 **Opalinx** 1.0 is defined over a reliable, ordered, bidirectional byte transport connecting one host
 to one device. Discovery, connection establishment, and transport-specific configuration are outside
@@ -422,7 +422,7 @@ CRC and delimiter recovery detect corruption and restore framing after a fault; 
 unreliable transport reliable. Loss of a valid fire-and-forget request cannot be recovered by the
 core protocol, and transaction IDs provide correlation rather than retransmission or deduplication.
 
-### 7.2. Connection and session boundaries
+### 7.2. Connection and Session Boundaries
 
 One established transport connection is one Opalinx session. Transaction IDs and responses are
 scoped to that session and have no meaning after its connection ends. An incomplete frame at a
@@ -458,7 +458,7 @@ The standard transport identifiers define observable session boundaries as follo
   signal. Merely reopening a host serial handle does not create a device-observable new session. A
   UART overrun is a transport failure even if frame parsing later resynchronizes.
 
-### 7.3. Transport binding requirements
+### 7.3. Transport Binding Requirements
 
 The core protocol defines a byte stream and session semantics, but not the connection parameters
 needed to make every carrier interoperable. A **transport binding** is a separate standard or vendor
@@ -538,7 +538,7 @@ originating request.
 This section defines the shared values used by configuration, capability reporting, and pixel-data
 operations. Message definitions reference these registries rather than redefining their values.
 
-### 9.1. Registry index
+### 9.1. Registry Index
 
 Each registry has one normative definition:
 
@@ -554,7 +554,7 @@ Each registry has one normative definition:
 | Output profiles | [Output profiles](#94-output-profiles) |
 | Channel identifiers | [Channel addressing](#95-channel-addressing) |
 
-### 9.2. Pixel formats
+### 9.2. Pixel Formats
 
 | Value | Name | Components | Bytes per pixel |
 |-------|------|------------|-----------------|
@@ -568,7 +568,7 @@ independently addressable components have these semantics. A device MUST support
 for the other formats is advertised by INFO record `0x07`. An unassigned format is rejected with
 `ERR_INVALID_PARAMETER`; an assigned but unadvertised format is rejected with `ERR_UNSUPPORTED`.
 
-### 9.3. Component order
+### 9.3. Component Order
 
 Component order is an unsigned 16-bit little-endian value containing five 3-bit slots. Slot 0
 occupies bits 0–2 and names the first component transmitted to each LED; slot 4 occupies bits 12–14
@@ -588,7 +588,7 @@ MUST contain R G B cW wW exactly once. Any other encoding is rejected with
 `0x5888`. This representation supports every meaningful permutation without assigning a separate
 protocol value to each one.
 
-### 9.4. Output profiles
+### 9.4. Output Profiles
 
 Output profiles select the waveform generated between the controller and its LEDs.
 
@@ -617,7 +617,7 @@ CONFIG readers MUST preserve and expose unknown numeric output-profile values ra
 the response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
 unsupported value with `ERR_UNSUPPORTED`.
 
-### 9.5. Channel addressing
+### 9.5. Channel Addressing
 
 Messages that operate on a single LED channel use a one-byte channel identifier with the following
 convention:
@@ -979,7 +979,7 @@ set, `max_payload_length` MUST be at least 74 bytes so every valid Configure Net
 accepted. A host MUST reject an INFO response when `max_payload_length` is less than 10, or less
 than 74 while `CAP_NETWORK_CONFIG` is set.
 
-#### 11.1.1. INFO extensions
+#### 11.1.1. INFO Extensions
 
 Immediately after the 7-byte fixed prefix, the remainder of the INFO payload contains
 type-length-value (TLV) information records. The complete INFO payload, including the fixed prefix,
@@ -1347,7 +1347,7 @@ protection. An attacker with the ability to modify frames in transit can recompu
 over altered data. **Opalinx** offers no mechanism to detect or prevent deliberate tampering.
 
 
-## Specification authority
+## Specification Authority
 
 The author and maintainer of this repository is the sole authority for the Opalinx specification and
 its registries. Prerelease assignments may change before `1.0.0`. From `1.0.0` onward, an assigned or

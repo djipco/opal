@@ -5,7 +5,7 @@
 > revisions, clones, assembled strips, voltage levels, backup-data wiring, and firmware can differ.
 > Perform your own tests.
 
-## LED configuration selection
+## LED Configuration Selection
 
 An **LED configuration** combines three independent properties:
 
@@ -26,7 +26,7 @@ Mappings rely on the cited datasheets and apply to the identified product or rev
 be generalized to undocumented revisions, clones, or assembled products sold under the same family
 name. Products without an assigned Opalinx 1.0 output profile are listed separately in the future table.
 
-## Opalinx 1.0 mappings
+## Opalinx 1.0 Mappings
 
 | LED product or family | Interface | Pixel format | Output profile | Notes |
 |---|---|---|---|---|
@@ -42,7 +42,7 @@ name. Products without an assigned Opalinx 1.0 output profile are listed separat
 | [SK6813-05-EC20 Rev. 05](https://www.normandled.com/upload/202004/SK6813-05-EC20%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | |
 | [GS8208 V0.1](https://www.normandled.com/upload/201805/GS8208%20LED%20Datasheet.pdf) | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
 
-## Future output profiles, formats, or mappings
+## Future Output Profiles, Formats, or Mappings
 
 | Product or family | What is needed |
 |---|---|
@@ -61,7 +61,7 @@ name. Products without an assigned Opalinx 1.0 output profile are listed separat
 | LD1510 12-bit and other 12-bit products | A future component-depth format is required. |
 | [FW1906](https://deskontroller.com/support/pixel-protocols/) and products with extra function/control components | FW1906 uses a 48-bit, six-byte `R2 G2 B2 R1 G1 B1` IC frame for products described as having five active RGB+CCT or RGBWW channels. Those frame semantics do not map directly to RGB8, RGBW8, or RGBCCT8. |
 
-## Opalinx 1.0 output profiles
+## Opalinx 1.0 Output Profiles
 
 | ID | Symbolic name | Interface | Bit cell | `T0H` | `T1H` | Reset low |
 |---|---|---|---|---|---|---|
