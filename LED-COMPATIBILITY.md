@@ -18,7 +18,7 @@ Opalinx 1.0 output profiles use the `DATA_ONLY` interface. A second backup-data 
 make it clocked. Connect the first backup-data input according to the exact strip or module
 documentation.
 
-> [!IMPORTANT]
+> [!NOTE]
 > LEDs requiring both data and clock are not supported. Likewise, 12-bit or 16-bit components and special 
 > framing are not representable by the three current 8-bit formats.
 
