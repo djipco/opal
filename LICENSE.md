@@ -10,12 +10,18 @@ This licence applies to the Opalinx materials distributed with it, including spe
 documentation, conformance data, software, and artwork (the **Materials**). It does not apply to
 third-party material identified as being under separate terms.
 
+The text of this licence is the **Licence Text** and is not part of the Materials.
+
 The **Opalinx Marks** are the Opalinx name, logo, certification marks, badges, and related branding.
 
 ## 2. Free noncommercial use
 
 Subject to this licence, the licensor grants you a worldwide, non-exclusive, royalty-free copyright
-licence to use, reproduce, modify, and distribute the Materials solely for noncommercial purposes.
+licence to use, reproduce, and distribute unmodified copies of the Materials solely for
+noncommercial purposes. The licensor also permits you, solely for those purposes, to create and use
+an independent implementation of the Opalinx protocol without modifying or incorporating the
+Materials.
+
 The licensor also grants, solely for those purposes, a licence under any patent claims the licensor
 can license that are necessarily infringed by using the Materials.
 
@@ -46,20 +52,29 @@ message to <licence@djip.co>.
 This licence governs only rights the licensor can grant. It does not restrict conduct for which
 applicable law requires no permission from the licensor.
 
-## 4. Distribution and modifications
+## 4. Distribution and contributions
 
-Every copy or substantial portion of the Materials that you distribute must include this licence and
-the copyright notice above. Modified Materials must be clearly identified as modified and must not be
-presented as the authoritative Opalinx specification or as an official Opalinx release.
+Every copy of the Materials that you distribute must be unmodified and must include the Licence Text
+and the copyright notice above. This licence grants no permission to distribute modified versions of
+the Materials.
+
+You may reproduce and distribute the Licence Text only verbatim and only with Materials to which the
+licensor has applied it. This licence grants no permission to modify the Licence Text or distribute a
+modified version of it.
 
 Recipients receive permissions directly from the licensor under this licence. You may not impose
 terms that purport to replace or restrict those permissions for the Materials themselves.
 
-By intentionally submitting a contribution to a repository or project published by the licensor,
-you grant the licensor a perpetual, worldwide, irrevocable, royalty-free licence, with the right to
-sublicense and relicense, to use, reproduce, modify, distribute, and license that contribution under
-any terms. You represent that you have the authority to grant these rights and, to the extent
-permitted by law, waive and agree not to assert moral rights in the contribution.
+You may prepare a modification of the Materials solely to submit it as a proposed contribution
+through a contribution process designated by the licensor, such as a pull request. You may transmit
+and make technically necessary copies of that modification only as part of that process. This limited
+permission does not authorize any other distribution of modified Materials.
+
+By intentionally submitting such a contribution, you grant the licensor a perpetual, worldwide,
+irrevocable, royalty-free licence, with the right to sublicense and relicense, to use, reproduce,
+modify, distribute, and license that contribution under any terms. You represent that you have the
+authority to grant these rights and, to the extent permitted by law, waive and agree not to assert
+moral rights in the contribution.
 
 ## 5. Name, logo, and certification
 

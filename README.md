@@ -1367,7 +1367,7 @@ Feedback and questions are welcome. Please use
 [GitHub Discussions](https://github.com/djipco/opalinx-spec/discussions) to debate ideas, proposed
 changes, clarifications, and extensions before submitting pull requests against the specification
 text. Intentional submissions are subject to the contribution terms in
-[section 4 of the licence](LICENSE.md#4-distribution-and-modifications).
+[section 4 of the licence](LICENSE.md#4-distribution-and-contributions).
 
 
 ## Author
