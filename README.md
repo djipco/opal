@@ -597,8 +597,11 @@ Output profiles select the waveform generated between the controller and its LED
 | `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 550–850 ns | 80 µs |
 | `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | `DATA_ONLY` | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | 80 µs |
 | `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 700–900 ns | 300 µs |
+| `0x03` | `SINGLE_WIRE_PULSE_500K_T1` | `DATA_ONLY` | 2.00–2.08 µs | 600–750 ns | 1.28–1.43 µs | 80 µs |
+| `0x04` | `SINGLE_WIRE_PULSE_1M_T1` | `DATA_ONLY` | 1.00–1.04 µs | 300–390 ns | 640–730 ns | 80 µs |
+| `0x05` | `SINGLE_WIRE_PULSE_800K_T3` | `DATA_ONLY` | 1.20–1.25 µs | 250–350 ns | 850–950 ns | 300 µs |
 
-All three output profiles use one non-inverted data signal without a separate clock. Each bit begins high,
+All output profiles use one non-inverted data signal without a separate clock. Each bit begins high,
 returns low within its bit cell, and is distinguished by its high-pulse duration. Pixel bytes are
 transmitted most-significant bit first. `T0H` is the high duration for a zero bit and `T1H` is the
 high duration for a one bit; the low duration is the remainder of the bit cell. The signal MUST
