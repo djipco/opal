@@ -62,13 +62,13 @@ is available. Users may suggest profiles for consideration.
 
 ## Opalinx 1.0 Output Profiles
 
-| ID | Symbolic name | Interface | Bit cell | `T0H` | `T1H` | Reset low |
-|---|---|---|---|---|---|---|
-| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | DATA_ONLY | 1.10–1.40 µs | 250–450 ns | 550–850 ns | ≥80 µs |
-| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | DATA_ONLY | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | ≥80 µs |
-| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | DATA_ONLY | 1.10–1.40 µs | 250–450 ns | 700–900 ns | ≥300 µs |
-| `0x03` | `SINGLE_WIRE_PULSE_500K_T1` | DATA_ONLY | 2.00–2.08 µs | 600–750 ns | 1.28–1.43 µs | ≥80 µs |
-| `0x04` | `SINGLE_WIRE_PULSE_1M_T1` | DATA_ONLY | 1.00–1.04 µs | 300–390 ns | 640–730 ns | ≥80 µs |
-| `0x05` | `SINGLE_WIRE_PULSE_800K_T3` | DATA_ONLY | 1.20–1.25 µs | 250–350 ns | 850–950 ns | ≥300 µs |
+| ID | Symbolic name | Bit cell | `T0H` | `T1H` | Reset low |
+|---|---|---|---|---|---|
+| `0x00` | `SINGLE_WIRE_PULSE_800K_T1` | 1.10–1.40 µs | 250–450 ns | 550–850 ns | ≥80 µs |
+| `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | ≥80 µs |
+| `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | 1.10–1.40 µs | 250–450 ns | 700–900 ns | ≥300 µs |
+| `0x03` | `SINGLE_WIRE_PULSE_500K_T1` | 2.00–2.08 µs | 600–750 ns | 1.28–1.43 µs | ≥80 µs |
+| `0x04` | `SINGLE_WIRE_PULSE_1M_T1` | 1.00–1.04 µs | 300–390 ns | 640–730 ns | ≥80 µs |
+| `0x05` | `SINGLE_WIRE_PULSE_800K_T3` | 1.20–1.25 µs | 250–350 ns | 850–950 ns | ≥300 µs |
 
 Normative definitions are in the [Opalinx protocol specification](README.md).
