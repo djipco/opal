@@ -15,9 +15,9 @@ Match three independent properties:
 3. **Output profile** — the data waveform and reset timing.
 
 Opalinx 1.0 profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
-make it clocked and may still be usable according to the controller's wiring. LEDs requiring both
-data and clock need a future clocked profile. Likewise, 12-bit or 16-bit components and special
-framing are not representable by the three current 8-bit formats.
+make it clocked. Connect the first backup-data input according to the exact strip or module
+documentation. LEDs requiring both data and clock need a future clocked profile. Likewise, 12-bit
+or 16-bit components and special framing are not representable by the three current 8-bit formats.
 
 Mappings rely on the cited datasheets and apply to the identified product or revision; they must not
 be generalized to undocumented revisions, clones, or assembled products sold under the same family
@@ -32,7 +32,7 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 | WS2812 / WS2812B | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B; verify revision. |
 | WS2813 / WS2813B | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
 | WS2814 | Data + backup | RGBW8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
-| [WS2815](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2815-datasheet.pdf) / WS2818 | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | Backup-data topology is outside Opalinx; connect the first backup-data input according to the exact strip or module documentation. |
+| [WS2815](https://www.ledyilighting.com/wp-content/uploads/2025/02/WS2815-datasheet.pdf) / WS2818 | Data + backup | RGB8 | `0x02` `SINGLE_WIRE_PULSE_800K_T2` | |
 | SK6812 RGB | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B. |
 | SK6812 RGBW | Data only | RGBW8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | Commonly G R B W. |
 | [SK6805-2427 Rev. 01](https://www.digikey.com/en/htmldatasheets/production/2352811/0/0/1/sk6805-2427) | Data only | RGB8 | `0x00` `SINGLE_WIRE_PULSE_800K_T1` | |
