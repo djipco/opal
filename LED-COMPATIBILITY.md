@@ -5,9 +5,9 @@
 > revisions, clones, assembled strips, voltage levels, backup-data wiring, and firmware can differ.
 > Perform your own tests.
 
-## LED profile selection
+## LED configuration selection
 
-An **LED profile** combines three independent properties:
+An **LED configuration** combines three independent properties:
 
 1. **Pixel format**: `RGB8` (R G B), `RGBW8` (R G B W), or `RGBCCT8`, also marketed as RGBWW or
    RGB+CCT (R G B cW wW). The `8` suffix means that each component has an unsigned 8-bit intensity
@@ -15,7 +15,7 @@ An **LED profile** combines three independent properties:
 2. **Component order**: the actual wire order, such as G R B, G R B W, or G R B cW wW.
 3. **Output profile**: the data waveform and reset timing.
 
-Select the LED profile that matches all three properties of the product.
+Select the LED configuration that matches all three properties of the product.
 
 Opalinx 1.0 output profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
 make it clocked. Connect the first backup-data input according to the exact strip or module
