@@ -10,7 +10,7 @@ Match three independent properties:
 1. **Pixel format** — `RGB8` (red, green, blue), `RGBW8` (red, green, blue, white), or `RGBCCT8`
    (red, green, blue, cool white, warm white; also marketed as RGBWW or RGB+CCT). The `8` suffix
    means that each component has an unsigned 8-bit intensity.
-2. **Component order** — the actual wire order, such as GRB, GRBW, or GRB-CW-WW.
+2. **Component order** — the actual wire order, such as GRB, GRBW, or GRB-cW-wW.
 3. **Output profile** — the data waveform and reset timing.
 
 Opalinx 1.0 profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
