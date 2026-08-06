@@ -23,7 +23,7 @@ Mappings rely on the cited datasheets and apply to the identified product or rev
 be generalized to undocumented revisions, clones, or assembled products sold under the same family
 name. Products without an assigned Opalinx 1.0 profile are listed separately in the future table.
 
-## Current mappings
+## Opalinx 1.0 mappings
 
 | LED product or family | Interface | Pixel format | Profile | Notes |
 |---|---|---|---|---|
