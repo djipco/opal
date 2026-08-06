@@ -3,6 +3,7 @@
 > [!NOTE]
 > **Informative only.** This catalog is a selection aid, not a compatibility guarantee. Product
 > revisions, clones, assembled strips, voltage levels, backup-data wiring, and firmware can differ.
+> Perform your own tests.
 
 ## How to select a configuration
 
