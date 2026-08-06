@@ -595,20 +595,20 @@ Output profiles select the waveform generated between the controller and its LED
 | `0x01` | `SINGLE_WIRE_PULSE_400K_T1` | `DATA_ONLY` | 2.20–2.80 µs | 350–650 ns | 1.00–1.50 µs | 80 µs |
 | `0x02` | `SINGLE_WIRE_PULSE_800K_T2` | `DATA_ONLY` | 1.10–1.40 µs | 250–450 ns | 700–900 ns | 300 µs |
 
-All three profiles use one non-inverted data signal without a separate clock. Each bit begins high,
+All three output profiles use one non-inverted data signal without a separate clock. Each bit begins high,
 returns low within its bit cell, and is distinguished by its high-pulse duration. Pixel bytes are
 transmitted most-significant bit first. `T0H` is the high duration for a zero bit and `T1H` is the
 high duration for a one bit; the low duration is the remainder of the bit cell. The signal MUST
 remain low between frames and for at least the listed reset time after the final bit. Every measured
 bit cell, `T0H`, and `T1H` MUST fall within its inclusive range. The output interface is `DATA_ONLY`:
-the profile defines no clock or redundant-data conductor. Voltage levels, drive strength, connectors,
+the output profile defines no clock or redundant-data conductor. Voltage levels, drive strength, connectors,
 and any additional product-specific conductors remain outside Opalinx.
 
-Every conformant device MUST support profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`). Support for other assigned profiles is
-advertised by the `Supported output profiles` INFO record. In Opalinx 1.0, every advertised profile
-MUST be supported on every channel and for every advertised pixel format. A host MUST only request a
-profile value that it understands and that the device advertises. If the record is absent, the
-supported set is `{0x00}`.
+Every conformant device MUST support output profile `0x00` (`SINGLE_WIRE_PULSE_800K_T1`). Support
+for other assigned output profiles is advertised by the `Supported output profiles` INFO record. In
+Opalinx 1.0, every advertised output profile MUST be supported on every channel and for every
+advertised pixel format. A host MUST only request an output-profile value that it understands and
+that the device advertises. If the record is absent, the supported set is `{0x00}`.
 
 CONFIG readers MUST preserve and expose unknown numeric output-profile values rather than rejecting
 the response. A device rejects an unassigned value with `ERR_INVALID_PARAMETER` and an assigned but
@@ -1295,7 +1295,7 @@ baseline is:
 | Additional output profiles | Mandatory only for values advertised in INFO record `0x06` |
 
 An advertised output-profile value is a behavioral promise, not merely descriptive metadata. A
-device MUST support that profile for every otherwise-valid use.
+device MUST support that output profile for every otherwise-valid use.
 
 A host implementation is conformant when it satisfies every applicable host requirement in this
 specification, including the safe-acceptance requirements in
