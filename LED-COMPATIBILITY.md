@@ -46,15 +46,16 @@ name. Products without an assigned Opalinx 1.0 profile are listed separately in 
 | Product or family | What is needed |
 |---|---|
 | APA104 | Resolve materially conflicting published `T1H` and reset timings for an exact part and revision before assigning a profile. |
+| [CS8812](https://deskontroller.com/support/pixel-protocols/) | Obtain an exact RGB or RGBW product datasheet. Controller-level evidence describes WS281x-compatible timing, but does not define a revision-specific timing envelope or reset requirement. |
 | GS8206 / GS8208B and other GS8208 revisions | Obtain revision-specific framing, current-control, timing, and reset evidence; do not infer compatibility from GS8208 V0.1. |
 | [TM1803](https://www.bestlightingbuy.com/pdf/TM1803%20Datasheet.pdf) | Define a profile whose complete timing envelope covers one of the documented 400 kbit/s or half-period high-speed modes. |
 | TM1804 / TM1809 / TM1812 | Obtain revision-specific manufacturer timing tables; these products are not assumed interchangeable. |
-| TM1814 | Confirm its additional current or brightness behavior, framing, and intended default before defining a mapping. |
-| UCS1903 / UCS2903 / UCS2904 | Obtain revision-specific manufacturer timing tables; UCS1903 also needs separate treatment of its 400 and 800 kbit/s variants. |
+| [TM1814 / TM1829](https://deskontroller.com/support/pixel-protocols/) | Confirm each variant's RGB or RGBW mapping, additional current or brightness behavior, framing, timing, and intended default before defining a mapping. |
+| [UCS1903 / UCS1904 / UCS2903 / UCS2904](https://deskontroller.com/support/pixel-protocols/) | Obtain revision-specific manufacturer timing tables and RGB/RGBW mappings; UCS1903 also needs separate treatment of its 400 and 800 kbit/s variants. |
 | APA102 / APA102C / DotStar, APA107, HD107S, LPD6803/8806, P9813, SK9822/9826, WS2801/2803 | Data-and-clock interface. |
 | HD108, SJ1221 (16-bit), SPXL-16bit, TLC5973 (16-bit), UCS7604 (16-bit), UCS8903/8904 (16-bit), 9PDOT (16-bit) | Component depth or framing is not one of the current 8-bit formats. |
 | LD1510 12-bit and other 12-bit products | A future component-depth format is required. |
-| FW1906 and products with extra function/control components | Their frame semantics do not map directly to RGB8, RGBW8, or RGBCCT8. |
+| [FW1906](https://deskontroller.com/support/pixel-protocols/) and products with extra function/control components | FW1906 uses a 48-bit, six-byte `R2 G2 B2 R1 G1 B1` IC frame for products described as having five active RGB+CCT or RGBWW channels. Those frame semantics do not map directly to RGB8, RGBW8, or RGBCCT8. |
 
 ## Current profile summary
 
