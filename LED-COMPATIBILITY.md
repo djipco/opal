@@ -9,11 +9,10 @@
 
 An **LED configuration** combines three independent properties:
 
-1. **Pixel format**: `RGB8` (R G B), `RGBW8` (R G B W), or `RGBCCT8`, also marketed as RGBWW or
-   RGB+CCT (R G B cW wW). The `8` suffix means that each component has an unsigned 8-bit intensity
-   (0-255).
-2. **Component order**: the actual wire order, such as G R B, G R B W, or G R B cW wW.
-3. **Output profile**: the data waveform and reset timing.
+1. **Pixel format**: `RGB8`, `RGBW8`, or `RGBCCT8`, also marketed as RGBWW or RGB+CCT. The `8` suffix
+   means that each component has an unsigned 8-bit intensity (0-255).
+3. **Component order**: the actual wire order, such as G R B, G R B W, or G R B cW wW.
+4. **Output profile**: the data waveform and reset timing.
 
 Select the LED configuration that matches all three properties of the product.
 
