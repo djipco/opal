@@ -14,8 +14,6 @@ An **LED configuration** combines three independent properties:
 3. **Component order**: the actual wire order, such as G R B, G R B W, or G R B cW wW.
 4. **Output profile**: the data waveform and reset timing.
 
-Select the LED configuration that matches all three properties of the product.
-
 Opalinx 1.0 output profiles use the `DATA_ONLY` interface. A second backup-data input on an LED does not
 make it clocked. Connect the first backup-data input according to the exact strip or module
 documentation. LEDs requiring both data and clock need a future clocked output profile. Likewise, 12-bit
