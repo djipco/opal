@@ -1360,11 +1360,12 @@ use the namespaced envelopes and do not assign standard values.
 
 ## Licence
 
-The specification, conformance materials, software, and Opalinx marks are governed by the
-[Opalinx Noncommercial Licence 1.0](LICENSE.md). Noncommercial use is free. Commercial products and
-services using Opalinx require a separate written licence; contact Jean-Philippe Cô at <jp@djip.co>.
-The same document defines permitted factual references to Opalinx and reserves official branding and
-certification marks.
+The specification, conformance materials, and repository software are licensed under the
+[Apache License 2.0](LICENSE.md). Commercial use and implementation are permitted under that
+licence.
+
+Apache-2.0 does not grant trademark rights. The [Opalinx trademark and certification policy](TRADEMARKS.md)
+permits accurate factual compatibility references while reserving official branding and badges.
 
 
 ## Contributing
@@ -1372,8 +1373,8 @@ certification marks.
 Feedback and questions are welcome. Please use
 [GitHub Discussions](https://github.com/djipco/opalinx-spec/discussions) to debate ideas, proposed
 changes, clarifications, and extensions before submitting pull requests against the specification
-text. Intentional submissions are subject to the contribution terms in
-[section 4 of the licence](LICENSE.md#4-distribution-and-contributions).
+text. Unless explicitly stated otherwise, intentional submissions are licensed under Apache-2.0 as
+described in [section 5 of the licence](LICENSE.md).
 
 
 ## Author

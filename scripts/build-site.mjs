@@ -61,7 +61,7 @@ function layout({ title, description, body, prefix = '../', active, toc = '' }) 
     <aside class="page-aside"><strong>On this page</strong>${toc}</aside>
     <article class="prose">${body}</article>
   </main>
-  <footer class="site-footer"><p>Opalinx · Designed by Jean-Philippe Cô</p><p><a href="mailto:jp@djip.co">Commercial licensing</a></p></footer>
+  <footer class="site-footer"><p>Opalinx · Designed by Jean-Philippe Cô</p><p><a href="${prefix}license/">Apache-2.0</a> · <a href="${prefix}trademarks/">Trademark policy</a></p></footer>
 </body>
 </html>`;
 }
@@ -73,7 +73,8 @@ async function renderPage(source, destination, options) {
       .replaceAll('(conformance/README.md)', '(../conformance/)')
       .replaceAll('(LED-COMPATIBILITY.md)', '(../compatibility/)')
       .replaceAll('(bindings/USB-CDC.md)', '(../bindings/usb-cdc/)')
-      .replaceAll('(LICENSE.md', '(../license/');
+      .replaceAll('(LICENSE.md', '(../license/')
+      .replaceAll('(TRADEMARKS.md)', '(../trademarks/)');
   }
   if (source === 'bindings/USB-CDC.md') {
     markdown = markdown.replaceAll('(../README.md)', '(../../spec/)');
@@ -82,7 +83,9 @@ async function renderPage(source, destination, options) {
     markdown = markdown.replaceAll('(README.md)', '(../spec/)');
   }
   if (source === 'conformance/README.md') {
-    markdown = markdown.replaceAll('../site/assets/', '../assets/');
+    markdown = markdown
+      .replaceAll('../site/assets/', '../assets/')
+      .replaceAll('../TRADEMARKS.md', '../trademarks/');
   }
   let body = addHeadingIds(marked.parse(markdown, { gfm: true }))
     .replace(/<blockquote>\s*<p>\[!WARNING\]\s*/g, '<blockquote class="warning">\n<p>');
@@ -125,7 +128,11 @@ async function build() {
   });
   await renderPage('LICENSE.md', 'license', {
     title: 'Licence',
-    description: 'Licence terms for the Opalinx specification.',
+    description: 'Apache License 2.0 terms for the Opalinx specification.',
+  });
+  await renderPage('TRADEMARKS.md', 'trademarks', {
+    title: 'Trademark policy',
+    description: 'Opalinx trademark, branding, and certification policy.',
   });
   await cp(path.join(root, 'conformance', 'vectors.json'), path.join(output, 'conformance', 'vectors.json'));
   await cp(path.join(root, 'conformance', 'schema.json'), path.join(output, 'conformance', 'schema.json'));

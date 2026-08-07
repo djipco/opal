@@ -1,117 +1,201 @@
-# Opalinx Noncommercial Licence 1.0
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-Copyright © 2026 Jean-Philippe Cô. All rights reserved except as expressly granted below.
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-By exercising any permission granted by this licence, you accept its terms.
+   1. Definitions.
 
-## 1. Scope
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
 
-This licence applies to the Opalinx materials distributed with it, including specifications,
-documentation, conformance data, software, and artwork (the **Materials**). It does not apply to
-third-party material identified as being under separate terms.
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
 
-The text of this licence is the **Licence Text** and is not part of the Materials.
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
 
-The **Opalinx Marks** are the Opalinx name, logo, certification marks, badges, and related branding.
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
 
-## 2. Free noncommercial use
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
 
-Subject to this licence, the licensor grants you a worldwide, non-exclusive, royalty-free copyright
-licence to use, reproduce, and distribute unmodified copies of the Materials solely for
-noncommercial purposes. The licensor also permits you, solely for those purposes, to create and use
-an independent implementation of the Opalinx protocol without modifying or incorporating the
-Materials.
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
 
-The licensor also grants, solely for noncommercial purposes, a licence under any patent claims the
-licensor can license that are necessarily infringed by implementing or using the Opalinx protocol or
-exercising the permissions granted by this licence.
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
 
-Noncommercial purposes include personal projects, education, academic or public-interest research,
-evaluation, and testing without an intended commercial application. A business may evaluate and test
-Opalinx internally, but production use supporting commercial activity is not noncommercial use.
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
 
-You may publish reviews, tutorials, commentary, news, and other editorial content about Opalinx,
-including monetized editorial content, and may reproduce reasonable excerpts of the Materials for
-that purpose. The excerpts must not substitute for the Materials or imply certification,
-endorsement, or official status.
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
 
-## 3. Commercial use
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
 
-This licence grants no permission to use the Materials, or any patent claims licensed under this
-licence, for commercial purposes. Commercial use includes using the Materials or an Opalinx
-implementation to develop, manufacture, market, provide, or support any product or service that is
-sold, licensed, rented, subscription-funded, advertising-funded, or otherwise intended for
-commercial advantage or monetary compensation. This includes hardware, firmware, software, plugins,
-integrations, and hosted services.
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
 
-An end user does not need a separate licence merely to use a product or service supplied by the
-licensor or under a valid commercial licence, including in the end user's commercial activities.
-This exception does not permit developing, manufacturing, distributing, or supplying a separate
-Opalinx implementation.
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
 
-To the extent a commercial implementation requires permission under rights controlled by the
-licensor, it requires a separate written commercial licence. To obtain one, send a message to
-<licence@djip.co>.
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
 
-This licence governs only rights the licensor can grant. It does not restrict conduct for which
-applicable law requires no permission from the licensor.
+      (a) You must give any other recipients of the Work or Derivative
+          Works a copy of this License; and
 
-## 4. Distribution and contributions
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
 
-Every complete or substantial copy of the Materials that you distribute must preserve their
-substantive content and include the Licence Text and the copyright notice above. This licence grants
-no permission to distribute versions of the Materials with altered substantive content.
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
 
-Technical changes necessary to store, transmit, package, build, or display the Materials are
-permitted if they do not alter their substantive content. Such changes do not create modified
-Materials for purposes of this licence. Compiling unmodified source code does not by itself create
-modified Materials.
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and do
+          not modify the License. You may add Your own attribution notices
+          within Derivative Works that You distribute, alongside or as an
+          addendum to the NOTICE text from the Work, provided that such
+          additional attribution notices cannot be construed as modifying
+          the License.
 
-You may reproduce and distribute the Licence Text only verbatim and only with Materials to which the
-licensor has applied it. This licence grants no permission to modify the Licence Text or distribute a
-modified version of it.
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions for
+      use, reproduction, or distribution of Your modifications, or for any
+      such Derivative Works as a whole, provided Your use, reproduction, and
+      distribution of the Work otherwise complies with the conditions stated
+      in this License.
 
-Recipients receive permissions directly from the licensor under this licence. You may not impose
-terms that purport to replace or restrict those permissions for the Materials themselves.
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
 
-You may create and publish a fork, branch, patch, or pull request containing proposed modifications
-solely for submission to and review by the licensor through a contribution process designated by the
-licensor. You may not distribute the modified Materials for any other purpose.
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
 
-By intentionally submitting such a contribution, you grant the licensor a perpetual, worldwide,
-irrevocable, royalty-free licence, with the right to sublicense and relicense, to use, reproduce,
-modify, distribute, and license that contribution under any terms. You represent that you have the
-authority to grant these rights and, to the extent permitted by law, waive and agree not to assert
-moral rights in the contribution.
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
 
-## 5. Name, logo, and certification
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
 
-This licence permits limited use of the word **Opalinx** solely to identify the protocol or make a
-truthful compatibility reference. Such use must not imply certification, endorsement, partnership,
-or official status.
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
 
-No permission is granted to use an Opalinx Mark as a product or service name, company name, domain
-name, logo, certification mark, badge, or other branding. The Opalinx logo and the terms **Official
-Opalinx** and **Opalinx Certified** require prior written permission. Compatibility does not itself
-mean certification.
+   END OF TERMS AND CONDITIONS
 
-## 6. Termination
+   APPENDIX: How to apply the Apache License to your work.
 
-Your rights under this licence terminate automatically if you violate its terms. If this is your
-first violation and you fully correct it within 30 days after receiving written notice, your rights
-are reinstated retroactively. Otherwise, reinstatement requires written permission from the licensor.
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
 
-Termination does not affect accrued claims. The provisions concerning contributions, marks,
-disclaimers, limitations of liability, and general interpretation survive termination.
+   Copyright 2026 Jean-Philippe Cô
 
-## 7. No warranty; limitation of liability
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-To the maximum extent permitted by law, the Materials are provided **as is**, without warranties or
-conditions of any kind, express or implied. The licensor will not be liable for any claim, damages,
-or other liability arising from the Materials or their use, under any legal theory.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-## 8. General
-
-This licence does not waive fair use, fair dealing, or any other limitation or exception provided by
-law. If any provision is unenforceable, the remaining provisions continue in effect. A failure to
-enforce a provision is not a waiver. No rights are granted except as expressly stated.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.

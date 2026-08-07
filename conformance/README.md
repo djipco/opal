@@ -48,8 +48,8 @@ The [`schema.json`](schema.json) file defines the corpus format. It uses JSON Sc
 
 Official badges distinguish device conformance from host conformance and identify the applicable
 protocol version. Passing the public conformance corpus does not by itself grant certification or
-permission to use a badge. The badges are reserved Opalinx certification marks and may be used only
-with written permission under a valid commercial licence.
+permission to use a badge. The badges are reserved Opalinx marks and may be used only under a
+separate written badge licence. See the [trademark and certification policy](../TRADEMARKS.md).
 
 <div class="badge-gallery">
   <figure>
